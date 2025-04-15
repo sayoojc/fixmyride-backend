@@ -1,17 +1,16 @@
+// src/utils/errors/AppError.ts
+
 export class AppError extends Error {
-    statusCode: number;
-    details?: { message: string; field?: string }[];
-  
-    constructor(message: string, statusCode: number = 500, details?: { message: string; field?: string }[]) {
-      super(message);
-      this.statusCode = statusCode;
-      this.details = details;
-  
-      // Set the prototype explicitly for extending Error
-      Object.setPrototypeOf(this, AppError.prototype);
-    }
-  
-    serializeErrors() {
-      return this.details ?? [{ message: this.message }];
-    }
+  public statusCode: number;
+  public isOperational: boolean;
+
+  constructor(message: string, statusCode = 500, isOperational = true) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+
+    // Required for extending built-ins like Error
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace(this);
   }
+}

@@ -8,22 +8,21 @@ import { MailRepository } from "../repositories/mail.repo";
 import { UserRepository } from "../repositories/user.repo";
 import { TempUserRepository } from "../repositories/tempUser.repo";
 import { RefreshTokenRepository } from "../repositories/refreshToken.repo";
-import { VerifyTokenMiddleware } from "../middlewares/verify-token";  // ✅ Import middleware
 
 import TempUserModel from "../models/tempUser.model";
 import UserModel from "../models/user.model";
 import RefreshTokenModel from "../models/refreshToken.model";
 
-// ✅ Initialize Inversify container
+
 const container = new Container();
 
-// ✅ Bind repositories
+
 container.bind<MailRepository>(MailRepository).toSelf();
 container.bind<UserRepository>(UserRepository).toConstantValue(new UserRepository(UserModel));
 container.bind<TempUserRepository>(TempUserRepository).toConstantValue(new TempUserRepository(TempUserModel));
 container.bind<RefreshTokenRepository>(RefreshTokenRepository).toConstantValue(new RefreshTokenRepository(RefreshTokenModel));
 
-// ✅ Bind services
+
 container.bind<MailService>(MailService).toSelf();
 container.bind<AuthService>(AuthService).toDynamicValue(() => {
   const userRepo = container.get<UserRepository>(UserRepository);
@@ -37,8 +36,7 @@ container.bind<AdminService>(AdminService).toDynamicValue(() => {
   return new AdminService(userRepo);
 });
 
-container.bind<VerifyTokenMiddleware>(VerifyTokenMiddleware).toSelf();
-// ✅ Bind controller
+
 container.bind<AuthController>(AuthController).toSelf();
 container.bind<AdminController>(AdminController).toSelf();
 

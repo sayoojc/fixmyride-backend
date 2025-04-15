@@ -4,22 +4,28 @@ export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
-  phone: string;
-  address: string;
+  phone?: string;
+  address?: string;
   role: "user" | "admin" | "provider";
   isListed: boolean;
-  password: string;
+  password?: string;
+  profilePicture?: string,
+  googleId?:string;
+  provider?:"local" | "google";
 }
 
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    phone: { type: String, unique: true },
+    phone: { type: String, unique: true, sparse: true },
     address: { type: String },
-    role: { type: String, enum: ["user", "admin","provider"], default: "user" },
+    role: { type: String, enum: ["user", "admin", "provider"], default: "user" },
     isListed: { type: Boolean, default: true },
-    password: { type: String, required: true },
+    password: { type: String }, // now optional
+    profilePicture: { type: String, default: "" },
+    googleId: { type: String, unique: true, sparse: true },
+    provider: { type: String, enum: ["local", "google"], default: "local" },
   },
   { timestamps: true }
 );

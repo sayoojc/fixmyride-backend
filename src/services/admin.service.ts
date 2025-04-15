@@ -2,7 +2,7 @@ import { UserRepository } from "../repositories/user.repo";
 type SanitizedUser = {
     name:string;
     email:string;
-    phone:string;
+    phone?:string;
     role:string;
     isListed:boolean;
 }

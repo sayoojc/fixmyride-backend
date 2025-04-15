@@ -7,8 +7,8 @@ export class MailService {
     @inject(MailRepository) private mailRepository: MailRepository
   ) {}
 
-  async sendWelcomeEmail(email: string, subject: string): Promise<void> {
-    const html = `<h1>Welcome!</h1><p>Thank you for joining us.</p>`;
+  async sendWelcomeEmail(email: string, subject: string,html:string): Promise<void> {
+   
 
     const mailOptions: MailOptions = {
       to: email,

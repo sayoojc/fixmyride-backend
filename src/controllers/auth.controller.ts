@@ -4,7 +4,8 @@ import { AuthService } from "../services/auth.service";
 import { MailService } from "../services/mail.service";
 import { UserRepository } from "../repositories/user.repo";
 import { authenticator } from "otplib";
-
+import { NotFoundError } from "../errors/notFoundError";
+import { UnauthorizedError } from "../errors/unauthorizedError";
 
 
 @injectable()
@@ -40,6 +41,7 @@ export class AuthController {
       // Send OTP email
       await this.mailService.sendWelcomeEmail(
         email,
+        'Sign up OTP',
         `Welcome to FixMyRide. Your OTP is ${otp}`
       );
 
@@ -102,11 +104,9 @@ export class AuthController {
    */
   async userLogin(req: Request, res: Response): Promise<void> {
     try {
-      console.log('The user login function from the controller')
       const { email, password } = req.body;
-      console.log('The email and password',email,password);
      const {user,accessToken,refreshToken} = await this.authService.userLogin(email,password);
-     console.log('user,accesstoken,refreshtoken',user,accessToken,refreshToken)
+    
      const { password:userPassword, ...userWithoutPassword } = user.toObject(); 
      res.cookie("accessToken", accessToken, {
       httpOnly: true,
@@ -127,7 +127,17 @@ export class AuthController {
       res.status(200).json({ message: "Login successful", user:userWithoutPassword });
     } catch (error) {
       console.error("Error during login:", error);
-      res.status(500).json({ message: "Server error" });
+
+  if (error instanceof NotFoundError || error instanceof UnauthorizedError) {
+    console.log('the error message from the user login fromn the auth dcontroller',error.message)
+    res.status(error.statusCode || 401).json({ message: error.message });
+    return 
+  
+  }
+
+  res.status(500).json({ message: "Server error" });
+  return
+  
     }
   }
 //admin login
@@ -195,7 +205,8 @@ export class AuthController {
   async logout(req: Request, res: Response) {
     try {
       const result = await this.authService.logout();
-      res.clearCookie("accessToken");  // Clear token from cookie
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
       res.status(200).json({ message: "User logged out successfully" });
     } catch (error) {
       console.error("Logout error:", error);
@@ -205,8 +216,9 @@ export class AuthController {
 
   async adminLogout(req: Request, res: Response) {
     try {
-      res.clearCookie("adminToken");
-      res.status(200).json({ message: "Admin logged out successfully" });
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      res.status(200).json({ message: "admin logged out successfully" });
     } catch (error) {
       console.error("Admin logout error:", error);
       res.status(500).json({ message: "Failed to logout" });
@@ -216,7 +228,8 @@ export class AuthController {
  
   async providerLogout(req: Request, res: Response) {
     try {
-      res.clearCookie("providerToken");
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
       res.status(200).json({ message: "Provider logged out successfully" });
     } catch (error) {
       console.error("Provider logout error:", error);
@@ -229,33 +242,74 @@ export class AuthController {
 
   async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
-    console.log('The auth controller function hits for the forgot password')
-      
-      const { email} = req.body;
-    // Store temporary user data
-      const user = await this.authService.forgotPassword(email);
-      console.log('tempUser',user);
-        // Generate OTP and secret
-    const secret = authenticator.generateSecret();
-    const otp = authenticator.generate(secret);
-
-    console.log(`OTP: ${otp}, Secret: ${secret}`);
-      // Send OTP email
-      if(user){
+      console.log('The auth controller function hits for the forgot password');
+  
+      const { email } = req.body;
+      const { user, token } = await this.authService.forgotPassword(email);
+  
+      if (user) {
+        const resetUrl = `http://localhost:3000/reset-password/${token}`; 
+        
         await this.mailService.sendWelcomeEmail(
           email,
-          `Your change password OTP is ${otp}`
+          'Reset your password',
+          `
+          <p>Click the link below to reset your password:</p>
+          <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+        `
         );
       }
-       res.status(200).json({ 
-          success: true, 
-          message: "If email exists otp is send", 
-        });
-        
+  
+      res.status(200).json({
+        success: true,
+        message: "If email exists, a reset link has been sent",
+      });
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
     }
   }
+  
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const {token,password} = req.body;
+      const result = await this.authService.resetPassword(token,password);
+      res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+      res.status(400).json({ message: (error as Error).message });
+    }
+  }
+  
+
+  // async refreshToken(
+  //   req: Request,
+  //   res: Response,
+  //   next: NextFunction
+  // ): Promise<void> {
+  //   try {
+  //     const refreshToken = req.cookies.refreshToken;
+  //     if (!refreshToken) throw new AppError("No Token", 401);
+
+  //     const data = await this.authService.refreshToken(refreshToken);
+  //     if (!data) {
+  //       throw new AppError("Unauthorized", 406);
+  //     }
+  //     res.cookie("refreshToken", data.refreshToken, {
+  //       httpOnly: true,
+  //       sameSite: "strict",
+  //       secure: true,
+  //       maxAge: 24 * 60 * 60 * 1000,
+  //     });
+  //     res.status(201).json({
+  //       accessToken: data.accessToken,
+  //       id: data.id,
+  //       name: data.name,
+  //       role: data.role,
+  //       verified: data.verified,
+  //     });
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // }
  
 }
 

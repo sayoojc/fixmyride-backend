@@ -1,7 +1,7 @@
 import express from "express";
 import container from "../containers/container";
 import { AuthController } from "../controllers/auth.controller";
-
+import { authenticateGoogle,googleCallback,googleController } from "../services/googleServices";
 const router = express.Router();
 
 // ✅ Resolve the AuthController instance using the DI container
@@ -69,8 +69,10 @@ router.post("/providerlogout", (req, res) => authController.providerLogout(req, 
 router.post("/forgotPassword",(req,res) => authController.forgotPassword(req,res));
 
 
-// router.post("/resetPassword",(req,res) => authController.resetPassword(req,res));
+router.post("/reset-password",(req,res) => authController.resetPassword(req,res));
 
+router.get("/google", authenticateGoogle);
+router.get("/google/callback", googleCallback, googleController);
 
 
 export default router;
