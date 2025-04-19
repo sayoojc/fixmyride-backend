@@ -1,9 +1,6 @@
 
 import { UserRepository } from "../repositories/user.repo";
-import { TempUserRepository } from "../repositories/tempUser.repo";
-import { RefreshTokenRepository } from '../repositories/refreshToken.repo'
 import { IUser } from "../models/user.model";
-import { ITempUser } from "../models/tempUser.model";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken";
 import { hashPassword } from "../utils/hashPassword";
 import { validateOtp } from "../utils/otpValidator";
@@ -24,17 +21,11 @@ type TempUser = {
 
 export class AuthService {
   private userRepository: UserRepository;
-  private tempUserRepository: TempUserRepository;
-  private refreshTokenRepository:RefreshTokenRepository;
 
   constructor(
     userRepository: UserRepository,
-    tempUserRepository: TempUserRepository,
-    refreshTokenRepository : RefreshTokenRepository
   ) {
     this.userRepository = userRepository;
-    this.tempUserRepository = tempUserRepository;
-    this.refreshTokenRepository = refreshTokenRepository
   }
 
   async refreshToken(token: string): Promise<{
@@ -95,7 +86,7 @@ export class AuthService {
       return null;
     }
   }
-  async registerTempUser(userData: Partial<ITempUser>): Promise<TempUser> {
+  async registerTempUser(userData:Partial<TempUser>): Promise<TempUser> {
     const { name, email, phone, password, otp } = userData;
   
     if (!name || !email || !phone || !password || !otp) {
@@ -212,18 +203,18 @@ export class AuthService {
    return {user,accessToken,refreshToken}
   }
 
-  async validateToken(userId: string) {
-    try {
+  // async validateToken(userId: string) {
+  //   try {
     
-      const storedTokens = await this.refreshTokenRepository.findAllByUser(userId);
+  //     const storedTokens = await this.refreshTokenRepository.findAllByUser(userId);
   
       
-      return storedTokens;
-    } catch (error) {
-      console.error("Error validating token:", error);
-      throw new Error("Failed to validate token");
-    }
-  }
+  //     return storedTokens;
+  //   } catch (error) {
+  //     console.error("Error validating token:", error);
+  //     throw new Error("Failed to validate token");
+  //   }
+  // }
 
 
   async adminLogin(

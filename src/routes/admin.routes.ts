@@ -11,5 +11,15 @@ router.get("/getData",verifyToken,(req,res) => adminController.fetchUsers(req,re
 
 router.patch('/toggleListing',verifyToken,(req,res) => adminController.toggleListing(req,res));
 
+router.post('/add-brand',verifyToken,(req,res) => adminController.addBrand(req,res));
+
+router.get('/get-brands',verifyToken,(req,res) => adminController.getBrands(req,res));
+
+router.post('/add-model',verifyToken,(req,res) => adminController.addModel(req,res));
+
+router.patch('/toggle-brand-status',verifyToken,(req,res) => adminController.toggleBrandStatus(req,res));
+
+router.patch('/update-brand',verifyToken,(req,res) => adminController.updateBrand(req,res));
+
 
 export default router;
