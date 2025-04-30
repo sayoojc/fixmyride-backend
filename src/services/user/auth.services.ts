@@ -1,13 +1,13 @@
 
-import { UserRepository } from "../repositories/user.repo";
-import { IUser } from "../models/user.model";
-import { generateAccessToken, generateRefreshToken } from "../utils/generateToken";
-import { hashPassword } from "../utils/hashPassword";
-import { validateOtp } from "../utils/otpValidator";
-import { UnauthorizedError } from "../errors/unauthorizedError";
-import { NotFoundError } from "../errors/notFoundError";
+import { UserRepository } from "../../repositories/user.repo";
+import { IUser } from "../../models/user.model";
+import { generateAccessToken, generateRefreshToken } from "../../utils/generateToken";
+import { hashPassword } from "../../utils/hashPassword";
+import { validateOtp } from "../../utils/otpValidator";
+import { UnauthorizedError } from "../../errors/unauthorizedError";
+import { NotFoundError } from "../../errors/notFoundError";
 import bcrypt from "bcrypt";
-import redis from "../config/redisConfig";
+import redis from "../../config/redisConfig";
 import jwt,{JwtPayload} from 'jsonwebtoken';
 
 type TempUser = {
@@ -19,7 +19,7 @@ type TempUser = {
     createdAt:Date;
 }
 
-export class AuthService {
+export class UserAuthService {
   private userRepository: UserRepository;
 
   constructor(
@@ -28,64 +28,64 @@ export class AuthService {
     this.userRepository = userRepository;
   }
 
-  async refreshToken(token: string): Promise<{
-    accessToken: string;
-    id: string;
-    role: string;
-    name: string;
-    email: string;
-    refreshToken: string;
-  } | null> {
-    try {
-      const payload = jwt.verify(
-        token,
-        process.env.JWT_REFRESH_TOKEN_SECRET!
-      ) as null | JwtPayload;
+//   async refreshToken(token: string): Promise<{
+//     accessToken: string;
+//     id: string;
+//     role: string;
+//     name: string;
+//     email: string;
+//     refreshToken: string;
+//   } | null> {
+//     try {
+//       const payload = jwt.verify(
+//         token,
+//         process.env.JWT_REFRESH_TOKEN_SECRET!
+//       ) as null | JwtPayload;
 
-      if (!payload) {
-        return null;
-      }
-      const userExists = await redis.get(`refreshToken:${payload.id}`);
-      if (!userExists) {
-        return null;
-      }
-      const user = await this.userRepository.findUserById(payload.id);
-      if (!user || !user.isListed) {
-        return null;
-      }
+//       if (!payload) {
+//         return null;
+//       }
+//       const userExists = await redis.get(`refreshToken:${payload.id}`);
+//       if (!userExists) {
+//         return null;
+//       }
+//       const user = await this.userRepository.findUserById(payload.id);
+//       if (!user || !user.isListed) {
+//         return null;
+//       }
 
-      const accessToken = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_ACCESS_TOKEN_SECRET!,
-        { expiresIn: "15m" }
-      );
-      // Creating refresh token everytime /refresh endpoint hits (Refresh token rotation)
-      const refreshToken = jwt.sign(
-        { id: user.id },
-        process.env.JWT_REFRESH_TOKEN_SECRET!,
-        { expiresIn: "1d" }
-      );
+//       const accessToken = jwt.sign(
+//         { id: user.id, email: user.email, role: user.role },
+//         process.env.JWT_ACCESS_TOKEN_SECRET!,
+//         { expiresIn: "15m" }
+//       );
+//       // Creating refresh token everytime /refresh endpoint hits (Refresh token rotation)
+//       const refreshToken = jwt.sign(
+//         { id: user.id },
+//         process.env.JWT_REFRESH_TOKEN_SECRET!,
+//         { expiresIn: "1d" }
+//       );
 
-      //storing the refresh token in redis
-      await redis.set(
-        `refreshToken:${user.id}`,
-        refreshToken,
-        "EX",
-        60 * 60 * 24
-      );
+//       //storing the refresh token in redis
+//       await redis.set(
+//         `refreshToken:${user.id}`,
+//         refreshToken,
+//         "EX",
+//         60 * 60 * 24
+//       );
 
-      return {
-        accessToken,
-        id: user.id,
-        role: user.role,
-        name: user.name,
-        email: user.email,
-        refreshToken,
-      };
-    } catch (error) {
-      return null;
-    }
-  }
+//       return {
+//         accessToken,
+//         id: user.id,
+//         role: user.role,
+//         name: user.name,
+//         email: user.email,
+//         refreshToken,
+//       };
+//     } catch (error) {
+//       return null;
+//     }
+//   }
   async registerTempUser(userData:Partial<TempUser>): Promise<TempUser> {
     const { name, email, phone, password, otp } = userData;
   
@@ -202,106 +202,11 @@ export class AuthService {
 
    return {user,accessToken,refreshToken}
   }
-
-  // async validateToken(userId: string) {
-  //   try {
-    
-  //     const storedTokens = await this.refreshTokenRepository.findAllByUser(userId);
-  
-      
-  //     return storedTokens;
-  //   } catch (error) {
-  //     console.error("Error validating token:", error);
-  //     throw new Error("Failed to validate token");
-  //   }
-  // }
-
-
-  async adminLogin(
-    email: string,
-    password: string
-  ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
-    
-    
-    const user = await this.userRepository.findUserByEmail(email);
-    if (!user) {
-      throw new Error("User doesn't exist");
-    }
-
-   
-    if (user.role !== "admin") {
-      throw new Error("Access denied: Not an admin");
-    }
-    if(!user.password){
-      throw new UnauthorizedError('invalid credentials')
-    }
-   
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      throw new Error("Incorrect password");
-    }
-
-   
-    const accessToken = generateAccessToken(user._id.toString(), "admin");
-    const refreshToken = generateRefreshToken(user._id.toString(), "admin");
-
-   
-    const refreshTokenKey = `refreshToken:admin:${user._id}`;
-    const refreshTokenExpirySeconds = 7 * 24 * 60 * 60; // 7 days in seconds
-    await redis.set(refreshTokenKey, refreshToken, 'EX', refreshTokenExpirySeconds);
-
-    return { user, accessToken, refreshToken };
-  }
-  async providerLogin(
-    email: string,
-    password: string
-  ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
-    
-    
-    const user = await this.userRepository.findUserByEmail(email);
-    if (!user) {
-      throw new Error("User doesn't exist");
-    }
-
-    
-    if (user.role !== "provider") {
-      throw new Error("Access denied: Not a provider");
-    }
-
-    if(!user.password){
-      throw new UnauthorizedError('invalid credentials')
-    }
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      throw new Error("Incorrect password");
-    }
-
-    
-    const accessToken = generateAccessToken(user._id.toString(), "provider");
-    const refreshToken = generateRefreshToken(user._id.toString(), "provider");
-
-    
-    const refreshTokenKey = `refreshToken:provider:${user._id}`;
-    const refreshTokenExpirySeconds = 7 * 24 * 60 * 60; // 7 days in seconds
-    await redis.set(refreshTokenKey, refreshToken, 'EX', refreshTokenExpirySeconds);
-
-    return { user, accessToken, refreshToken };
-  }
-
   
   async getRefreshTokenFromRedis(userId: string): Promise<string | null> {
     const redisKey = `refreshToken:user:${userId}`; // Or `refreshToken:admin:${userId}` if applicable
     return await redis.get(redisKey);
   }
-  
-
-  async logout(){
-   
-  }
-
-
- 
-
   async forgotPassword(email: string): Promise<{ user: IUser; token: string }> {
     console.log('The forgot Password function from the auth service');
   

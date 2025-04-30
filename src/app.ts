@@ -5,14 +5,26 @@ import http from "http";
 import cors from "cors";
 import { json, urlencoded } from "express";
 import connectdb from "./config/dbConfig";
-import authRoutes from "./routes/auth.routes"; 
-import adminRoutes from "./routes/admin.routes"
-import userRoutes from './routes/user.routes'
+// import authRoutes from "./routes/auth.routes"; 
+
+
+import adminUserRoutes from './routes/admin/user.routes'
+import adminBrandRoutes from './routes/admin/brand.routes'
+import adminModelRoutes from './routes/admin/model.routes'
+import userAddressRoutes from './routes/user/address.routes'
+import userBrandRoutes from './routes/user/brand.routes'
+import userProfileRoutes from './routes/user/profile.routes'
+import adminAuthRoutes from './routes/admin/auth.routes'
+import userAuthRoutes from './routes/user/auth.routes'
+import providerAuthRoutes from './routes/provider/auth.routes'
+import providerProfileRoutes from './routes/provider/profile.routes'
 import cookieParser from 'cookie-parser';
 import { errorHandler } from "./middlewares/errorHandler";
 import { StatusCode } from "./enums/statusCode.enum";
 import passport from 'passport';
 import './config/passport'
+import { authenticateGoogle } from "./services/googleServices";
+import { googleCallback,googleController } from "./services/googleServices";
 
 
 
@@ -33,9 +45,27 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(passport.initialize());
-app.use("/api/admin", adminRoutes);   
-app.use("/api/auth", authRoutes);
-app.use('/api/user',userRoutes);
+app.get("/api/google", authenticateGoogle);
+
+app.get("/api/google/callback", googleCallback, googleController);
+///admin routes
+app.use("/api/admin",adminAuthRoutes);
+app.use("/api/admin",adminUserRoutes);
+app.use("/api/admin",adminBrandRoutes); 
+app.use("/api/admin",adminModelRoutes); 
+
+///user routes
+app.use("/api/user",userAuthRoutes);
+app.use("/api/user",userAddressRoutes);
+app.use("/api/user",userBrandRoutes);
+app.use("/api/user",userProfileRoutes);
+
+//provider routes
+app.use("/api/provider",providerAuthRoutes);
+app.use("/api/provider",providerProfileRoutes)
+
+
+
 
  
  app.use("*",(req,res,next)=>{
