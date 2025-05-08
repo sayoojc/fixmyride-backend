@@ -1,6 +1,6 @@
 import { ProviderRepository } from "../../repositories/provider.repo";
-import { formatAddress } from "../../utils/address";
 import { VerificationRepository } from "../../repositories/verification.repo";
+import { IServiceProvider } from "../../models/provider.model";
 
 type SanitizedProvider = {
   name: string;
@@ -13,6 +13,7 @@ export  interface VerificationFormData {
   licenseImage: string
   idProofImage: string
   accountHolderName: string
+  bankName:string
   ifscCode: string
   accountNumber: string
   startedYear: string
@@ -26,20 +27,15 @@ export class ProviderProfileService {
 async getProfileData(id:string):Promise<SanitizedProvider|undefined>{
         try {
             const user = await this.providerRepository.findOne({_id:id});
-          
-           
-            if(!user){
+          if(!user){
                 throw new Error('User details not found')
             }
-            const address = `${user.address?.street},${user.address?.city},${user.address?.state},${user.address?.pinCode}`
-          const sanitizedUser = {
-            id:user._id,
-            name:user.name,
-            email:user.email,
-            phone:user.phone,
-            address:address,
-            isListed:user.isListed
-          }  
+            const { password, address: rawAddress, ...rest } = user.toObject(); 
+            const address = `${rawAddress?.street || ""}, ${rawAddress?.city || ""}, ${rawAddress?.state || ""}, ${rawAddress?.pinCode || ""}`;
+            const sanitizedUser = {
+              ...rest,
+              address,
+            };
           return sanitizedUser
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -49,18 +45,18 @@ async getProfileData(id:string):Promise<SanitizedProvider|undefined>{
   
 
   async verifyProvider(data: VerificationFormData, providerId: string) {
-    // ✅ Validation
     const requiredFields: (keyof VerificationFormData)[] = [
       "licenseImage",
       "idProofImage",
       "accountHolderName",
+      "bankName",
       "ifscCode",
       "accountNumber",
       "startedYear",
       "description",
     ];
-
-    // ✅ Upsert (insert if new, update if exists)
+     const updatedProvider =  await this.providerRepository.updateProviderById(providerId,{verificationStatus:"pending"});
+     console.log('updated provider from verify provider',updatedProvider);
     const result = await this.verificationRepository.upsertVerification(providerId, {
       ...data,
       status: "pending",
@@ -70,6 +66,14 @@ async getProfileData(id:string):Promise<SanitizedProvider|undefined>{
     return result;
   }
 
+  async updateProfile(data: Partial<IServiceProvider>): Promise<IServiceProvider | null> {
+    if (!data._id) {
+      console.log('id is not present in the update profile service function');
+      throw new Error("Provider ID is required for updating profile");
+    }
 
+    const updatedProvider = await this.providerRepository.updateProviderById(data._id.toString(), data);
+    return updatedProvider;
+  }
  
 }

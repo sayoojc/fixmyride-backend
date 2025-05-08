@@ -21,7 +21,7 @@ router.post("/adminlogin", (req, res) => adminAuthController.adminLogin(req, res
  * @desc    Admin logout
  * @access  Public
  */
-router.post("/adminlogout", (req, res) => adminAuthController.adminLogout(req, res));
+router.post("/logout", (req, res) => adminAuthController.adminLogout(req, res));
 
 
 export default router;

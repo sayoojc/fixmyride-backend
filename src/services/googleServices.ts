@@ -57,9 +57,14 @@ export const googleController = async (req: Request, res: Response): Promise<voi
   
   res.send(`
     <script>
-      window.opener.postMessage({}, "${process.env.CLIENT_URL}");
-      console.log("Closing window");
+      window.opener.postMessage(${JSON.stringify({
+        id: user?._id || provider?._id,
+        name: user?.name || provider?.name,
+        role: user ? "user" : "provider",
+        email: user?.email || provider?.email,
+      })}, "${process.env.CLIENT_URL}");
       window.close();
     </script>
   `);
+  
 };

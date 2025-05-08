@@ -9,6 +9,7 @@ const providerProfileController = container.get<ProviderProfileController>(Provi
 
 router.get("/get-profile-data",verifyToken,(req,res) => providerProfileController.getProfileData(req,res));
 router.post("/verify-provider",verifyToken,(req,res) => providerProfileController.verifyProvider(req,res));
+router.patch("/update-profile",verifyToken,(req,res) => providerProfileController.updateProfile(req,res));
 
 
 

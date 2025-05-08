@@ -39,8 +39,6 @@ passport.use(new GoogleStrategy(
       const profilePicture = profile._json.picture;
 
       const type = req.query.state;
-      console.log('req.query',req.query);
-      console.log('Google login/signup type:', type);
 
       if (type === 'user') {
         let user = await userRepository.findUserByEmail(email);

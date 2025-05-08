@@ -19,8 +19,9 @@ import { UserBrandController } from "../controllers/user/brand.controller";
 import { UserAddressController } from "../controllers/user/address.controller";
 import { AdminBrandController } from "../controllers/admin/brand.controller";
 import { AdminModelController } from "../controllers/admin/model.controller";
+import { AdminProviderController } from "../controllers/admin/provider.controller";
 
-
+import { AdminProviderService } from "../services/admin/provider.service";
 import { MailService } from "../services/mail.service";
 import { MailRepository } from "../repositories/mail.repo";
 import { UserRepository } from "../repositories/user.repo";
@@ -96,6 +97,12 @@ container.bind<AdminUserService>(AdminUserService).toDynamicValue(() => {
   return new AdminUserService(userRepo);
 })
 
+container.bind<AdminProviderService>(AdminProviderService).toDynamicValue(() => {
+  const providerRepo = container.get<ProviderRepository>(ProviderRepository);
+  const verificationRepo = container.get<VerificationRepository>(VerificationRepository)
+  return new AdminProviderService(providerRepo,verificationRepo);
+})
+
 container.bind<ProviderAuthService>(ProviderAuthService).toDynamicValue(() => {
   const userRepo = container.get<UserRepository>(UserRepository);
   const providerRepo = container.get<ProviderRepository>(ProviderRepository);
@@ -113,6 +120,7 @@ container.bind<AdminBrandController>(AdminBrandController).toSelf();
 container.bind<AdminModelController>(AdminModelController).toSelf();
 container.bind<AdminUserController>(AdminUserController).toSelf();
 container.bind<AdminAuthController>(AdminAuthController).toSelf();
+container.bind<AdminProviderController>(AdminProviderController).toSelf();
 
 container.bind<UserAddressController>(UserAddressController).toSelf();
 container.bind<UserBrandController>(UserBrandController).toSelf();

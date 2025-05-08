@@ -5,6 +5,7 @@ export interface IVerification extends Document {
   licenseImage: string;
   idProofImage: string;
   accountHolderName: string;
+  bankName:string;
   ifscCode: string;
   accountNumber: string;
   startedYear: string;
@@ -23,6 +24,7 @@ const verificationSchema = new Schema<IVerification>({
   licenseImage: { type: String, required: true },
   idProofImage: { type: String, required: true },
   accountHolderName: { type: String, required: true },
+  bankName: {type:String,required:true},
   ifscCode: { type: String, required: true },
   accountNumber: { type: String, required: true },
   startedYear: { type: String, required: true },

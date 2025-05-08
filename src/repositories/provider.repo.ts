@@ -10,6 +10,9 @@ export class ProviderRepository extends BaseRepository<IServiceProvider> {
   async findByCity(city: string): Promise<IServiceProvider[]> {
     return this.find({ "address.city": city });
   }
+  async updateProviderById(id: string, data: Partial<IServiceProvider>): Promise<IServiceProvider | null> {
+    return this.updateById(id, data);
+  }
 
   async findVerifiedProviders(): Promise<IServiceProvider[]> {
     return this.find({ isVerified: true });

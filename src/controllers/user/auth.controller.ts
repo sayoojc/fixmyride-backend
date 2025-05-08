@@ -63,10 +63,6 @@ export class UserAuthController {
   async register(req: Request, res: Response): Promise<void> {
     try {
       const { otpValue, email,phone } = req.body;
-      console.log("OTP Value:", otpValue);
-      console.log("Email:", email);
-      console.log("phone:", phone);
-
       // Register user after OTP validation
       const { user, accessToken,refreshToken } = await this.userAuthService.registerUser(
         otpValue,

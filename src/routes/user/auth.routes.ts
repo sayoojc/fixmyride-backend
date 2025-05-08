@@ -1,7 +1,6 @@
 import express from "express";
 import container from "../../containers/container";
 import { UserAuthController } from "../../controllers/user/auth.controller";
-import { authenticateGoogle,googleCallback,googleController } from "../../services/googleServices";
 const router = express.Router();
 
 const userauthController = container.get<UserAuthController>(UserAuthController);
