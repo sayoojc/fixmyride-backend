@@ -10,10 +10,10 @@ export class AdminModelController {
 
   async addModel(req: Request, res: Response): Promise<void> {
     try {
-      let { model, imageUrl, brandId } = req.body;
+      let { model, imageUrl, brandId,fuelTypes } = req.body;
       model = model[0].toUpperCase() + model.slice(1).toLowerCase();
 
-      const newModel = await this.adminModelService.addModel(model, imageUrl, brandId);
+      const newModel = await this.adminModelService.addModel(model, imageUrl, brandId,fuelTypes);
       res.status(201).json({
         success: true,
         message: `Model ${newModel.name} is created`,

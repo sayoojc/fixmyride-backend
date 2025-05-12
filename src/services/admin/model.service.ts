@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 export class AdminModelService {
   constructor(private modelRepository: ModelRepository) {}
 
-  async addModel(name: string, imageUrl: string, brandId: string): Promise<IModel> {
+  async addModel(name: string, imageUrl: string, brandId: string,fuelTypes:string[]): Promise<IModel> {
     const existingModel = await this.modelRepository.findModelByName(name);
     if (existingModel) throw new Error("Model already exists");
 
@@ -17,6 +17,7 @@ export class AdminModelService {
       name,
       imageUrl,
       brandId: brandObjectId,
+      fuelTypes
     });
   }
 

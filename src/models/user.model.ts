@@ -22,7 +22,7 @@ const UserSchema = new Schema<IUser>(
     address: { type: String },
     role: { type: String, enum: ["user", "admin", "provider"], default: "user" },
     isListed: { type: Boolean, default: true },
-    password: { type: String }, // now optional
+    password: { type: String },
     profilePicture: { type: String, default: "" },
     googleId: { type: String, unique: true, sparse: true },
     provider: { type: String, enum: ["local", "google"], default: "local" },

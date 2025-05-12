@@ -3,7 +3,7 @@ import { IVehicle } from "../models/vehicle.model";
 import { Model } from "mongoose";
 
 export class VehicleRepository extends BaseRepository<IVehicle> {
-  constructor(vehicleModel: Model<IVehicle>) {
+  constructor(private readonly vehicleModel: Model<IVehicle>) {
     super(vehicleModel);
   }
 
@@ -26,4 +26,8 @@ export class VehicleRepository extends BaseRepository<IVehicle> {
   async deleteVehicle(vehicleId: string): Promise<void> {
      this.deleteById(vehicleId);
   }
+  async findVehicleDataPopulatedByUserId(userId:string) : Promise<IVehicle[] | null> {
+   return  this.vehicleModel.find({userId:userId}).populate("brandId").populate("modelId")
+  }
+ 
 }

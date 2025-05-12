@@ -4,9 +4,10 @@ import { Model } from "mongoose";
 
 
 export class UserRepository extends BaseRepository<IUser> {
-  
+ private readonly userModel: Model<IUser>;
   constructor(userModel:Model<IUser>) {
-    super(userModel);  // Injecting the model
+    super(userModel);  
+    this.userModel = userModel;
   }
  
   async findUserByEmail(email: string): Promise<IUser | null> {

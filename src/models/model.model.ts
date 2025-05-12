@@ -6,6 +6,7 @@ export interface IModel extends Document {
   imageUrl: string;
   status:string,
   brandId: mongoose.Types.ObjectId; 
+  fuelTypes:string[]
 }
 
 const ModelSchema = new Schema<IModel>(
@@ -13,7 +14,8 @@ const ModelSchema = new Schema<IModel>(
     name: { type: String, required: true },
     imageUrl: { type: String, required: true },
     status: {type:String,required:true,default:"active"},
-    brandId: { type: Schema.Types.ObjectId, ref: "Brand", required: true }
+    brandId: { type: Schema.Types.ObjectId, ref: "Brand", required: true },
+    fuelTypes:{type:[String],required:true}
   },
   { timestamps: true }
 );

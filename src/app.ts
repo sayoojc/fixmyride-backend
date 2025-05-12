@@ -14,6 +14,7 @@ import adminModelRoutes from './routes/admin/model.routes'
 import userAddressRoutes from './routes/user/address.routes'
 import userBrandRoutes from './routes/user/brand.routes'
 import userProfileRoutes from './routes/user/profile.routes'
+import userVehicleRoutes from './routes/user/vehicle.routes'
 import adminAuthRoutes from './routes/admin/auth.routes'
 import adminProviderRoutes from './routes/admin/provider.routes'
 import userAuthRoutes from './routes/user/auth.routes'
@@ -61,6 +62,7 @@ app.use("/api/user",userAuthRoutes);
 app.use("/api/user",userAddressRoutes);
 app.use("/api/user",userBrandRoutes);
 app.use("/api/user",userProfileRoutes);
+app.use("/api/user",userVehicleRoutes)
 
 //provider routes
 app.use("/api/provider",providerAuthRoutes);

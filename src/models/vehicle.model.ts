@@ -3,23 +3,27 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IVehicle extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
-  make: string;
-  modelName: string;
+  brandId: mongoose.Types.ObjectId;
+  modelId: mongoose.Types.ObjectId;
   year: number;
+  isDefault:boolean;
   registrationNumber: string;
-  type?: string; // e.g. "car", "bike"
+  fuel: string;
 }
+
 
 const VehicleSchema = new Schema<IVehicle>(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    make: { type: String, required: true },
-    modelName: { type: String, required: true },
-    year: { type: Number, required: true },
-    registrationNumber: { type: String, required: true, unique: true },
-    type: { type: String },
+    brandId: { type: mongoose.Schema.Types.ObjectId, ref: "Brand", required: true },
+    modelId: { type: mongoose.Schema.Types.ObjectId, ref: "Model", required: true },
+    year: { type: Number},
+    isDefault: {type:Boolean,required:true,default:false},
+    registrationNumber: { type: String, unique: true,sparse:true },
+    fuel: { type: String, required: true },
   },
   { timestamps: true }
 );
+
 
 export default mongoose.model<IVehicle>("Vehicle", VehicleSchema);

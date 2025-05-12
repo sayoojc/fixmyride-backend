@@ -20,7 +20,9 @@ import { UserAddressController } from "../controllers/user/address.controller";
 import { AdminBrandController } from "../controllers/admin/brand.controller";
 import { AdminModelController } from "../controllers/admin/model.controller";
 import { AdminProviderController } from "../controllers/admin/provider.controller";
+import { UserVehicleController } from "../controllers/user/vehicle.controller";
 
+import { UserVehicleService } from "../services/user/vehicle.service";
 import { AdminProviderService } from "../services/admin/provider.service";
 import { MailService } from "../services/mail.service";
 import { MailRepository } from "../repositories/mail.repo";
@@ -36,10 +38,11 @@ import UserModel from "../models/user.model";
 import BrandModel from "../models/brand.model";
 import modelModel from "../models/model.model";
 import addressModel from "../models/adress.model";
+import vehicleModel from "../models/vehicle.model";
 import { ModelRepository } from "../repositories/model.repo";
 import { AdminUserService } from "../services/admin/user.service";
 import { AdminUserController } from "../controllers/admin/user.controller";
-
+import { VehicleRepository } from "../repositories/vehicle.repo";
 
 
 const container = new Container();
@@ -52,6 +55,7 @@ container.bind<ModelRepository>(ModelRepository).toConstantValue(new ModelReposi
 container.bind<AddressRepository>(AddressRepository).toConstantValue(new AddressRepository(addressModel));
 container.bind<ProviderRepository>(ProviderRepository).toConstantValue(new ProviderRepository(ProviderModel));
 container.bind<VerificationRepository>(VerificationRepository).toConstantValue(new VerificationRepository(VerificationModel));
+container.bind<VehicleRepository>(VehicleRepository).toConstantValue(new VehicleRepository(vehicleModel));
 
 container.bind<UserAuthService>(UserAuthService).toDynamicValue(() => {
   const userRepo = container.get<UserRepository>(UserRepository);
@@ -61,7 +65,8 @@ container.bind<UserAuthService>(UserAuthService).toDynamicValue(() => {
 container.bind<UserProfileService>(UserProfileService).toDynamicValue(() => {
   const addressRepo = container.get<AddressRepository>(AddressRepository);
   const userRepo = container.get<UserRepository>(UserRepository);
-  return new UserProfileService(userRepo,addressRepo);
+  const vehicleRepo = container.get<VehicleRepository>(VehicleRepository)
+  return new UserProfileService(userRepo,addressRepo,vehicleRepo);
 })
 
 container.bind<UserBrandService>(UserBrandService).toDynamicValue(() => {
@@ -76,6 +81,11 @@ container.bind<UserAddressService>(UserAddressService).toDynamicValue(() => {
   return new UserAddressService(userRepo,addressRepo);
 })
 
+container.bind<UserVehicleService>(UserVehicleService).toDynamicValue(() => {
+    const userRepo = container.get<UserRepository>(UserRepository);
+    const vehicleRepo = container.get<VehicleRepository>(VehicleRepository);
+    return new UserVehicleService(userRepo,vehicleRepo);
+})
 container.bind<AdminAuthService>(AdminAuthService).toDynamicValue(() => {
   const userRepo = container.get<UserRepository>(UserRepository);
   return new AdminAuthService(userRepo);
@@ -126,6 +136,7 @@ container.bind<UserAddressController>(UserAddressController).toSelf();
 container.bind<UserBrandController>(UserBrandController).toSelf();
 container.bind<UserProfileController>(UserProfileController).toSelf();
 container.bind<UserAuthController>(UserAuthController).toSelf();
+container.bind<UserVehicleController>(UserVehicleController).toSelf();
 
 container.bind<ProviderAuthController>(ProviderAuthController).toSelf();
 container.bind<ProviderProfileController>(ProviderProfileController).toSelf();

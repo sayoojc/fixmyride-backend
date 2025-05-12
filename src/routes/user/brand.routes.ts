@@ -8,5 +8,6 @@ const userController = container.get<UserBrandController>(UserBrandController)
 
 
 router.get("/get-brands",verifyToken,(req,res) => userController.getBrands(req,res));
+router.get("/get-brand-model-data",verifyToken,(req,res) => userController.getBrands(req,res));
 
 export default router;

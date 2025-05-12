@@ -32,4 +32,31 @@ export class UserProfileController {
       res.status(400).json({ message: (error as Error).message });
     }
   }
+  async updateProfile(req:Request,res:Response):Promise<void>{
+    try {
+      const {phone,userId,userName}  = req.body;
+      const updatedUser = await this.userProfileService.updateProfile(phone,userId,userName);
+      res.status(200).json({
+        success:true,
+        message:"User updated successfully",
+        user:updatedUser
+      });
+
+    } catch (error) {
+      res.status(400).json({message:(error as Error).message})
+    }
+  }
+  async changePassword(req:Request,res:Response):Promise<void>{
+    try {
+      const   {userId,currentPassword,newPassword} = req.body;
+      const updatedUser = await this.userProfileService.changePassword(userId,currentPassword,newPassword);
+      res.status(200).json({
+        success:true,
+        message:"password changed successfully",
+      });
+
+    } catch (error) {
+      res.status(400).json({message:(error as Error).message})
+    }
+  }
 }

@@ -8,7 +8,8 @@ const profileController = container.get<UserProfileController>(UserProfileContro
 
 
 router.get("/getProfileData",verifyToken,(req,res) => profileController.getProfileData(req,res));
-
+router.put("/update-profile",verifyToken,(req,res) => profileController.updateProfile(req,res));
+router.put("/change-password",verifyToken,(req,res) => profileController.changePassword(req,res));
 
 
 export default router;
