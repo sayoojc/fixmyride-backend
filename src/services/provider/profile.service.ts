@@ -56,7 +56,6 @@ async getProfileData(id:string):Promise<SanitizedProvider|undefined>{
       "description",
     ];
      const updatedProvider =  await this.providerRepository.updateProviderById(providerId,{verificationStatus:"pending"});
-     console.log('updated provider from verify provider',updatedProvider);
     const result = await this.verificationRepository.upsertVerification(providerId, {
       ...data,
       status: "pending",

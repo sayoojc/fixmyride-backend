@@ -10,6 +10,7 @@ export interface IVerification extends Document {
   accountNumber: string;
   startedYear: string;
   description: string;
+  adminNotes:string;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: Date;
 }
@@ -29,6 +30,7 @@ const verificationSchema = new Schema<IVerification>({
   accountNumber: { type: String, required: true },
   startedYear: { type: String, required: true },
   description: { type: String, required: true },
+  adminNotes:{type:String},
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],

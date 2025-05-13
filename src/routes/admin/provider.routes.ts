@@ -12,7 +12,7 @@ router.get("/get-providers",verifyToken,(req,res) => adminProviderController.fet
 router.get("/get-provider",verifyToken,(req,res) => adminProviderController.fetchProviderById(req,res));
 router.get("/get-verification-data",verifyToken,(req,res) => adminProviderController.fetchVerificationData(req,res));
 router.patch("/verify-provider",verifyToken,(req,res) => adminProviderController.verifyProvider(req,res));
-// router.patch('/toggle-user-listing',verifyToken,(req,res) => adminUserController.toggleListing(req,res));
+router.patch('/toggle-provider-listing',verifyToken,(req,res) => adminProviderController.toggleListing(req,res));
 
 export default router;
 

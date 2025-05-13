@@ -109,8 +109,9 @@ container.bind<AdminUserService>(AdminUserService).toDynamicValue(() => {
 
 container.bind<AdminProviderService>(AdminProviderService).toDynamicValue(() => {
   const providerRepo = container.get<ProviderRepository>(ProviderRepository);
-  const verificationRepo = container.get<VerificationRepository>(VerificationRepository)
-  return new AdminProviderService(providerRepo,verificationRepo);
+  const verificationRepo = container.get<VerificationRepository>(VerificationRepository);
+  const mailService = container.get<MailService>(MailService)
+  return new AdminProviderService(providerRepo,verificationRepo,mailService);
 })
 
 container.bind<ProviderAuthService>(ProviderAuthService).toDynamicValue(() => {

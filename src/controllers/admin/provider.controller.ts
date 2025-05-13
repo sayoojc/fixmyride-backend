@@ -52,8 +52,8 @@ export class AdminProviderController {
   }
   async verifyProvider(req:Request,res:Response):Promise<void> {
     try {
-      const {providerId,verificationAction} = req.body;
-      const updatedProvider = this.adminProviderService.verifyProvider(providerId,verificationAction);
+      const {providerId,verificationAction,adminNotes} = req.body;
+      const updatedProvider = this.adminProviderService.verifyProvider(providerId,verificationAction,adminNotes);
       if(!updatedProvider){
         throw Error('Error updating the provider');
       }
@@ -66,17 +66,17 @@ export class AdminProviderController {
       throw error
     }
   }
-//   async toggleListing(req: Request, res: Response): Promise<void> {
-//     try {
-//       const email = req.body.email;
-//       const updatedUser = await this.adminUserService.toggleListing(email);
-//       res.status(200).json({
-//         success: true ,
-//         message: `User has been ${updatedUser?.isListed ? 'unblocked' : 'blocked'}`,
-//         user: updatedUser,
-//       });
-//     } catch (error) {
-//       res.status(400).json({ message: (error as Error).message });
-//     }
-//   }
+  async toggleListing(req: Request, res: Response): Promise<void> {
+    try {
+      const id = req.body.providerId;
+      const updatedUser = await this.adminProviderService.toggleListing(id);
+      res.status(200).json({
+        success: true ,
+        message: `User has been ${updatedUser?.isListed ? 'unblocked' : 'blocked'}`,
+        user: updatedUser,
+      });
+    } catch (error) {
+      res.status(400).json({ message: (error as Error).message });
+    }
+  }
 }

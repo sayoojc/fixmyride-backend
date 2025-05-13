@@ -1,7 +1,7 @@
 import { injectable, inject } from "inversify";
 import { MailRepository, MailOptions } from "../repositories/mail.repo";
 
-@injectable()   // 🔥 Make MailService injectable
+@injectable()   
 export class MailService {
   constructor(
     @inject(MailRepository) private mailRepository: MailRepository
