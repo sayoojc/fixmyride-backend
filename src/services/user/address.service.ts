@@ -45,7 +45,7 @@ export class UserAddressService {
             console.log("updatedAddress", updatedAddress);
           
             // Step 2: Set all other addresses to not default
-            const addresses = await this.addressRepository.updateManyAddresses(
+            const addresses = await this.addressRepository.updateMany(
               {
                 userId: userId,
                 _id: { $ne: addressId },
@@ -66,14 +66,14 @@ export class UserAddressService {
 
             // Step 1: If isDefault is true, unset any other default address for the user
             if (addressForm.isDefault) {
-              await this.addressRepository.updateManyAddresses(
+              await this.addressRepository.updateMany(
                 { userId, isDefault: true, _id: { $ne: _id } },
                 { $set: { isDefault: false } }
               );
             }
           
             // Step 2: Update the given address
-            const updatedAddress = await this.addressRepository.updateAddress(_id, {
+            const updatedAddress = await this.addressRepository.updateById(_id, {
               ...addressForm,
             });
           
@@ -86,7 +86,7 @@ export class UserAddressService {
           async deleteAddress(addressId: string, userId: string) {
             try {
                 // Fetch the user by userId
-                const user = await this.userRepository.findUserById(userId);
+                const user = await this.userRepository.findOne({_id:userId});
                 
                 // If user doesn't exist, throw an error
                 if (!user) {

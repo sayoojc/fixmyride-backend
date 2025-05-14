@@ -9,20 +9,6 @@ export class UserRepository extends BaseRepository<IUser> {
     super(userModel);  
     this.userModel = userModel;
   }
- 
-  async findUserByEmail(email: string): Promise<IUser | null> {
-    return await this.findOne({ email });
-  }
-  
-  async findUserById(id: string): Promise<IUser | null> {
-    return await this.findOne({ _id: id });
-  }
-  async findUserByPhone(phone:string):Promise<IUser|null> {
-    return await this.findOne({phone:phone})
-  }
-  async createUser(userData: Partial<IUser>): Promise<IUser> {
-    return await this.create(userData);
-  }
   async createUserFromGoogle(
         googleId:string,
         name:string,
@@ -32,10 +18,8 @@ export class UserRepository extends BaseRepository<IUser> {
     
 let existingUser;
     if(email){
-      existingUser = await this.findUserByEmail(email);
+      existingUser = await this.findOne({email});
     }
-    // Optional: check if user already exists
-  
     if (existingUser) return existingUser;
 
     const userData: Partial<IUser> = {

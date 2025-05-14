@@ -5,13 +5,16 @@ import { ModelRepository } from "../../repositories/model.repo";
 import { IBrand } from "../../models/brand.model";
 
 export class AdminBrandService {
-  constructor(private brandRepository: BrandRepository,private modelRepository: ModelRepository) {}
+  constructor(
+    private brandRepository: BrandRepository,
+    private modelRepository: ModelRepository
+  ) {}
 
   async addBrand(brandName: string, imageUrl: string): Promise<IBrand> {
     try {
-      const existingBrand = await this.brandRepository.findBrandByName(brandName);
+      const existingBrand = await this.brandRepository.findOne({brandName});
       if (existingBrand) throw new Error("Brand already exists");
-      return await this.brandRepository.createBrand({ brandName, imageUrl });
+      return await this.brandRepository.create({ brandName, imageUrl });
     } catch (err) {
       throw new Error(`Failed to add brand: ${(err as Error).message}`);
     }

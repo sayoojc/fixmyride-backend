@@ -27,65 +27,6 @@ export class UserAuthService {
   ) {
     this.userRepository = userRepository;
   }
-
-//   async refreshToken(token: string): Promise<{
-//     accessToken: string;
-//     id: string;
-//     role: string;
-//     name: string;
-//     email: string;
-//     refreshToken: string;
-//   } | null> {
-//     try {
-//       const payload = jwt.verify(
-//         token,
-//         process.env.JWT_REFRESH_TOKEN_SECRET!
-//       ) as null | JwtPayload;
-
-//       if (!payload) {
-//         return null;
-//       }
-//       const userExists = await redis.get(`refreshToken:${payload.id}`);
-//       if (!userExists) {
-//         return null;
-//       }
-//       const user = await this.userRepository.findUserById(payload.id);
-//       if (!user || !user.isListed) {
-//         return null;
-//       }
-
-//       const accessToken = jwt.sign(
-//         { id: user.id, email: user.email, role: user.role },
-//         process.env.JWT_ACCESS_TOKEN_SECRET!,
-//         { expiresIn: "15m" }
-//       );
-//       // Creating refresh token everytime /refresh endpoint hits (Refresh token rotation)
-//       const refreshToken = jwt.sign(
-//         { id: user.id },
-//         process.env.JWT_REFRESH_TOKEN_SECRET!,
-//         { expiresIn: "1d" }
-//       );
-
-//       //storing the refresh token in redis
-//       await redis.set(
-//         `refreshToken:${user.id}`,
-//         refreshToken,
-//         "EX",
-//         60 * 60 * 24
-//       );
-
-//       return {
-//         accessToken,
-//         id: user.id,
-//         role: user.role,
-//         name: user.name,
-//         email: user.email,
-//         refreshToken,
-//       };
-//     } catch (error) {
-//       return null;
-//     }
-//   }
   async registerTempUser(userData:Partial<TempUser>): Promise<TempUser> {
     const { name, email, phone, password, otp } = userData;
   
@@ -124,12 +65,12 @@ export class UserAuthService {
 ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
 
   // Check if the user already exists
-  const existingUser = await this.userRepository.findUserByEmail(email);
+  const existingUser = await this.userRepository.findOne({email});
   if (existingUser) {
     throw new Error("User already exists. Please log in.");
   }
 
-  const existingPhone = await this.userRepository.findUserByPhone(phone);
+  const existingPhone = await this.userRepository.findOne({phone});
   if (existingPhone) {
     throw new Error("The phone number is already in use. Please log in.");
   }
@@ -150,7 +91,7 @@ export class UserAuthService {
   }
 
 
-  const user = await this.userRepository.createUser({
+  const user = await this.userRepository.create({
     name: tempUser.name,
     email: tempUser.email,
     phone: tempUser.phone,
@@ -175,7 +116,7 @@ export class UserAuthService {
 
   async userLogin(email:string,
     password:string):Promise<{user: IUser; accessToken: string; refreshToken: string}>{
-      const user = await this.userRepository.findUserByEmail(email);
+      const user = await this.userRepository.findOne({email});
       console.log('The user ',user);
       if (!user) {
         throw new NotFoundError("User doesn't exist");
@@ -210,7 +151,7 @@ export class UserAuthService {
   async forgotPassword(email: string): Promise<{ user: IUser; token: string }> {
     console.log('The forgot Password function from the auth service');
   
-    const user = await this.userRepository.findUserByEmail(email);
+    const user = await this.userRepository.findOne({email});
     if (!user) throw new Error("User doesn't exist");
   
     if (user.role !== "user") throw new Error("Access denied, no authorization");
@@ -233,7 +174,7 @@ export class UserAuthService {
         throw new Error("Invalid token payload");
       }
   
-      const user = await this.userRepository.findUserById(payload.userId);
+      const user = await this.userRepository.findOne({_id:payload.userId});
       if (!user) throw new Error("User not found");
       const hashedPassword = await hashPassword(password);
       user.password = hashedPassword

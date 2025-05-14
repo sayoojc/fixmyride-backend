@@ -12,11 +12,11 @@ export interface MailOptions {
 export class MailRepository {
   async sendMail(options: MailOptions): Promise<void> {
     const mailOptions = {
-      from: process.env.EMAIL_USER,    // Sender email
-      to: options.to,                  // Receiver email
-      subject: options.subject,        // Email subject
-      text: options.text,              // Plain text content (optional)
-      html: options.html,              // HTML content (optional)
+      from: process.env.EMAIL_USER,
+      to: options.to,                 
+      subject: options.subject,        
+      text: options.text,              
+      html: options.html,              
     };
 
     try {

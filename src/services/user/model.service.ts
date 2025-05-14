@@ -7,12 +7,12 @@ export class ModelService {
 
   async addModel(model: string, imageUrl: string, brandId: string): Promise<IModel> {
     try {
-      const existingModel = await this.modelRepository.findModelByName(model);
+      const existingModel = await this.modelRepository.findOne({model});
       if (existingModel) throw new Error("Model already exists");
 
       const brandObjectId = new mongoose.Types.ObjectId(brandId);
 
-      return await this.modelRepository.createModel({
+      return await this.modelRepository.create({
         name: model,
         imageUrl,
         brandId: brandObjectId,

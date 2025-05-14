@@ -28,7 +28,7 @@ export class AdminProviderService {
   async fetchVerificationData(id:string):Promise<IVerification | null>{
     try {
         console.log('id from the fetch verification data',id);
-        const verificationData = await this.verificationRepository.findByProviderId(id);
+        const verificationData = await this.verificationRepository.findOne({providerId:id});
         console.log(verificationData);
         return verificationData
     } catch (error) {

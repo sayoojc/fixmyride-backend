@@ -21,7 +21,7 @@ export class AdminAuthService {
   ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
     
     
-    const user = await this.userRepository.findUserByEmail(email);
+    const user = await this.userRepository.findOne({email});
     if (!user) {
       throw new Error("User doesn't exist");
     }

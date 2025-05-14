@@ -35,6 +35,7 @@ export const verifyToken = async (
     let userPayload: CustomJwtPayload;
 
     if (!token) {
+      console.log('no token');
       const refreshToken = req.cookies.refreshToken;
 
       if (!refreshToken) {

@@ -41,7 +41,7 @@ passport.use(new GoogleStrategy(
       const type = req.query.state;
 
       if (type === 'user') {
-        let user = await userRepository.findUserByEmail(email);
+        let user = await userRepository.findOne({email});
         if (!user) {
           user = await userRepository.createUserFromGoogle(
             id,
@@ -64,7 +64,7 @@ passport.use(new GoogleStrategy(
 
         done(null, { user, accessToken, refreshToken });
       } else {
-        let provider = await providerRepository.findProviderByEmail(email);
+        let provider = await providerRepository.findOne({email});
         if (!provider) {
           provider = await providerRepository.createUserFromGoogle(
             id,
@@ -96,7 +96,7 @@ passport.use(new GoogleStrategy(
 // serialize/deserialize (only if you use sessions)
 passport.serializeUser((user: any, done) => done(null, user._id));
 passport.deserializeUser(async (id: string, done) => {
-  const user = await userRepository.findUserById(id);
+  const user = await userRepository.findOne({_id:id});
   done(null, user);
 });
 

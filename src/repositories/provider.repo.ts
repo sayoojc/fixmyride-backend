@@ -7,23 +7,7 @@ export class ProviderRepository extends BaseRepository<IServiceProvider> {
     super(providerModel);
   }
 
-  async findByCity(city: string): Promise<IServiceProvider[]> {
-    return this.find({ "address.city": city });
-  }
-  async updateProviderById(id: string, data: Partial<IServiceProvider>): Promise<IServiceProvider | null> {
-    return this.updateById(id, data);
-  }
 
-  async findVerifiedProviders(): Promise<IServiceProvider[]> {
-    return this.find({ isVerified: true });
-  }
-
-  async findByServiceType(service: string): Promise<IServiceProvider[]> {
-    return this.find({ servicesOffered: service });
-  }
-  async findProviderByEmail(email:string):Promise<IServiceProvider | null>{
-    return this.findOne({email});
-  }
     async createUserFromGoogle(
           googleId:string,
           name:string,
@@ -32,10 +16,8 @@ export class ProviderRepository extends BaseRepository<IServiceProvider> {
       
   let existingUser;
       if(email){
-        existingUser = await this.findProviderByEmail(email);
+        existingUser = await this.findOne({email});
       }
-      // Optional: check if user already exists
-    
       if (existingUser) return existingUser;
   
       const userData: Partial<IServiceProvider> = {

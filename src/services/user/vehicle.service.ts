@@ -12,13 +12,12 @@ async addVehicle(userId:string,brandId:string,brandName:string,modelId:string,mo
         try {
             let id = new mongoose.Types.ObjectId(userId);
             console.log(id,brandId,brandName,modelId,modelName,fuelType);
-        const vehicle = await this.vehicleRepository.createVehicle({
+        const vehicle = await this.vehicleRepository.create({
             userId:id,
             brandId:new mongoose.Types.ObjectId(brandId),
             modelId:new mongoose.Types.ObjectId(modelId),
             fuel:fuelType
         });
-        console.log('vehicle created',vehicle);
           return vehicle
         } catch (error) {
             console.error("Error fetching users:", error);

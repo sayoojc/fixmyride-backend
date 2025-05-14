@@ -69,7 +69,7 @@ async getProfileData(id:string):Promise<SanitizedUser|undefined>{
   }
   async changePassword(userId:string,currentPassword:string,newPassword:string):Promise<Partial<SanitizedUser>|undefined>{
     try {
-      const user = await this.userRepository.findUserById(userId);
+      const user = await this.userRepository.findOne({_id:userId});
       if (!user) {
         throw new Error("User not found");
       }

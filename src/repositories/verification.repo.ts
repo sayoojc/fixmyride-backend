@@ -6,11 +6,6 @@ export class VerificationRepository extends BaseRepository<IVerification> {
   constructor(verificationModel: Model<IVerification>) {
     super(verificationModel);
   }
-
-  async findByProviderId(providerId: string): Promise<IVerification | null> {
-    return this.findOne({ providerId });
-  }
-
   async upsertVerification(providerId: string, data: Partial<IVerification>): Promise<IVerification | null> {
     return this.findOneAndUpdate(
       { providerId },
@@ -18,11 +13,6 @@ export class VerificationRepository extends BaseRepository<IVerification> {
       { new: true, upsert: true }
     );
   }
-
-  async findPendingVerifications(): Promise<IVerification[]> {
-    return this.find({ status: "pending" });
-  }
-
   async updateVerificationStatus(providerId: string, status: "approved" | "rejected"): Promise<IVerification | null> {
     return this.findOneAndUpdate(
       { providerId },

@@ -115,9 +115,8 @@ container.bind<AdminProviderService>(AdminProviderService).toDynamicValue(() => 
 })
 
 container.bind<ProviderAuthService>(ProviderAuthService).toDynamicValue(() => {
-  const userRepo = container.get<UserRepository>(UserRepository);
   const providerRepo = container.get<ProviderRepository>(ProviderRepository);
-  return new ProviderAuthService(userRepo,providerRepo);
+  return new ProviderAuthService(providerRepo);
 })
 
 container.bind<ProviderProfileService>(ProviderProfileService).toDynamicValue(() =>{

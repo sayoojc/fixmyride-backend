@@ -8,12 +8,12 @@ export class AdminModelService {
   constructor(private modelRepository: ModelRepository) {}
 
   async addModel(name: string, imageUrl: string, brandId: string,fuelTypes:string[]): Promise<IModel> {
-    const existingModel = await this.modelRepository.findModelByName(name);
+    const existingModel = await this.modelRepository.findOne({name});
     if (existingModel) throw new Error("Model already exists");
 
     const brandObjectId = new mongoose.Types.ObjectId(brandId);
 
-    return this.modelRepository.createModel({
+    return this.modelRepository.create({
       name,
       imageUrl,
       brandId: brandObjectId,

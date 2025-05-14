@@ -55,7 +55,7 @@ async getProfileData(id:string):Promise<SanitizedProvider|undefined>{
       "startedYear",
       "description",
     ];
-     const updatedProvider =  await this.providerRepository.updateProviderById(providerId,{verificationStatus:"pending"});
+     const updatedProvider =  await this.providerRepository.updateById(providerId,{verificationStatus:"pending"});
     const result = await this.verificationRepository.upsertVerification(providerId, {
       ...data,
       status: "pending",
@@ -71,7 +71,7 @@ async getProfileData(id:string):Promise<SanitizedProvider|undefined>{
       throw new Error("Provider ID is required for updating profile");
     }
 
-    const updatedProvider = await this.providerRepository.updateProviderById(data._id.toString(), data);
+    const updatedProvider = await this.providerRepository.updateById(data._id.toString(), data);
     return updatedProvider;
   }
  

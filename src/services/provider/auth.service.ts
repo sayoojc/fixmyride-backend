@@ -49,14 +49,10 @@ interface Providerdata {
   };
 }
 export class ProviderAuthService {
-  private userRepository: UserRepository;
   private providerRepository:ProviderRepository
-
-  constructor(
-    userRepository: UserRepository,
+   constructor(
     providerRepository:ProviderRepository
   ) {
-    this.userRepository = userRepository;
     this.providerRepository = providerRepository
   }
 
@@ -137,7 +133,7 @@ export class ProviderAuthService {
   ): Promise<{ provider: IServiceProvider; accessToken: string; refreshToken: string }> {
     
     
-    const provider = await this.providerRepository.findProviderByEmail(email);
+    const provider = await this.providerRepository.findOne({email});
     if (!provider) {
       throw new UnauthorizedError("User doesn't exist");
     }
@@ -161,47 +157,5 @@ export class ProviderAuthService {
     return { provider, accessToken, refreshToken };
 
   }
-
-  
-  // async getRefreshTokenFromRedis(userId: string): Promise<string | null> {
-  //   const redisKey = `refreshToken:user:${userId}`; // Or `refreshToken:admin:${userId}` if applicable
-  //   return await redis.get(redisKey);
-  // }
-  // async forgotPassword(email: string): Promise<{ user: IUser; token: string }> {
-  //   console.log('The forgot Password function from the auth service');
-  
-  //   const user = await this.userRepository.findUserByEmail(email);
-  //   if (!user) throw new Error("User doesn't exist");
-  
-  //   if (user.role !== "user") throw new Error("Access denied, no authorization");
-  
-  //   // 🔐 Create a JWT token
-  //   const token = jwt.sign(
-  //     { userId: user._id },
-  //     process.env.RESET_PASSWORD_SECRET as string,
-  //     { expiresIn: '1h' } // token valid for 1 hour
-  //   );
-  
-  //   return { user, token };
-  // }
-
-  // async resetPassword(token: string,password:string): Promise<void> {
-  //   try {
-  //     const payload = jwt.verify(token, process.env.RESET_PASSWORD_SECRET!) as JwtPayload;
-  
-  //     if (typeof payload !== 'object' || !payload.userId) {
-  //       throw new Error("Invalid token payload");
-  //     }
-  
-  //     const user = await this.userRepository.findUserById(payload.userId);
-  //     if (!user) throw new Error("User not found");
-  //     const hashedPassword = await hashPassword(password);
-  //     user.password = hashedPassword
-  //     await user.save()
-      
-  //   } catch (err) {
-  //     throw new Error("Failed to validate token");
-  //   }
-  // }
   
 }
