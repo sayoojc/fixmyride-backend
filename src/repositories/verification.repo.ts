@@ -1,8 +1,9 @@
 import { BaseRepository } from "./base/base.repo";
 import { IVerification } from "../models/verification.model";
 import { Model } from "mongoose";
+import { IVerificationRepository } from "../interfaces/repositories/IVerificationRepository";
 
-export class VerificationRepository extends BaseRepository<IVerification> {
+export class VerificationRepository extends BaseRepository<IVerification> implements IVerificationRepository {
   constructor(verificationModel: Model<IVerification>) {
     super(verificationModel);
   }

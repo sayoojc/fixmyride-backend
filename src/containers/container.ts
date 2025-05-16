@@ -44,11 +44,14 @@ import { AdminUserService } from "../services/admin/user.service";
 import { AdminUserController } from "../controllers/admin/user.controller";
 import { VehicleRepository } from "../repositories/vehicle.repo";
 
+// /// interfaces////
+// import { TYPES } from "./types";
+// import { IMailRepository } from "../interfaces/repositories/IMailRepository";
 
 const container = new Container();
 
 
-container.bind<MailRepository>(MailRepository).toSelf();
+container.bind<MailRepository>(MailRepository).toConstantValue(new MailRepository());
 container.bind<UserRepository>(UserRepository).toConstantValue(new UserRepository(UserModel));
 container.bind<BrandRepository>(BrandRepository).toConstantValue(new BrandRepository(BrandModel));
 container.bind<ModelRepository>(ModelRepository).toConstantValue(new ModelRepository(modelModel));
@@ -84,7 +87,7 @@ container.bind<UserAddressService>(UserAddressService).toDynamicValue(() => {
 container.bind<UserVehicleService>(UserVehicleService).toDynamicValue(() => {
     const userRepo = container.get<UserRepository>(UserRepository);
     const vehicleRepo = container.get<VehicleRepository>(VehicleRepository);
-    return new UserVehicleService(userRepo,vehicleRepo);
+    return new UserVehicleService(vehicleRepo);
 })
 container.bind<AdminAuthService>(AdminAuthService).toDynamicValue(() => {
   const userRepo = container.get<UserRepository>(UserRepository);

@@ -1,0 +1,56 @@
+import { IAddress } from "../../../models/adress.model"; // Assuming this exists
+import { IVehicle } from "../../../models/vehicle.model"; // Assuming this exists
+
+type SanitizedUser = {
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  isListed: boolean;
+};
+
+export interface IUserProfileService {
+  /**
+   * Fetches the full profile data of the user including addresses and vehicles.
+   * @param id User ID
+   * @returns Sanitized user object with address and vehicle data, or undefined on error
+   */
+  getProfileData(
+    id: string
+  ): Promise<
+    | (SanitizedUser & {
+        id: string;
+        provider?: string;
+        addresses: IAddress[];
+        defaultAddress: string;
+        vehicles: IVehicle[];
+      })
+    | undefined
+  >;
+
+  /**
+   * Updates the user's profile with a new phone number and name.
+   * @param phone New phone number
+   * @param userId User ID
+   * @param userName New name
+   * @returns Partial sanitized user data or undefined on failure
+   */
+  updateProfile(
+    phone: string,
+    userId: string,
+    userName: string
+  ): Promise<Partial<SanitizedUser> | undefined>;
+
+  /**
+   * Changes the user's password after verifying the current password.
+   * @param userId User ID
+   * @param currentPassword Current password for verification
+   * @param newPassword New password to set
+   * @returns Partial sanitized user data or undefined on failure
+   */
+  changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<Partial<SanitizedUser> | undefined>;
+}

@@ -1,15 +1,11 @@
 import { injectable } from "inversify";
 import transporter from "../config/mailConfig";  // Your nodemailer config
+import { MailOptions } from "../interfaces/mail.interface";
+import { IMailRepository } from "../interfaces/repositories/IMailRepository";
 
-export interface MailOptions {
-  to: string;
-  subject: string;
-  text?: string;
-  html?: string;
-}
 
 @injectable()
-export class MailRepository {
+export class MailRepository implements IMailRepository{
   async sendMail(options: MailOptions): Promise<void> {
     const mailOptions = {
       from: process.env.EMAIL_USER,

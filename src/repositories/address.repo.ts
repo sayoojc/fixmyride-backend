@@ -1,9 +1,9 @@
 import { BaseRepository } from "./base/base.repo";
 import { IAddress } from "../models/adress.model";
-import { IAddressRepository } from "../interfaces/repositories/IAddressRepository";
 import { Model } from "mongoose";
+import { IAddressRepository } from "../interfaces/repositories/IAddressRepository";
 
-export class AddressRepository extends BaseRepository<IAddress> implements IAddressRepository  {
+export class AddressRepository extends BaseRepository<IAddress> implements IAddressRepository {
   constructor(addressModel: Model<IAddress>) {
     super(addressModel);
   }

@@ -1,10 +1,10 @@
-// services/admin/adminBrand.service.ts
-
 import { BrandRepository } from "../../repositories/brand.repo";
 import { ModelRepository } from "../../repositories/model.repo";
 import { IBrand } from "../../models/brand.model";
+import { IAdminBrandService } from "../../interfaces/services/admin/IAdminBrandService";
+import { IModel } from "../../models/model.model";
 
-export class AdminBrandService {
+export class AdminBrandService implements IAdminBrandService {
   constructor(
     private brandRepository: BrandRepository,
     private modelRepository: ModelRepository
@@ -12,7 +12,7 @@ export class AdminBrandService {
 
   async addBrand(brandName: string, imageUrl: string): Promise<IBrand> {
     try {
-      const existingBrand = await this.brandRepository.findOne({brandName});
+      const existingBrand = await this.brandRepository.findOne({ brandName });
       if (existingBrand) throw new Error("Brand already exists");
       return await this.brandRepository.create({ brandName, imageUrl });
     } catch (err) {
@@ -20,40 +20,51 @@ export class AdminBrandService {
     }
   }
 
-  async getBrands(): Promise<IBrand[]> {
+  async getBrands(): Promise<(IBrand & { models: IModel[] })[]> {
     try {
-      
       const brands = await this.brandRepository.find();
-      console.log('brands', brands);
-  
       const brandsWithModels = await Promise.all(
         brands.map(async (brand) => {
-          const models = await this.modelRepository.find({ brandId: brand._id });
+          const models = await this.modelRepository.find({
+            brandId: brand._id,
+          });
           return {
             ...brand.toObject(),
             models,
           };
         })
       );
-  
-      console.log('brands with models:', brandsWithModels);
       return brandsWithModels;
     } catch (err) {
       throw new Error(`Failed to fetch brands: ${(err as Error).message}`);
     }
   }
 
-  async toggleBrandStatus(brandId: string, newStatus: string): Promise<IBrand | null> {
+  async toggleBrandStatus(
+    brandId: string,
+    newStatus: string
+  ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(brandId, { status: newStatus });
+      return await this.brandRepository.updateById(brandId, {
+        status: newStatus,
+      });
     } catch (err) {
-      throw new Error(`Failed to toggle brand status: ${(err as Error).message}`);
+      throw new Error(
+        `Failed to toggle brand status: ${(err as Error).message}`
+      );
     }
   }
 
-  async updateBrand(id: string, name: string, imageUrl: string): Promise<IBrand | null> {
+  async updateBrand(
+    id: string,
+    name: string,
+    imageUrl: string
+  ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(id, { brandName: name, imageUrl });
+      return await this.brandRepository.updateById(id, {
+        brandName: name,
+        imageUrl,
+      });
     } catch (err) {
       throw new Error(`Failed to update brand: ${(err as Error).message}`);
     }

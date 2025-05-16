@@ -9,7 +9,7 @@ const connectdb = async () => {
     console.log("mogodb is connected");
   } catch (error) {
     console.log("error while connectiong with mongodb", error);
-    process.exit(1); // Exit the process with failure
+    process.exit(1); 
   }
 };
 

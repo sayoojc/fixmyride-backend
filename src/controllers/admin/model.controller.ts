@@ -1,19 +1,25 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { AdminModelService } from "../../services/admin/model.service";
+import { IAdminModelController } from "../../interfaces/controllers/admin/IAdminModelController";
 
 @injectable()
-export class AdminModelController {
+export class AdminModelController implements IAdminModelController {
   constructor(
     @inject(AdminModelService) private adminModelService: AdminModelService
   ) {}
 
   async addModel(req: Request, res: Response): Promise<void> {
     try {
-      let { model, imageUrl, brandId,fuelTypes } = req.body;
+      let { model, imageUrl, brandId, fuelTypes } = req.body;
       model = model[0].toUpperCase() + model.slice(1).toLowerCase();
 
-      const newModel = await this.adminModelService.addModel(model, imageUrl, brandId,fuelTypes);
+      const newModel = await this.adminModelService.addModel(
+        model,
+        imageUrl,
+        brandId,
+        fuelTypes
+      );
       res.status(201).json({
         success: true,
         message: `Model ${newModel.name} is created`,
@@ -27,17 +33,26 @@ export class AdminModelController {
   async toggleModelStatus(req: Request, res: Response): Promise<void> {
     try {
       const { brandId, modelId, newStatus } = req.body;
-      const updatedModel = await this.adminModelService.toggleModelStatus(brandId, modelId, newStatus);
+      const updatedModel = await this.adminModelService.toggleModelStatus(
+        brandId,
+        modelId,
+        newStatus
+      );
 
       if (!updatedModel) {
-        res.status(404).json({ success: false, message: 'Model not found or failed to update status' });
+        res
+          .status(404)
+          .json({
+            success: false,
+            message: "Model not found or failed to update status",
+          });
         return;
       }
 
       res.status(200).json({
         success: true,
         message: `Model ${updatedModel.name} status changed to ${updatedModel.status}`,
-        model: updatedModel
+        model: updatedModel,
       });
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
@@ -53,7 +68,11 @@ export class AdminModelController {
         return;
       }
 
-      const updatedModel = await this.adminModelService.updateModel(id, name, imageUrl);
+      const updatedModel = await this.adminModelService.updateModel(
+        id,
+        name,
+        imageUrl
+      );
 
       if (!updatedModel) {
         res.status(404).json({ message: "Model not found" });
@@ -62,9 +81,8 @@ export class AdminModelController {
 
       res.status(200).json({
         message: "Model updated successfully",
-        model: updatedModel
+        model: updatedModel,
       });
-
     } catch (error) {
       console.error("Error updating model:", error);
       res.status(500).json({ message: "Internal server error" });

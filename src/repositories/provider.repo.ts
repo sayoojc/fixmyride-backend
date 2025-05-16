@@ -1,13 +1,12 @@
 import { BaseRepository } from "./base/base.repo";
 import { IServiceProvider } from "../models/provider.model"; // Your Provider interface
 import { Model } from "mongoose";
+import { IProviderRepository } from "../interfaces/repositories/IProviderRepository";
 
-export class ProviderRepository extends BaseRepository<IServiceProvider> {
+export class ProviderRepository extends BaseRepository<IServiceProvider> implements IProviderRepository {
   constructor(providerModel: Model<IServiceProvider>) {
     super(providerModel);
   }
-
-
     async createUserFromGoogle(
           googleId:string,
           name:string,
@@ -29,5 +28,4 @@ export class ProviderRepository extends BaseRepository<IServiceProvider> {
   
       return await this.create(userData);
     }
-
-}
+  }

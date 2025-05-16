@@ -1,9 +1,9 @@
 import { BaseRepository } from "./base/base.repo";
 import  { IUser } from "../models/user.model";
 import { Model } from "mongoose";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
-
-export class UserRepository extends BaseRepository<IUser> {
+export class UserRepository extends BaseRepository<IUser> implements IUserRepository {
  private readonly userModel: Model<IUser>;
   constructor(userModel:Model<IUser>) {
     super(userModel);  

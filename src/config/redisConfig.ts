@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 
-const redis = new Redis(); // or add config if needed
+const redis = new Redis();
 
 redis.on('connect', () => {
   console.log('Redis connected');

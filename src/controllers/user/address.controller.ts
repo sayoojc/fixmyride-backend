@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { UserAddressService } from "../../services/user/address.service";
-
+import { IUserAddressController } from "../../interfaces/controllers/user/IUserAddressController";
 
 @injectable()
-export class UserAddressController {
-  constructor(@inject(UserAddressService) private userService: UserAddressService) {}
+export class UserAddressController implements IUserAddressController {
+  constructor(
+    @inject(UserAddressService) private userService: UserAddressService
+  ) {}
 
   async addAddress(req: Request, res: Response): Promise<void> {
     try {
@@ -24,7 +26,10 @@ export class UserAddressController {
   async setDefaultAddress(req: Request, res: Response): Promise<void> {
     try {
       const { addressId, userId } = req.body;
-      const newAddress = await this.userService.setDefaultAddress(addressId, userId);
+      const newAddress = await this.userService.setDefaultAddress(
+        addressId,
+        userId
+      );
       res.status(200).json({
         success: true,
         message: "Address set as default successfully",
@@ -38,8 +43,17 @@ export class UserAddressController {
   async updateAddress(req: Request, res: Response): Promise<void> {
     try {
       const { addressForm, _id, userId } = req.body;
-      const updatedAddress = await this.userService.updateAddress(addressForm, _id, userId);
-      res.status(200).json({ message: "Address updated successfully", address: updatedAddress });
+      const updatedAddress = await this.userService.updateAddress(
+        addressForm,
+        _id,
+        userId
+      );
+      res
+        .status(200)
+        .json({
+          message: "Address updated successfully",
+          address: updatedAddress,
+        });
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
     }
@@ -57,11 +71,16 @@ export class UserAddressController {
       const userIdStr = Array.isArray(userId) ? userId[0] : userId;
 
       if (typeof addressIdStr !== "string" || typeof userIdStr !== "string") {
-        res.status(400).json({ message: "addressId and userId must be strings" });
+        res
+          .status(400)
+          .json({ message: "addressId and userId must be strings" });
         return;
       }
 
-      const response = await this.userService.deleteAddress(addressIdStr, userIdStr);
+      const response = await this.userService.deleteAddress(
+        addressIdStr,
+        userIdStr
+      );
 
       if (response.success) {
         res.status(200).json({ message: "Address deleted successfully" });

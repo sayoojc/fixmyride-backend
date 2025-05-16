@@ -1,14 +1,18 @@
-// services/admin/adminModel.service.ts
-
 import { ModelRepository } from "../../repositories/model.repo";
 import { IModel } from "../../models/model.model";
 import mongoose from "mongoose";
+import { IAdminModelService } from "../../interfaces/services/admin/IAdminModelService";
 
-export class AdminModelService {
+export class AdminModelService implements IAdminModelService {
   constructor(private modelRepository: ModelRepository) {}
 
-  async addModel(name: string, imageUrl: string, brandId: string,fuelTypes:string[]): Promise<IModel> {
-    const existingModel = await this.modelRepository.findOne({name});
+  async addModel(
+    name: string,
+    imageUrl: string,
+    brandId: string,
+    fuelTypes: string[]
+  ): Promise<IModel> {
+    const existingModel = await this.modelRepository.findOne({ name });
     if (existingModel) throw new Error("Model already exists");
 
     const brandObjectId = new mongoose.Types.ObjectId(brandId);
@@ -17,11 +21,15 @@ export class AdminModelService {
       name,
       imageUrl,
       brandId: brandObjectId,
-      fuelTypes
+      fuelTypes,
     });
   }
 
-  async updateModel(id: string, name: string, imageUrl: string): Promise<IModel | null> {
+  async updateModel(
+    id: string,
+    name: string,
+    imageUrl: string
+  ): Promise<IModel | null> {
     return this.modelRepository.updateById(id, { name, imageUrl });
   }
 

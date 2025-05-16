@@ -1,5 +1,6 @@
 import { injectable, inject } from "inversify";
-import { MailRepository, MailOptions } from "../repositories/mail.repo";
+import { MailRepository} from "../repositories/mail.repo";
+import { MailOptions } from "../interfaces/mail.interface";
 
 @injectable()   
 export class MailService {
