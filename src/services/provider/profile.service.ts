@@ -1,12 +1,13 @@
 import { ProviderRepository } from "../../repositories/provider.repo";
 import { VerificationRepository } from "../../repositories/verification.repo";
 import { IServiceProvider } from "../../models/provider.model";
+import { UpdateProfileRequestDTO } from "../../dtos/controllers/provider/providerProfile.controller.dto";
 import {
   SanitizedProvider,
   VerificationFormData,
 } from "../../interfaces/Provider.interface";
 import { IProviderProfileService } from "../../interfaces/services/provider/IProviderProfileService";
-
+import mongoose from "mongoose";
 export class ProviderProfileService implements IProviderProfileService {
   constructor(
     private providerRepository: ProviderRepository,
@@ -18,20 +19,37 @@ export class ProviderProfileService implements IProviderProfileService {
       if (!user) {
         throw new Error("User details not found");
       }
-      const { password, address: rawAddress, ...rest } = user.toObject();
-      const address = `${rawAddress?.street || ""}, ${
-        rawAddress?.city || ""
-      }, ${rawAddress?.state || ""}, ${rawAddress?.pinCode || ""}`;
-      const sanitizedUser = {
-        ...rest,
-        address,
-      };
+   const {
+      _id,
+      name,
+      email,
+      phone,
+      isListed = false,
+      address,
+      description,
+      profileImage,
+      verificationStatus,
+    } = user.toObject();
+          const sanitizedUser: SanitizedProvider = {
+      _id: _id.toString(),
+      name,
+      email,
+      phone,
+      isListed,
+      address: address
+        ? `${address.street || ""}, ${address.city || ""}, ${address.state || ""}, ${address.pinCode || ""}`
+        : "",
+      description,
+      profileImage,
+      verificationStatus,
+    };
       return sanitizedUser;
     } catch (error) {
       console.error("Error fetching users:", error);
       return undefined;
     }
   }
+
 
   async verifyProvider(data: VerificationFormData, providerId: string) {
     const requiredFields: (keyof VerificationFormData)[] = [
@@ -45,7 +63,7 @@ export class ProviderProfileService implements IProviderProfileService {
       "description",
     ];
     const updatedProvider = await this.providerRepository.updateById(
-      providerId,
+      new mongoose.Types.ObjectId(providerId),
       { verificationStatus: "pending" }
     );
     const result = await this.verificationRepository.upsertVerification(
@@ -61,16 +79,19 @@ export class ProviderProfileService implements IProviderProfileService {
   }
 
   async updateProfile(
-    data: Partial<IServiceProvider>
+    data: UpdateProfileRequestDTO
   ): Promise<IServiceProvider | null> {
     if (!data._id) {
       throw new Error("Provider ID is required for updating profile");
     }
 
-    const updatedProvider = await this.providerRepository.updateById(
-      data._id.toString(),
-      data
-    );
-    return updatedProvider;
+   const { _id,addressToSend, ...rest } = data;
+
+  const updatedProvider = await this.providerRepository.updateById(
+    new mongoose.Types.ObjectId(_id),
+    {...rest,address:addressToSend}
+  );
+    return updatedProvider?.toObject();
   }
 }
+

@@ -1,6 +1,6 @@
-import mongoose, { Model, Document } from "mongoose";
+import mongoose, { Model, Document,Types } from "mongoose";
 import { IBaseRepository } from "../../interfaces/repositories/IBaseRepository";
-
+type ObjectId = Types.ObjectId
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T>{
   private model: Model<T>;
@@ -20,10 +20,10 @@ export class BaseRepository<T extends Document> implements IBaseRepository<T>{
   async updateMany(filter: object, update: object): Promise<any> {
     return  this.model.updateMany(filter, update);
   }
- async updateById(id: string, data: Partial<T>): Promise<T | null> {
+ async updateById(id: ObjectId, data: Partial<T>): Promise<T | null> {
     return await this.model.findByIdAndUpdate(id, data, { new: true }).exec();
   }
- async deleteById(id: string): Promise<boolean> {
+ async deleteById(id: ObjectId): Promise<boolean> {
     const result = await this.model.findByIdAndDelete(id).exec();
     return result !== null; 
   }

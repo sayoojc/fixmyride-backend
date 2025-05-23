@@ -1,5 +1,5 @@
-import { IAddress } from "../../../models/adress.model"; // Assuming this exists
-import { IVehicle } from "../../../models/vehicle.model"; // Assuming this exists
+
+import {UserProfileDTO} from "../../../interfaces/User.interface"
 
 type SanitizedUser = {
   name: string;
@@ -18,13 +18,7 @@ export interface IUserProfileService {
   getProfileData(
     id: string
   ): Promise<
-    | (SanitizedUser & {
-        id: string;
-        provider?: string;
-        addresses: IAddress[];
-        defaultAddress: string;
-        vehicles: IVehicle[];
-      })
+    | UserProfileDTO
     | undefined
   >;
 

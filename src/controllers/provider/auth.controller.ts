@@ -6,6 +6,18 @@ import { UserRepository } from "../../repositories/user.repo";
 import { authenticator } from "otplib";
 import { UnauthorizedError } from "../../errors/unauthorizedError";
 import { IProviderAuthController } from "../../interfaces/controllers/provider/IProviderAuthController";
+import {
+  ProviderRegisterTempSchema,
+  ProviderRegisterSchema,
+  ProviderLoginSchema,
+  ProviderRegisterTempDTO,
+  ProviderRegisterDTO,
+  ProviderLoginDTO,
+  ProviderUserDTO,
+  ErrorResponse,
+  SuccessMessageDTO,
+  ProviderLoginResponseDTO,
+} from "../../dtos/controllers/provider/providerAuth.controller.dto";
 
 @injectable()
 export class ProviderAuthController implements IProviderAuthController {
@@ -15,9 +27,13 @@ export class ProviderAuthController implements IProviderAuthController {
     @inject(MailService) private mailService: MailService,
     @inject(UserRepository) private userRepository: UserRepository
   ) {}
-  async providerRegisterTemp(req: Request, res: Response): Promise<void> {
+  async providerRegisterTemp( req: Request<{}, {}, ProviderRegisterTempDTO>,
+    res: Response<SuccessMessageDTO | ErrorResponse>): Promise<void> {
     try {
-      const data = req.body;
+       const parsed = ProviderRegisterTempSchema.safeParse(req.body);
+      if (!parsed.success) throw new Error("Invalid provider data");
+
+      const data = parsed.data;
       const secret = authenticator.generateSecret();
       const otp = authenticator.generate(secret);
       // Store temporary user data
@@ -42,32 +58,38 @@ export class ProviderAuthController implements IProviderAuthController {
     }
   }
 
-  async providerRegister(req: Request, res: Response): Promise<void> {
+  async providerRegister(  req: Request<{}, {}, ProviderRegisterDTO>,
+    res: Response<SuccessMessageDTO | ErrorResponse>): Promise<void> {
     try {
-      const data = req.body;
+        const parsed = ProviderRegisterSchema.safeParse(req.body);
+      if (!parsed.success) throw new Error("Invalid provider registration data");
 
-      // Store temporary user data
       const provider = await this.providerAuthService.providerRegister({
-        ...data,
+        ...parsed.data,
       });
 
       if (!provider) {
-        throw new Error("Temporary user creation is failed");
+        throw new Error("User registration failed");
       }
 
-      res.status(201).json({ success: true, message: "OTP sent" });
+      res.status(201).json({ success: true, message: "Provider registered successfully" });
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
     }
   }
 
-  async providerLogin(req: Request, res: Response): Promise<void> {
+  async providerLogin(  req: Request<{}, {}, ProviderLoginDTO>,
+    res: Response<ProviderLoginResponseDTO | ErrorResponse>): Promise<void> {
     try {
-      const { email, password } = req.body;
+     const parsed = ProviderLoginSchema.safeParse(req.body);
+      if (!parsed.success) throw new Error("Invalid login credentials");
+
+      const { email, password } = parsed.data;
+
       const { provider, accessToken, refreshToken } =
         await this.providerAuthService.providerLogin(email, password);
-      const { password: userPassword, ...userWithoutPassword } =
-        provider.toObject();
+
+      const { password: _, ...userWithoutPassword } = provider.toObject();
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
@@ -96,7 +118,7 @@ export class ProviderAuthController implements IProviderAuthController {
       }
     }
   }
-  async providerLogout(req: Request, res: Response) {
+  async providerLogout(req: Request, res: Response<SuccessMessageDTO | ErrorResponse>) {
     try {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");

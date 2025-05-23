@@ -2,6 +2,23 @@ import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { AdminProviderService } from "../../services/admin/provider.service";
 import { IAdminProviderController } from "../../interfaces/controllers/admin/IAdminProviderController";
+type ErrorResponse = { success: false; message: string };
+import {
+  FetchProviderResponseSchema,
+  FetchProviderResponseDTO,
+  FetchProvidersResponseSchema,
+  FetchProvidersResponseDTO,
+  FetchVerificationDataResponseSchema,
+  FetchVerificationDataResponseDTO,
+  ToggleListingRequestSchema,
+  ToggleListingRequestDTO,
+  ToggleListingResponseSchema,
+  ToggleListingResponseDTO,
+  VerifyProviderRequestSchema,
+  VerifyProviderRequestDTO,
+  VerifyProviderResponseSchema,
+  VerifyProviderResponseDTO,
+} from "../../dtos/controllers/admin/AdminProvider.controller.dto";
 
 @injectable()
 export class AdminProviderController implements IAdminProviderController {
@@ -10,80 +27,171 @@ export class AdminProviderController implements IAdminProviderController {
     private adminProviderService: AdminProviderService
   ) {}
 
-  async fetchProviders(req: Request, res: Response): Promise<void> {
+  async fetchProviders(
+    req: Request,
+    res: Response<FetchProvidersResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-      const sanitizedProviders =
-        await this.adminProviderService.fetchProviders();
-      res.status(200).json({
-        success: true,
-        message: "Providers fetched successfully",
-        providers: sanitizedProviders,
-      });
+  const rawProviders = (await this.adminProviderService.fetchProviders()) ?? [];
+    const sanitizedProviders = rawProviders.map((provider) => ({
+      _id: provider._id?.toString() || "", // safely convert ObjectId to string
+      name: provider.name || "",
+      email: provider.email || "",
+      isListed: provider.isListed ?? false,
+      verificationStatus: provider.verificationStatus ?? "pending",
+    }));
+
+    const response: FetchProvidersResponseDTO = {
+      success: true,
+      message: "Providers fetched successfully",
+      providers: sanitizedProviders,
+    };
+
+    const validated = FetchProvidersResponseSchema.safeParse(response);
+    if (!validated.success) {
+      console.error("Zod validation error:", validated.error);
+      throw new Error("Response DTO does not match schema");
+    }
+
+    res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(400).json({success:false, message: (error as Error).message });
     }
   }
-  async fetchVerificationData(req: Request, res: Response): Promise<void> {
+
+  async fetchVerificationData(
+    req: Request,
+    res: Response<FetchVerificationDataResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
       const id = req.query.id as string;
-      const verificationData =
-        await this.adminProviderService.fetchVerificationData(id);
-      res.status(200).json({
-        success: true,
-        message: "Providers fetched successfully",
+      const verificationData = await this.adminProviderService.fetchVerificationData(id);
+      const response:FetchVerificationDataResponseDTO = {
+         success: true,
+        message: "Verification data fetched successfully",
         verificationData,
-      });
+      }
+      const validated = FetchVerificationDataResponseSchema.safeParse(response);
+      if(!validated.success){
+        console.error('Zod validation error',validated.error);
+        throw new Error("Response DTO does not match schema");
+      }
+      res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(400).json({success:false, message: (error as Error).message });
     }
   }
-  async fetchProviderById(req: Request, res: Response): Promise<void> {
+
+  async fetchProviderById(
+    req: Request,
+    res: Response<FetchProviderResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
       const providerId = req.query.id as string;
-      const sanitizedProvider =
-        await this.adminProviderService.fetchProviderById(providerId);
-      res.status(200).json({
+      const rawProvider = await this.adminProviderService.fetchProviderById(providerId);
+         if (!rawProvider) {
+      throw new Error("Provider not found");
+    }
+       const sanitizedProvider = {
+      _id: rawProvider._id?.toString() || "",
+      name: rawProvider.name || "",
+      email: rawProvider.email || "",
+      isListed: rawProvider.isListed ?? false,
+      verificationStatus: rawProvider.verificationStatus ?? "pending",
+    };
+
+      const response:FetchProviderResponseDTO = {
         success: true,
-        message: "Providers fetched successfully",
-        providers: sanitizedProvider,
-      });
+        message: "Provider fetched successfully",
+        provider: sanitizedProvider,
+      } 
+      
+    const validated = FetchProviderResponseSchema.safeParse(response);
+    if(!validated.success) {
+      console.error("Zod validation error:",validated.error);
+      throw new Error("Response DTO does not match schema");
+    }
+      res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(400).json({success:false, message: (error as Error).message });
     }
   }
-  async verifyProvider(req: Request, res: Response): Promise<void> {
+
+  async verifyProvider(
+    req: Request<{}, {}, VerifyProviderRequestDTO>,
+    res: Response<VerifyProviderResponseDTO |ErrorResponse>
+  ): Promise<void> {
     try {
-      const { providerId, verificationAction, adminNotes } = req.body;
-      const updatedProvider = this.adminProviderService.verifyProvider(
-        providerId,
-        verificationAction,
-        adminNotes
-      );
-      if (!updatedProvider) {
-        throw Error("Error updating the provider");
+      const parsed = VerifyProviderRequestSchema.safeParse(req.body);
+      if(!parsed.success){
+        throw  new Error("the request dto doesnt match");
       }
-      res.status(200).json({
+      const { providerId, verificationAction, adminNotes } = parsed.data;
+      const rawProvider = await this.adminProviderService.verifyProvider(
+       providerId,
+        verificationAction,
+        adminNotes??""
+      );
+          if (!rawProvider) {
+      throw new Error("Provider not found");
+    }
+          const sanitizedProvider = {
+      _id: rawProvider._id?.toString() || "",
+      name: rawProvider.name || "",
+      email: rawProvider.email || "",
+      isListed: rawProvider.isListed ?? false,
+      verificationStatus: rawProvider.verificationStatus ?? "pending",
+    };
+      const response:VerifyProviderResponseDTO = {
         success: true,
-        message: "provider updated successfully",
-        provider: updatedProvider,
-      });
+        message: "Provider updated successfully",
+        provider: sanitizedProvider,
+      } 
+      const validated = VerifyProviderResponseSchema.safeParse(response);
+      if(!validated.success){
+        console.error('Zod validation error',validated.error);
+        throw new Error("Response DTO does not match schema");
+      }
+      res.status(200).json(response);
     } catch (error) {
-      throw error;
+      res.status(400).json({success:false,message: (error as Error).message });
     }
   }
-  async toggleListing(req: Request, res: Response): Promise<void> {
+
+  async toggleListing(
+    req: Request<{}, {}, ToggleListingRequestDTO>,
+    res: Response<ToggleListingResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-      const id = req.body.providerId;
-      const updatedUser = await this.adminProviderService.toggleListing(id);
-      res.status(200).json({
+      const parsed = ToggleListingRequestSchema.safeParse(req.body);
+      if(!parsed.success){
+        throw new Error('The request dto doesnt match');
+      }
+      const providerId = parsed.data.providerId
+      const rawProvider = await this.adminProviderService.toggleListing(providerId);
+             if (!rawProvider) {
+      throw new Error("Provider not found");
+    }
+             const sanitizedProvider = {
+      _id: rawProvider._id?.toString() || "",
+      name: rawProvider.name || "",
+      email: rawProvider.email || "",
+      isListed: rawProvider.isListed ?? false,
+      verificationStatus: rawProvider.verificationStatus ?? "pending",
+    };
+      const response:ToggleListingResponseDTO = {
         success: true,
-        message: `User has been ${
-          updatedUser?.isListed ? "unblocked" : "blocked"
-        }`,
-        user: updatedUser,
-      });
+        message: `User has been ${sanitizedProvider?.isListed ? "unblocked" : "blocked"}`,
+        user: sanitizedProvider,
+      }
+      const validated = ToggleListingResponseSchema.safeParse(response);
+      if(!validated.success){
+           console.error('Zod validation error',validated.error);
+        throw new Error("Response DTO does not match schema");
+      }
+      res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(400).json({success:false,message: (error as Error).message });
     }
   }
 }

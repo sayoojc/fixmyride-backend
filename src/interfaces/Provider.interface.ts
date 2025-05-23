@@ -8,7 +8,7 @@ export interface TempProvider  {
     street: string;
     city: string;
     state: string;
-    zipCode: string;
+    pinCode: string;
   };
   otp:string;
   createdAt:Date;
@@ -23,9 +23,9 @@ export interface Providerdata {
     street: string;
     city: string;
     state: string;
-    zipCode: string;
+    pinCode: string;
   };
-  location: {
+  location?: {
     latitude: number;
     longitude: number;
   };
@@ -33,10 +33,15 @@ export interface Providerdata {
 
 
 export interface SanitizedProvider {
+  _id:string;
   name: string;
   email: string;
   phone?: string;
-  isListed:boolean
+  address:string;
+  description:string;
+  profileImage:string;
+  verificationStatus:string;
+  isListed:boolean;
 };
 
 export  interface VerificationFormData {

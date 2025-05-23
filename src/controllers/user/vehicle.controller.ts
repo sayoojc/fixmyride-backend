@@ -3,6 +3,14 @@ import { inject, injectable } from "inversify";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { UserVehicleService } from "../../services/user/vehicle.service";
 import { IUserVehicleController } from "../../interfaces/controllers/user/IUserVehicleController";
+import { 
+  AddVehicleRequestDTO,
+  AddVehicleResponseDTO,
+  AddVehicleResponseSchema,
+  ErrorResponse,
+  AddVehicleRequestSchema
+
+} from "../../dtos/controllers/user/userVehicle.controller.dto";
 
 @injectable()
 export class UserVehicleController implements IUserVehicleController {
@@ -10,13 +18,21 @@ export class UserVehicleController implements IUserVehicleController {
     @inject(UserVehicleService) private userVehicleService: UserVehicleService
   ) {}
 
-  async addVehicle(req: Request, res: Response): Promise<void> {
+  async addVehicle(req: Request<{},{},AddVehicleRequestDTO>, res: Response<AddVehicleResponseDTO | ErrorResponse>): Promise<void> {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      res.status(401).json({ message: "Not authorized, no access token" });
+      res.status(401).json({success:false, message: "Not authorized, no access token" });
       return;
     }
-    const { brandId, brandName, modelId, modelName, fuelType } = req.body;
+    const parsed = AddVehicleRequestSchema.safeParse(req.body);
+    if(!parsed.success) {
+       res.status(400).json({
+          success:false,
+          message:"Invalid input " + parsed.error.message,
+        });
+        return 
+    }
+    const { brandId, brandName, modelId, modelName, fuelType } = parsed.data;
     try {
       const userDetails = jwt.verify(
         accessToken,
@@ -49,7 +65,7 @@ export class UserVehicleController implements IUserVehicleController {
         });
       }
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(400).json({success:false,message: (error as Error).message });
     }
   }
 }

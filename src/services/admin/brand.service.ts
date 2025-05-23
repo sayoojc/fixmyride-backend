@@ -3,6 +3,7 @@ import { ModelRepository } from "../../repositories/model.repo";
 import { IBrand } from "../../models/brand.model";
 import { IAdminBrandService } from "../../interfaces/services/admin/IAdminBrandService";
 import { IModel } from "../../models/model.model";
+import { Types } from "mongoose";
 
 export class AdminBrandService implements IAdminBrandService {
   constructor(
@@ -45,7 +46,7 @@ export class AdminBrandService implements IAdminBrandService {
     newStatus: string
   ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(brandId, {
+      return await this.brandRepository.updateById(new Types.ObjectId(brandId), {
         status: newStatus,
       });
     } catch (err) {
@@ -61,7 +62,7 @@ export class AdminBrandService implements IAdminBrandService {
     imageUrl: string
   ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(id, {
+      return await this.brandRepository.updateById( new Types.ObjectId(id), {
         brandName: name,
         imageUrl,
       });

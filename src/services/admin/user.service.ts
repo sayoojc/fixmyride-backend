@@ -1,6 +1,7 @@
 import { UserRepository } from "../../repositories/user.repo";
 import { IAdminUserService } from "../../interfaces/services/admin/IAdminUserService";
 import { SanitizedUser } from "../../interfaces/User.interface";
+import { Types } from "mongoose";
 
 export class AdminUserService implements IAdminUserService {
   constructor(private userRepository: UserRepository) {}
@@ -27,7 +28,7 @@ export class AdminUserService implements IAdminUserService {
       if (!user) return undefined;
 
       const updatedUser = await this.userRepository.updateById(
-        user._id.toString(),
+        new Types.ObjectId(user._id),
         {
           isListed: !user.isListed,
         }

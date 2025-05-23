@@ -4,6 +4,7 @@ import { IServiceProvider } from "../../models/provider.model";
 import { IVerification } from "../../models/verification.model";
 import { MailService } from "../mail.service";
 import { IAdminProviderService } from "../../interfaces/services/admin/IAdminProviderService";
+import { Types } from "mongoose";
 
 export class AdminProviderService implements IAdminProviderService {
   constructor(
@@ -131,7 +132,7 @@ export class AdminProviderService implements IAdminProviderService {
     try {
       const provider = await this.providerRepository.findOne({ _id: id });
       if (!provider) return undefined;
-      const updatedProvider = await this.providerRepository.updateById(id, {
+      const updatedProvider = await this.providerRepository.updateById(new Types.ObjectId(id), {
         isListed: !provider.isListed,
       });
 

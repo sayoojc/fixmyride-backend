@@ -2,17 +2,41 @@ import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { UserAuthService } from "../../services/user/auth.services";
 import { MailService } from "../../services/mail.service";
-import { UserRepository } from "../../repositories/user.repo";
 import { authenticator } from "otplib";
 import { NotFoundError } from "../../errors/notFoundError";
 import { UnauthorizedError } from "../../errors/unauthorizedError";
+import {
+  RegisterTempRequestSchema,
+  RegisterRequestSchema,
+  LoginRequestSchema,
+  ForgotPasswordRequestSchema,
+  ResetPasswordRequestSchema,
+  RegisterTempResponseSchema,
+  RegisterResponseSchema,
+  LoginResponseSchema,
+  LogoutResponseSchema,
+  ForgotPasswordResponseSchema,
+  ResetPasswordResponseSchema,
+  RegisterTempRequestDTO,
+  RegisterRequestDTO,
+  LoginRequestDTO,
+  ForgotPasswordRequestDTO,
+  ResetPasswordRequestDTO,
+  RegisterTempResponseDTO,
+  RegisterResponseDTO,
+  LoginResponseDTO,
+  LogoutResponseDTO,
+  ForgotPasswordResponseDTO,
+  ResetPasswordResponseDTO,
+  ErrorResponse,
+} from "../../dtos/controllers/user/userAuth.controller.dto";
+
 
 @injectable()
 export class UserAuthController {
   constructor(
     @inject(UserAuthService) private userAuthService: UserAuthService,
     @inject(MailService) private mailService: MailService,
-    @inject(UserRepository) private userRepository: UserRepository
   ) {}
 
   /**
@@ -20,10 +44,18 @@ export class UserAuthController {
    * @route   POST /register-temp
    * @access  Public
    */
-  async registerTemp(req: Request, res: Response): Promise<void> {
+  async registerTemp(req: Request<{},{},RegisterTempRequestDTO>, res: Response<RegisterTempResponseDTO | ErrorResponse>): Promise<void> {
     try {
-      const { name, email, phone, password } = req.body;
-      const secret = authenticator.generateSecret();
+ const parsed = RegisterTempRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid input: " + parsed.error.message,
+        });
+        return;
+      }
+
+      const { name, email, phone, password } = parsed.data;      const secret = authenticator.generateSecret();
       const otp = authenticator.generate(secret);
       console.log(`OTP: ${otp}, Secret: ${secret}`);
       const tempUser = await this.userAuthService.registerTempUser({
@@ -34,18 +66,32 @@ export class UserAuthController {
         otp,
       });
 
-      // Send OTP email
-      const mailResult = await this.mailService.sendWelcomeEmail(
+      await this.mailService.sendWelcomeEmail(
         email,
         "Sign up OTP",
         `Welcome to FixMyRide. Your OTP is ${otp}`
       );
-      res
-        .status(201)
-        .json({ success: true, message: "OTP sent", email: tempUser.email });
+      const response: RegisterTempResponseDTO = {
+        success: true,
+        message: "OTP sent",
+        email: tempUser.email,
+      };
+
+      const validatedResponse = RegisterTempResponseSchema.safeParse(response);
+      if (!validatedResponse.success) {
+        res.status(500).json({
+          success: false,
+          message: "Response validation failed: " + validatedResponse.error.message,
+        });
+        return;
+      }
+
+      res.status(201).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
-    }
+  res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });    }
   }
 
   /**
@@ -53,13 +99,38 @@ export class UserAuthController {
    * @route   POST /signup
    * @access  Public
    */
-  async register(req: Request, res: Response): Promise<void> {
+  async register(req: Request<{},{},RegisterRequestDTO>, res: Response<RegisterResponseDTO | ErrorResponse>): Promise<void> {
     try {
-      const { otpValue, email, phone } = req.body;
-      // Register user after OTP validation
+ const parsed = RegisterRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid input: " + parsed.error.message,
+        });
+        return;
+      }
+
+      const { otpValue, email, phone } = parsed.data;      // Register user after OTP validation
       const { user, accessToken, refreshToken } =
         await this.userAuthService.registerUser(otpValue, email, phone);
+  const response: RegisterResponseDTO = {
+        message: "User registered successfully",
+        user: {
+          _id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          phone: user.phone ?? '',
+        },
+      };
 
+      const validatedResponse = RegisterResponseSchema.safeParse(response);
+      if (!validatedResponse.success) {
+        res.status(500).json({
+          success: false,
+          message: "Response validation failed: " + validatedResponse.error.message,
+        });
+        return;
+      }
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -74,13 +145,12 @@ export class UserAuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      res.status(201).json({
-        message: "User registered successfully",
-        user,
-      });
+    res.status(201).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
-    }
+  res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });    }
   }
 
   /**
@@ -88,14 +158,41 @@ export class UserAuthController {
    * @route   POST /login
    * @access  Public
    */
-  async userLogin(req: Request, res: Response): Promise<void> {
+  async userLogin(req: Request<{},{},LoginRequestDTO>, res: Response<LoginResponseDTO | ErrorResponse>): Promise<void> {
     try {
-      const { email, password } = req.body;
+         const parsed = LoginRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid input: " + parsed.error.message,
+        });
+        return;
+      }
+       const { email, password } = parsed.data;
       const { user, accessToken, refreshToken } =
         await this.userAuthService.userLogin(email, password);
 
       const { password: userPassword, ...userWithoutPassword } =
         user.toObject();
+        const response: LoginResponseDTO = {
+        message: "Login successful",
+        user: {
+          _id: userWithoutPassword._id.toString(),
+          name: userWithoutPassword.name,
+          email: userWithoutPassword.email,
+          phone: userWithoutPassword.phone,
+        },
+      };
+
+      const validatedResponse = LoginResponseSchema.safeParse(response);
+      if (!validatedResponse.success) {
+        res.status(500).json({
+          success: false,
+          message: "Response validation failed: " + validatedResponse.error.message,
+        });
+        return;
+      }
+
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -110,9 +207,7 @@ export class UserAuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      res
-        .status(200)
-        .json({ message: "Login successful", user: userWithoutPassword });
+      res.status(200).json(response);
     } catch (error) {
       console.error("Error during login:", error);
 
@@ -120,27 +215,48 @@ export class UserAuthController {
         error instanceof NotFoundError ||
         error instanceof UnauthorizedError
       ) {
-        res.status(error.statusCode || 401).json({ message: error.message });
+        res.status(error.statusCode || 401).json({success:false, message: error.message });
         return;
       }
 
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({success:false, message: "Server error" });
       return;
     }
   }
-  async logout(req: Request, res: Response) {
+  async logout(req: Request, res: Response<LogoutResponseDTO | ErrorResponse>) {
     try {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
-      res.status(200).json({ message: "User logged out successfully" });
-    } catch (error) {
+       const response: LogoutResponseDTO = {
+        message: "User logged out successfully",
+      };
+    const validatedResponse = LogoutResponseSchema.safeParse(response);
+
+  if (!validatedResponse.success) {
+        res.status(500).json({
+          success: false,
+          message: "Response validation failed: " + validatedResponse.error.message,
+        });
+        return;
+      }
+
+      res.status(200).json(response);    } catch (error) {
       console.error("Logout error:", error);
-      res.status(500).json({ message: "Failed to logout" });
+      res.status(500).json({success: false, message: "Failed to logout" });
     }
   }
-  async forgotPassword(req: Request, res: Response): Promise<void> {
+  async forgotPassword(req: Request<{},{},ForgotPasswordRequestDTO>, res: Response<ForgotPasswordResponseDTO | ErrorResponse>): Promise<void> {
     try {
-      const { email } = req.body;
+        const parsed = ForgotPasswordRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid input: " + parsed.error.message,
+        });
+        return;
+      }
+
+      const { email } = parsed.data;
       const { user, token } = await this.userAuthService.forgotPassword(email);
 
       if (user) {
@@ -156,22 +272,60 @@ export class UserAuthController {
         );
       }
 
-      res.status(200).json({
+     const response: ForgotPasswordResponseDTO = {
         success: true,
         message: "If email exists, a reset link has been sent",
-      });
+      };
+
+      const validatedResponse = ForgotPasswordResponseSchema.safeParse(response);
+      if (!validatedResponse.success) {
+        res.status(500).json({
+          success: false,
+          message: "Response validation failed: " + validatedResponse.error.message,
+        });
+        return;
+      }
+
+      res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+       res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });
     }
   }
 
-  async resetPassword(req: Request, res: Response): Promise<void> {
+  async resetPassword(req: Request<{},{},ResetPasswordRequestDTO>, res: Response<ResetPasswordResponseDTO | ErrorResponse>): Promise<void> {
     try {
-      const { token, password } = req.body;
-      const result = await this.userAuthService.resetPassword(token, password);
-      res.status(200).json({ message: "Password reset successful" });
+     const parsed = ResetPasswordRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid input: " + parsed.error.message,
+        });
+        return;
+      }
+
+      const { token, password } = parsed.data;
+      await this.userAuthService.resetPassword(token, password);
+        const response: ResetPasswordResponseDTO = {
+        message: "Password reset successful",
+      };
+
+      const validatedResponse = ResetPasswordResponseSchema.safeParse(response);
+      if (!validatedResponse.success) {
+        res.status(500).json({
+          success: false,
+          message: "Response validation failed: " + validatedResponse.error.message,
+        });
+        return;
+      }
+
+      res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
-    }
+  res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });    }
   }
 }

@@ -31,6 +31,7 @@ export const verifyToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    console.log('verify token middleware');
     let token = req.cookies.accessToken;
     let userPayload: CustomJwtPayload;
 
@@ -73,6 +74,7 @@ export const verifyToken = async (
       // 🔒 Check block status
       const user = await getUserByRole(userPayload.role, userPayload.id);
       if (!user || !user.isListed) {
+        console.log('The user is forbidden');
          res.status(StatusCode.FORBIDDEN).json({
           success: false,
           message: "Your account is blocked. Contact support.",

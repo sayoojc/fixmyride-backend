@@ -2,6 +2,7 @@ import { ModelRepository } from "../../repositories/model.repo";
 import { IModel } from "../../models/model.model";
 import mongoose from "mongoose";
 import { IAdminModelService } from "../../interfaces/services/admin/IAdminModelService";
+import { Types } from "mongoose";
 
 export class AdminModelService implements IAdminModelService {
   constructor(private modelRepository: ModelRepository) {}
@@ -30,7 +31,7 @@ export class AdminModelService implements IAdminModelService {
     name: string,
     imageUrl: string
   ): Promise<IModel | null> {
-    return this.modelRepository.updateById(id, { name, imageUrl });
+    return this.modelRepository.updateById(new Types.ObjectId(id), { name, imageUrl });
   }
 
   async toggleModelStatus(
@@ -41,7 +42,7 @@ export class AdminModelService implements IAdminModelService {
     const model = await this.modelRepository.findOne({ _id: modelId });
     if (!model || model.brandId.toString() !== brandId) return null;
 
-    return this.modelRepository.updateById(modelId, { status: newStatus });
+    return this.modelRepository.updateById(new Types.ObjectId(modelId), { status: newStatus });
   }
 
   async getModelsByBrand(brandId: string): Promise<IModel[]> {

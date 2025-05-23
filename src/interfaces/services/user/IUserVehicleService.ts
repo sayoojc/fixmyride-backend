@@ -1,4 +1,5 @@
 import { IVehicle } from "../../../models/vehicle.model";
+import { VehicleDTO } from "../../../dtos/controllers/user/userProfile.controller.dto";
 
 export interface IUserVehicleService {
   addVehicle(
@@ -8,5 +9,5 @@ export interface IUserVehicleService {
     modelId: string,
     modelName: string,
     fuelType: string
-  ): Promise<IVehicle | undefined>;
+  ): Promise<VehicleDTO | undefined>;
 }

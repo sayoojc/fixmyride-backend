@@ -2,95 +2,154 @@ import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { UserAddressService } from "../../services/user/address.service";
 import { IUserAddressController } from "../../interfaces/controllers/user/IUserAddressController";
-
+import {
+  AddressSchema,
+  AddAddressRequestDTO,
+  UpdateAddressRequestDTO,
+  SetDefaultAddressRequestDTO,
+  DeleteAddressRequestSchema,
+  DeleteAddressRequestDTO,
+  AddressResponseDTO,
+  SuccessResponse,
+  ErrorResponse,
+  SetDefaultAddressSchema,
+  UpdateAddressResponseDTO,
+  UpdateAddressResponseSchema,
+  UpdateAddressRequestSchema,
+} from "../../dtos/controllers/user/userAddress.controller.dto";
 @injectable()
 export class UserAddressController implements IUserAddressController {
   constructor(
-    @inject(UserAddressService) private userService: UserAddressService
+    @inject(UserAddressService) private userAddressService: UserAddressService
   ) {}
 
-  async addAddress(req: Request, res: Response): Promise<void> {
+  async addAddress(
+    req: Request<{}, {}, AddAddressRequestDTO>,
+    res: Response<AddressResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-      const addressData = req.body.address;
-      const newAddress = await this.userService.addAddress(addressData);
-      res.status(201).json({
-        success: true,
-        message: "Address added successfully",
-        address: newAddress,
-      });
+      const parsed = AddressSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res
+          .status(400)
+          .json({ success: false, message: "Invalid address data" });
+        return;
+      }
+
+      const newAddress = await this.userAddressService.addAddress(parsed.data);
+      const response: AddressResponseDTO = {
+        ...newAddress,
+        _id: newAddress._id.toString(),
+      };
+      res.status(201).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to add address" });
     }
   }
 
-  async setDefaultAddress(req: Request, res: Response): Promise<void> {
+  async setDefaultAddress(
+    req: Request<{}, {}, SetDefaultAddressRequestDTO>,
+    res: Response<{ success: boolean; message: string } | ErrorResponse>
+  ): Promise<void> {
     try {
-      const { addressId, userId } = req.body;
-      const newAddress = await this.userService.setDefaultAddress(
+      const parsed = SetDefaultAddressSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ success: false, message: "Invalid input" });
+        return;
+      }
+
+      const { addressId, userId } = parsed.data;
+      const newAddress = await this.userAddressService.setDefaultAddress(
         addressId,
         userId
       );
+
       res.status(200).json({
         success: true,
         message: "Address set as default successfully",
-        address: newAddress,
       });
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res
+        .status(400)
+        .json({ success: false, message: (error as Error).message });
     }
   }
 
-  async updateAddress(req: Request, res: Response): Promise<void> {
+  async updateAddress(
+    req: Request<{}, {}, UpdateAddressRequestDTO>,
+    res: Response<UpdateAddressResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-      const { addressForm, _id, userId } = req.body;
-      const updatedAddress = await this.userService.updateAddress(
+      const parsed = UpdateAddressRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        console.log('The update address no parse');
+        res
+          .status(400)
+          .json({ success: false, message: "Invalid address data" });
+        return;
+      }
+      const { addressForm, _id, userId } = parsed.data;
+      const updatedAddress = await this.userAddressService.updateAddress(
         addressForm,
         _id,
         userId
       );
-      res
-        .status(200)
-        .json({
-          message: "Address updated successfully",
-          address: updatedAddress,
-        });
+      const response: UpdateAddressResponseDTO = {
+        success: true,
+        message: "Address updated successfully",
+        address: updatedAddress,
+      };
+      const validate = UpdateAddressResponseSchema.safeParse(response);
+      if (!validate) {
+        res
+          .status(500)
+          .json({ success: false, message: "Response validation failed: " });
+        return;
+      }
+      res.status(200).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res
+        .status(400)
+        .json({ success: false, message: (error as Error).message });
     }
   }
 
-  async deleteAddress(req: Request, res: Response): Promise<void> {
+  async deleteAddress(
+    req: Request<{}, {}, DeleteAddressRequestDTO>,
+    res: Response<SuccessResponse | ErrorResponse>
+  ): Promise<void> {
     try {
-      const { addressId, userId } = req.query;
-      if (!addressId || !userId) {
-        res.status(400).json({ message: "addressId and userId are required" });
+      const parsed = DeleteAddressRequestSchema.safeParse(req.query);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid addressId or userId: " + parsed.error.message,
+        });
         return;
       }
-
-      const addressIdStr = Array.isArray(addressId) ? addressId[0] : addressId;
-      const userIdStr = Array.isArray(userId) ? userId[0] : userId;
-
-      if (typeof addressIdStr !== "string" || typeof userIdStr !== "string") {
-        res
-          .status(400)
-          .json({ message: "addressId and userId must be strings" });
-        return;
-      }
-
-      const response = await this.userService.deleteAddress(
-        addressIdStr,
-        userIdStr
+      const { addressId, userId } = parsed.data;
+      const response = await this.userAddressService.deleteAddress(
+        addressId,
+        userId
       );
 
       if (response.success) {
-        res.status(200).json({ message: "Address deleted successfully" });
+        res.status(200).json({
+          success: true,
+          message: "Address deleted successfully",
+        });
       } else {
-        res.status(404).json({ message: "Address not found" });
+        res.status(404).json({
+          success: false,
+          message: "Address not found",
+        });
       }
     } catch (error) {
       res.status(500).json({
-        message: "An error occurred while deleting the address",
-        error: (error as Error).message,
+        success: false,
+        message: (error as Error).message,
       });
     }
   }

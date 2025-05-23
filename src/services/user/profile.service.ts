@@ -3,17 +3,10 @@ import { AddressRepository } from "../../repositories/address.repo";
 import { VehicleRepository } from "../../repositories/vehicle.repo";
 import { formatAddress } from "../../utils/address";
 import bcrypt from "bcrypt";
-import { IVehicle } from "../../models/vehicle.model";
-import { IAddress } from "../../models/adress.model";
 import { IUserProfileService } from "../../interfaces/services/user/IUserProfileService";
+import {IVehiclePopulated,SanitizedUser,UserProfileDTO} from "../../interfaces/User.interface"
+import {PartialSanitizedUserDTO,} from '../../dtos/controllers/user/userProfile.controller.dto'
 
-type SanitizedUser = {
-  name: string;
-  email: string;
-  phone?: string;
-  role: string;
-  isListed: boolean;
-};
 
 export class UserProfileService implements IUserProfileService {
   constructor(
@@ -21,16 +14,7 @@ export class UserProfileService implements IUserProfileService {
     private addressRepository: AddressRepository,
     private vehicleRepository: VehicleRepository
   ) {}
-  async getProfileData(id: string): Promise<
-    | (SanitizedUser & {
-        id: string;
-        provider?: string;
-        addresses: IAddress[];
-        defaultAddress: string;
-        vehicles: IVehicle[];
-      })
-    | undefined
-  > {
+  async getProfileData(id: string): Promise<UserProfileDTO | undefined> {
     try {
       const user = await this.userRepository.findOne({ _id: id });
       const addresses = await this.addressRepository.find({ userId: id });
@@ -67,7 +51,7 @@ export class UserProfileService implements IUserProfileService {
     phone: string,
     userId: string,
     userName: string
-  ): Promise<Partial<SanitizedUser> | undefined> {
+  ): Promise<PartialSanitizedUserDTO | undefined> {
     try {
       const user = await this.userRepository.findOneAndUpdate(
         { _id: userId },
