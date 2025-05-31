@@ -46,9 +46,12 @@ export class AdminBrandService implements IAdminBrandService {
     newStatus: string
   ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(new Types.ObjectId(brandId), {
-        status: newStatus,
-      });
+      return await this.brandRepository.updateById(
+        new Types.ObjectId(brandId),
+        {
+          status: newStatus,
+        }
+      );
     } catch (err) {
       throw new Error(
         `Failed to toggle brand status: ${(err as Error).message}`
@@ -62,7 +65,7 @@ export class AdminBrandService implements IAdminBrandService {
     imageUrl: string
   ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById( new Types.ObjectId(id), {
+      return await this.brandRepository.updateById(new Types.ObjectId(id), {
         brandName: name,
         imageUrl,
       });

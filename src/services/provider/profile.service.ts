@@ -84,8 +84,7 @@ export class ProviderProfileService implements IProviderProfileService {
     if (!data._id) {
       throw new Error("Provider ID is required for updating profile");
     }
-
-   const { _id,addressToSend, ...rest } = data;
+    const { _id,addressToSend, ...rest } = data;
 
   const updatedProvider = await this.providerRepository.updateById(
     new mongoose.Types.ObjectId(_id),

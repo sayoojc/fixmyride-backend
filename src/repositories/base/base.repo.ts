@@ -3,7 +3,7 @@ import { IBaseRepository } from "../../interfaces/repositories/IBaseRepository";
 type ObjectId = Types.ObjectId
 
 export class BaseRepository<T extends Document> implements IBaseRepository<T>{
-  private model: Model<T>;
+  protected model: Model<T>;
   constructor(model: Model<T>) {
     this.model = model;
   }

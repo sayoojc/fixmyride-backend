@@ -11,10 +11,12 @@ import connectdb from "./config/dbConfig";
 import adminUserRoutes from './routes/admin/user.routes'
 import adminBrandRoutes from './routes/admin/brand.routes'
 import adminModelRoutes from './routes/admin/model.routes'
+import adminServicePackageRoutes from './routes/admin/servicePackage.routes'
 import userAddressRoutes from './routes/user/address.routes'
 import userBrandRoutes from './routes/user/brand.routes'
 import userProfileRoutes from './routes/user/profile.routes'
 import userVehicleRoutes from './routes/user/vehicle.routes'
+import userServicePackageRoutes from './routes/user/servicePackage.routes'
 import adminAuthRoutes from './routes/admin/auth.routes'
 import adminProviderRoutes from './routes/admin/provider.routes'
 import userAuthRoutes from './routes/user/auth.routes'
@@ -56,13 +58,15 @@ app.use("/api/admin",adminUserRoutes);
 app.use("/api/admin",adminBrandRoutes); 
 app.use("/api/admin",adminModelRoutes); 
 app.use("/api/admin",adminProviderRoutes);
+app.use("/api/admin",adminServicePackageRoutes)
 
 ///user routes
 app.use("/api/user",userAuthRoutes);
 app.use("/api/user",userAddressRoutes);
 app.use("/api/user",userBrandRoutes);
 app.use("/api/user",userProfileRoutes);
-app.use("/api/user",userVehicleRoutes)
+app.use("/api/user",userVehicleRoutes);
+app.use("/api/user",userServicePackageRoutes);
 
 //provider routes
 app.use("/api/provider",providerAuthRoutes);

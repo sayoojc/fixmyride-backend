@@ -85,6 +85,7 @@ export class AdminBrandController implements IAdminBrandController {
         brandName: brand.brandName,
         imageUrl: brand.imageUrl,
         status: brand.status.toString(),
+        models:brand.models
       }));
       const response: GetBrandsResponseDTO = {
         success: true,
