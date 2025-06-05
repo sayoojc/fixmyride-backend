@@ -19,7 +19,6 @@ export class UserBrandController implements IUserBrandController {
     res: Response<GetBrandsResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log('Get brands controller function');
       const brands = await this.userBrandService.getBrands();
 
       // Transform brands and their models to match BrandSchema and ModelSchema
@@ -44,8 +43,6 @@ export class UserBrandController implements IUserBrandController {
         message: "Brands fetched successfully",
         brands: transformedBrands,
       };
-      console.log(response);
-      // Validate the response
       const validatedResponse = GetBrandsResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
         console.error("Response validation error:", validatedResponse.error);

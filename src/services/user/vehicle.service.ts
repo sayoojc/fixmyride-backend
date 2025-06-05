@@ -57,25 +57,60 @@ const populatedVehicle = vehicle as unknown as {
     status: populatedVehicle.brandId.status,
     brandName: populatedVehicle.brandId.brandName,
     imgeUrl: populatedVehicle.brandId.imageUrl,
-    createdAt: populatedVehicle.brandId.createdAt?.toString(),
-    updatedAt: populatedVehicle.brandId.updatedAt?.toString(),
+    createdAt: populatedVehicle.brandId.createdAt?.toISOString(),
+    updatedAt: populatedVehicle.brandId.updatedAt?.toISOString(),
   },
 modelId: {
   _id: populatedVehicle.modelId._id.toString(),
   status: populatedVehicle.modelId.status,
   name: populatedVehicle.modelId.name,
   imageUrl: populatedVehicle.modelId.imageUrl,
-  brandId: populatedVehicle.modelId.brandId.toString(), // 🆕 Added
-  fuelTypes: populatedVehicle.modelId.fuelTypes,        // 🆕 Added
-  createdAt: populatedVehicle.modelId.createdAt?.toString(),
-  updatedAt: populatedVehicle.modelId.updatedAt?.toString(),
+  brandId: populatedVehicle.modelId.brandId.toString(), 
+  fuelTypes: populatedVehicle.modelId.fuelTypes,       
+  createdAt: populatedVehicle.modelId.createdAt?.toISOString(),
+  updatedAt: populatedVehicle.modelId.updatedAt?.toISOString(),
 },
   fuel: populatedVehicle.fuel,
 };
 
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error adding vehicles:", error);
       return undefined;
     }
   }
+async getVehicle(id: string) {
+  try {
+    const vehicles = await this.vehicleRepository.findVehicleDataPopulatedByUserId( id )
+
+    if(!vehicles){
+      throw new Error("vehicle fetching failed")
+    }
+   
+    const formattedVehicles = vehicles.map(vehicle => ({
+      _id: vehicle._id.toString(),
+      userId: vehicle.userId.toString(),
+      fuel: vehicle.fuel,
+      brandId: {
+        _id: vehicle.brandId._id.toString(),
+        status: vehicle.brandId.status,
+        brandName: vehicle.brandId.brandName,
+        imgeUrl: vehicle.brandId.imageUrl,
+      },
+      modelId: {
+        _id: vehicle.modelId._id.toString(),
+        name: vehicle.modelId.name,
+        imageUrl:vehicle.modelId.imageUrl,
+        status:vehicle.modelId.status,
+        brandId:vehicle.modelId.brandId.toString(),
+        fuelTypes:vehicle.modelId.fuelTypes,
+      }
+    }));
+
+   return formattedVehicles
+  } catch (error) {
+    console.error("Error fetching vehicles:", error);
+    return undefined
+  }
+}
+
 }

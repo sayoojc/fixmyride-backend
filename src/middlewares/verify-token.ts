@@ -70,8 +70,6 @@ export const verifyToken = async (
         });
         return 
       }
-
-      // 🔒 Check block status
       const user = await getUserByRole(userPayload.role, userPayload.id);
       if (!user || !user.isListed) {
         console.log('The user is forbidden');
@@ -81,8 +79,6 @@ export const verifyToken = async (
         });
         return
       }
-
-      // ✅ Issue new access token
       const newAccessToken = jwt.sign(
         {
           id: userPayload.id,
@@ -102,8 +98,6 @@ export const verifyToken = async (
 
       return next();
     }
-
-    // ✅ Access token exists
     const decoded = jwt.verify(
       token,
       process.env.ACCESS_TOKEN_SECRET!
@@ -119,8 +113,6 @@ export const verifyToken = async (
       });
       return
     }
-
-    // 🔒 Check block status again here
     const user = await getUserByRole(decoded.role, decoded.id);
     if (!user || !user.isListed) {
       res.status(StatusCode.FORBIDDEN).json({

@@ -8,6 +8,6 @@ const vehicleController = container.get<UserVehicleController>(UserVehicleContro
 
 
 router.post("/add-vehicle",verifyToken,(req,res) => vehicleController.addVehicle(req,res));
-
+router.get("/get-vehicles",verifyToken,(req,res) => vehicleController.getVehicle(req,res))
 
 export default router;

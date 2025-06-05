@@ -59,12 +59,16 @@ export const AddVehicleResponseSchema = z.object({
   vehicle: VehicleSchema,
 });
 
-// Inferred TypeScript types
+export const GetVehicleResponseSchema = z.object({
+  success:z.boolean(),
+  message:z.string(),
+  vehicles:z.array(VehicleSchema)
+})
 export type VehicleDTO = z.infer<typeof VehicleSchema>;
 export type AddVehicleRequestDTO = z.infer<typeof AddVehicleRequestSchema>;
 export type AddVehicleResponseDTO = z.infer<typeof AddVehicleResponseSchema>;
+export type GetVehicleResponseDTO = z.infer<typeof GetVehicleResponseSchema>
 
-// Generic Error Response Interface
 export interface ErrorResponse {
   success: false;
   message: string;
