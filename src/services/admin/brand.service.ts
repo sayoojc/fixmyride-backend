@@ -1,14 +1,17 @@
-import { BrandRepository } from "../../repositories/brand.repo";
-import { ModelRepository } from "../../repositories/model.repo";
+import { inject,injectable } from "inversify";
+import {TYPES} from '../../containers/types'
+import { IBrandRepository } from "../../interfaces/repositories/IBrandRepository";
+import { IModelRepository } from "../../interfaces/repositories/IModelRepository";
 import { IBrand } from "../../models/brand.model";
 import { IAdminBrandService } from "../../interfaces/services/admin/IAdminBrandService";
 import { IModel } from "../../models/model.model";
 import { Types } from "mongoose";
 
+@injectable()
 export class AdminBrandService implements IAdminBrandService {
   constructor(
-    private brandRepository: BrandRepository,
-    private modelRepository: ModelRepository
+   @inject(TYPES.BrandRepository) private readonly brandRepository:IBrandRepository,
+   @inject(TYPES.ModelRepository) private readonly modelRepository:IModelRepository
   ) {}
 
   async addBrand(brandName: string, imageUrl: string): Promise<IBrand> {

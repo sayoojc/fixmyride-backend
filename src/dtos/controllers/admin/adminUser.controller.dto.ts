@@ -10,6 +10,8 @@ export const UserSchema = z.object({
   _id: z.string(),
   name: z.string(),
   email: z.string(),
+  phone:z.string(),
+  role:z.string(),
   isListed: z.boolean(),
 });
 

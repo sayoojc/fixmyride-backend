@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { UserBrandService } from "../../services/user/brand.service";
+import {TYPES} from "../../containers/types";
+import { IUserBrandService } from "../../interfaces/services/user/IUserBrandService";
 import { IUserBrandController } from "../../interfaces/controllers/user/IUserBrandController";
 import {
   GetBrandsResponseSchema,
@@ -11,7 +12,7 @@ import {
 @injectable()
 export class UserBrandController implements IUserBrandController {
   constructor(
-    @inject(UserBrandService) private userBrandService: UserBrandService
+    @inject(TYPES.UserBrandService) private readonly userBrandService: IUserBrandService
   ) {}
 
   async getBrands(

@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import transporter from "../config/mailConfig";  // Your nodemailer config
+import transporter from "../config/mailConfig";
 import { MailOptions } from "../interfaces/mail.interface";
 import { IMailRepository } from "../interfaces/repositories/IMailRepository";
 
@@ -16,7 +16,7 @@ export class MailRepository implements IMailRepository{
     };
 
     try {
-      await transporter.sendMail(mailOptions);  // Send email
+      await transporter.sendMail(mailOptions);
       console.log(`Email sent to ${options.to}`);
     } catch (error) {
       console.error("Error sending email:", error);

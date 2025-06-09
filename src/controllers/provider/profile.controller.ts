@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
+import {TYPES} from '../../containers/types'
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { ProviderProfileService } from "../../services/provider/profile.service";
+import { IProviderProfileService } from "../../interfaces/services/provider/IProviderProfileService";
 import { IProviderProfileController } from "../../interfaces/controllers/provider/IProviderProfileController";
 import {
   UpdateProfileRequestSchema,
@@ -20,8 +21,8 @@ import {
 @injectable()
 export class ProviderProfileController implements IProviderProfileController {
   constructor(
-    @inject(ProviderProfileService)
-    private providerProfileService: ProviderProfileService
+    @inject(TYPES.ProviderProfileService)
+    private readonly providerProfileService: IProviderProfileService
   ) {}
 
   async getProfileData(

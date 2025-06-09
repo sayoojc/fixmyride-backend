@@ -1,22 +1,8 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { IAdminServicePackageController } from "../../interfaces/controllers/admin/IAdminServicePackageController";
-import { AdminServicePackageService } from "../../services/admin/servicePackage.service";
-function transformServicePackage(pkg: any) {
-  return {
-    ...pkg,
-    brandId: {
-      ...pkg.brandId,
-      _id: pkg.brandId._id.toString(),
-    },
-    modelId: {
-      ...pkg.modelId,
-      _id: pkg.modelId._id.toString(),
-      brandId: pkg.modelId.brandId.toString(),
-    },
-  };
-}
-
+import { IAdminServicePackageService } from "../../interfaces/services/admin/IAdminServicePackageService";
+import {TYPES} from '../../containers/types'
 import {
   AddServicePackageRequestDTO,
   AddServicePackageResponseDTO,
@@ -39,8 +25,8 @@ export class AdminServicePackageController
   implements IAdminServicePackageController
 {
   constructor(
-    @inject(AdminServicePackageService)
-    private adminServicePackageService: AdminServicePackageService
+    @inject(TYPES.AdminServicePackageService)
+    private readonly adminServicePackageService: IAdminServicePackageService
   ) {}
   async addServicePackage(
     req: Request<{}, {}, AddServicePackageRequestDTO>,

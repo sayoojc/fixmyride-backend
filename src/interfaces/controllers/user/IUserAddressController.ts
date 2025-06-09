@@ -1,9 +1,17 @@
 import { Request, Response } from "express";
 import { 
-  AddressResponseDTO, 
-  ErrorResponse,
   AddAddressRequestDTO,
-  UpdateAddressRequestDTO
+  UpdateAddressRequestDTO,
+  SetDefaultAddressRequestDTO,
+  DeleteAddressRequestSchema,
+  DeleteAddressRequestDTO,
+  AddressResponseDTO,
+  SuccessResponse,
+  ErrorResponse,
+  SetDefaultAddressSchema,
+  UpdateAddressResponseDTO,
+  UpdateAddressResponseSchema,
+  UpdateAddressRequestSchema,
 } from "../../../dtos/controllers/user/userAddress.controller.dto";
 
 export interface IUserAddressController {
@@ -13,17 +21,17 @@ export interface IUserAddressController {
   ): Promise<void>;
 
   setDefaultAddress(
-    req: Request,
-    res: Response
+    req: Request<{},{},SetDefaultAddressRequestDTO>,
+    res: Response<SuccessResponse | ErrorResponse>
   ): Promise<void>;
 
   updateAddress(
-    req: Request<UpdateAddressRequestDTO>,
-    res: Response
+    req: Request<{},{},UpdateAddressRequestDTO>,
+    res: Response<UpdateAddressResponseDTO | ErrorResponse>
   ): Promise<void>;
 
   deleteAddress(
-    req: Request,
-    res: Response
+    req: Request<{},{},DeleteAddressRequestDTO>,
+    res: Response<SuccessResponse | ErrorResponse>
   ): Promise<void>;
 }

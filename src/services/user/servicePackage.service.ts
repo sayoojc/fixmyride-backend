@@ -1,15 +1,22 @@
-import { ServicePackageRepository } from "../../repositories/servicePackage.repository";
-import mongoose from "mongoose";
+import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
+import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
 import { IUserServicePackageService } from "../../interfaces/services/user/IUserServicePacakgeService";
 import { IServicePackage } from "../../models/servicePackage.model";
+
+@injectable()
 export class UserServicePackageService implements IUserServicePackageService {
-  constructor(private servicePackageRepository: ServicePackageRepository) {}
-  async getServicePackages():Promise<IServicePackage[]>{
+  constructor(
+    @inject(TYPES.ServicePackageRepository)
+    private readonly servicePackageRepository: IServicePackageRepository
+  ) {}
+  async getServicePackages(): Promise<IServicePackage[]> {
     try {
-     const servicePackages = await this.servicePackageRepository.findServicePackagesWithPopulate();
-    return servicePackages;
+      const servicePackages =
+        await this.servicePackageRepository.findServicePackagesWithPopulate();
+      return servicePackages;
     } catch (error) {
-      console.log('The catch block error',error)
+      console.log("The catch block error", error);
       throw error;
     }
   }

@@ -1,5 +1,7 @@
-import { ProviderRepository } from "../../repositories/provider.repo";
-import { VerificationRepository } from "../../repositories/verification.repo";
+import { inject,injectable } from "inversify";
+import {TYPES} from '../../containers/types'
+import { IProviderRepository } from "../../interfaces/repositories/IProviderRepository";
+import { IVerificationRepository } from "../../interfaces/repositories/IVerificationRepository";
 import { IServiceProvider } from "../../models/provider.model";
 import { UpdateProfileRequestDTO } from "../../dtos/controllers/provider/providerProfile.controller.dto";
 import {
@@ -8,10 +10,11 @@ import {
 } from "../../interfaces/Provider.interface";
 import { IProviderProfileService } from "../../interfaces/services/provider/IProviderProfileService";
 import mongoose from "mongoose";
+@injectable()
 export class ProviderProfileService implements IProviderProfileService {
   constructor(
-    private providerRepository: ProviderRepository,
-    private verificationRepository: VerificationRepository
+    @inject(TYPES.ProviderRepository) private providerRepository: IProviderRepository,
+   @inject(TYPES.VerificationRepository) private verificationRepository: IVerificationRepository
   ) {}
   async getProfileData(id: string): Promise<SanitizedProvider | undefined> {
     try {
@@ -62,7 +65,7 @@ export class ProviderProfileService implements IProviderProfileService {
       "startedYear",
       "description",
     ];
-    const updatedProvider = await this.providerRepository.updateById(
+   await this.providerRepository.updateById(
       new mongoose.Types.ObjectId(providerId),
       { verificationStatus: "pending" }
     );

@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { UserAuthService } from "../../services/user/auth.services";
-import { MailService } from "../../services/mail.service";
+import {TYPES} from '../../containers/types'
+import { IUserAuthService } from "../../interfaces/services/user/IUserAuthService";
+import { IMailService } from "../../interfaces/services/IMailService";
 import { authenticator } from "otplib";
 import { NotFoundError } from "../../errors/notFoundError";
 import { UnauthorizedError } from "../../errors/unauthorizedError";
@@ -35,8 +36,8 @@ import {
 @injectable()
 export class UserAuthController {
   constructor(
-    @inject(UserAuthService) private userAuthService: UserAuthService,
-    @inject(MailService) private mailService: MailService,
+    @inject(TYPES.UserAuthService) private readonly userAuthService: IUserAuthService,
+    @inject(TYPES.MailService) private readonly mailService: IMailService,
   ) {}
 
   /**

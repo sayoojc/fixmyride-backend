@@ -1,13 +1,16 @@
-import { BrandRepository } from "../../repositories/brand.repo";
+import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
+import { IBrandRepository } from "../../interfaces/repositories/IBrandRepository";
+import { IModelRepository } from "../../interfaces/repositories/IModelRepository";
 import { IBrand } from "../../models/brand.model";
 import { IModel } from "../../models/model.model";
-import { ModelRepository } from "../../repositories/model.repo";
 import { IUserBrandService } from "../../interfaces/services/user/IUserBrandService";
 
+@injectable()
 export class UserBrandService implements IUserBrandService {
   constructor(
-    private brandRepository: BrandRepository,
-    private modelRepository: ModelRepository
+    @inject(TYPES.BrandRepository) private readonly brandRepository: IBrandRepository,
+    @inject(TYPES.ModelRepository) private readonly modelRepository: IModelRepository
   ) {}
   async getBrands(): Promise<(IBrand & { models: IModel[] })[]> {
     try {

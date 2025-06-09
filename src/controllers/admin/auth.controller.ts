@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { AdminAuthService } from "../../services/admin/auth.services";
+import { TYPES } from "../../containers/types";
+import { IAdminAuthService } from "../../interfaces/services/admin/IAdminAuthService";
 import { IAdminAuthController } from "../../interfaces/controllers/admin/IAdminAuthController";
 import {
   AdminLoginRequestSchema,
@@ -8,13 +9,14 @@ import {
   AdminLogoutResponseSchema,
   AdminLoginRequestDTO,
   AdminLoginResponseDTO,
-  AdminLogoutResponseDTO
+  AdminLogoutResponseDTO,
 } from "../../dtos/controllers/admin/adminAuth.controller.dto";
 
 @injectable()
 export class AdminAuthController implements IAdminAuthController {
   constructor(
-    @inject(AdminAuthService) private adminAuthService: AdminAuthService
+    @inject(TYPES.AdminAuthService)
+    private readonly adminAuthService: IAdminAuthService
   ) {}
 
   async adminLogin(
@@ -32,15 +34,14 @@ export class AdminAuthController implements IAdminAuthController {
       const { user, accessToken, refreshToken } =
         await this.adminAuthService.adminLogin(email, password);
 
-      
-      const { _id, name, email:rawEmail, role } = user.toObject();
-const filteredUser = { _id: _id.toString(), name, email:rawEmail, role };
-       const response: AdminLoginResponseDTO = {
+      const { _id, name, email: rawEmail, role } = user.toObject();
+      const filteredUser = { _id: _id.toString(), name, email: rawEmail, role };
+      const response: AdminLoginResponseDTO = {
         message: "Login successful",
         user: filteredUser,
       };
 
-      AdminLoginResponseSchema.parse(response); // optional runtime validation
+      AdminLoginResponseSchema.parse(response);
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,

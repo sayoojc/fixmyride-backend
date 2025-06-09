@@ -1,24 +1,22 @@
-import { UserRepository } from "../../repositories/user.repo";
-import { IAddress } from "../../models/adress.model";
-import { AddressRepository } from "../../repositories/address.repo";
+import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
+import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
+import { IAddressRepository } from "../../interfaces/repositories/IAddressRepository";
 import mongoose from "mongoose";
 import { IUserAddressService } from "../../interfaces/services/user/IUserAddressService";
 import { Types } from "mongoose";
 import {
-  AddressSchema,
   AddAddressRequestDTO,
-  UpdateAddressRequestDTO,
-  SetDefaultAddressRequestDTO,
-  DeleteAddressRequestDTO,
   AddressResponseDTO,
-  SuccessResponse,
-  ErrorResponse,
 } from "../../dtos/controllers/user/userAddress.controller.dto";
 
+injectable();
 export class UserAddressService implements IUserAddressService {
   constructor(
-    private userRepository: UserRepository,
-    private addressRepository: AddressRepository
+    @inject(TYPES.UserRepository)
+    private readonly userRepository: IUserRepository,
+    @inject(TYPES.AddressRepository)
+    private readonly addressRepository: IAddressRepository
   ) {}
   async addAddress(
     addressData: AddAddressRequestDTO
@@ -57,11 +55,14 @@ export class UserAddressService implements IUserAddressService {
       throw new Error("Address not found");
     }
 
-    const updatedAddress = await this.addressRepository.updateById(new Types.ObjectId(addressId), {
-      isDefault: true,
-    });
+    const updatedAddress = await this.addressRepository.updateById(
+      new Types.ObjectId(addressId),
+      {
+        isDefault: true,
+      }
+    );
 
-    const addresses = await this.addressRepository.updateMany(
+    await this.addressRepository.updateMany(
       {
         userId: userId,
         _id: { $ne: addressId },
@@ -88,10 +89,13 @@ export class UserAddressService implements IUserAddressService {
       );
     }
 
-    const updatedAddress = await this.addressRepository.updateById(new Types.ObjectId(_id), {
-      ...addressForm,
-      userId: new mongoose.Types.ObjectId(addressForm.userId),
-    });
+    const updatedAddress = await this.addressRepository.updateById(
+      new Types.ObjectId(_id),
+      {
+        ...addressForm,
+        userId: new mongoose.Types.ObjectId(addressForm.userId),
+      }
+    );
     console.log("The updated address", updatedAddress);
     if (!updatedAddress) {
       throw new Error("Address not found or update failed");
@@ -112,7 +116,9 @@ export class UserAddressService implements IUserAddressService {
       if (!user) {
         throw new Error("User not found");
       }
-      const addressDeleted = await this.addressRepository.deleteById(new Types.ObjectId(addressId));
+      const addressDeleted = await this.addressRepository.deleteById(
+        new Types.ObjectId(addressId)
+      );
       if (!addressDeleted) {
         throw new Error("Address not found or could not be deleted");
       }

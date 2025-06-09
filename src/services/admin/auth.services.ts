@@ -1,4 +1,6 @@
-import { UserRepository } from "../../repositories/user.repo";
+import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
+import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { IUser } from "../../models/user.model";
 import {
   generateAccessToken,
@@ -9,12 +11,11 @@ import bcrypt from "bcrypt";
 import redis from "../../config/redisConfig";
 import { IAdminAuthService } from "../../interfaces/services/admin/IAdminAuthService";
 
+@injectable()
 export class AdminAuthService implements IAdminAuthService {
-  private userRepository: UserRepository;
-
-  constructor(userRepository: UserRepository) {
-    this.userRepository = userRepository;
-  }
+  constructor(
+    @inject(TYPES.UserRepository) private readonly userRepository: IUserRepository
+  ) {}
   async adminLogin(
     email: string,
     password: string

@@ -1,13 +1,8 @@
 
 import {UserProfileDTO} from "../../../interfaces/User.interface"
+import { PartialSanitizedUserDTO } from "../../../dtos/controllers/user/userProfile.controller.dto";
 
-type SanitizedUser = {
-  name: string;
-  email: string;
-  phone?: string;
-  role: string;
-  isListed: boolean;
-};
+
 
 export interface IUserProfileService {
   /**
@@ -33,7 +28,7 @@ export interface IUserProfileService {
     phone: string,
     userId: string,
     userName: string
-  ): Promise<Partial<SanitizedUser> | undefined>;
+  ): Promise<PartialSanitizedUserDTO| undefined>;
 
   /**
    * Changes the user's password after verifying the current password.
@@ -46,5 +41,5 @@ export interface IUserProfileService {
     userId: string,
     currentPassword: string,
     newPassword: string
-  ): Promise<Partial<SanitizedUser> | undefined>;
+  ): Promise<PartialSanitizedUserDTO | undefined>;
 }

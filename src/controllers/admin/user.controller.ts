@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { AdminUserService } from "../../services/admin/user.service";
+import { TYPES } from "../../containers/types";
+import { IAdminUserService } from "../../interfaces/services/admin/IAdminUserService";
 import { IAdminUserController } from "../../interfaces/controllers/admin/IAdminUserController";
 import {
   ToggleListingRequestDTO,
@@ -10,34 +11,25 @@ import {
   FetchUsersResponseSchema,
   ToggleListingResponseSchema,
   ErrorResponse,
-  UserDTO,
 } from "../../dtos/controllers/admin/adminUser.controller.dto";
 
-// Optional: sanitize helper
-function sanitizeUser(user: any): UserDTO {
-  return {
-    _id: user._id?.toString() ?? "",
-    name: user.name ?? "",
-    email: user.email ?? "",
-    isListed: user.isListed ?? false,
-  };
-}
 @injectable()
 export class AdminUserController implements IAdminUserController {
   constructor(
-    @inject(AdminUserService) private adminUserService: AdminUserService
+    @inject(TYPES.AdminUserService) private readonly adminUserService: IAdminUserService
   ) {}
 
-  async fetchUsers(req: Request, res: Response<FetchUsersResponseDTO | ErrorResponse>): Promise<void> {
+  async fetchUsers(
+    req: Request,
+    res: Response<FetchUsersResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-const users = (await this.adminUserService.fetchUsers()) ?? [];
+      const users = (await this.adminUserService.fetchUsers()) ?? [];
 
-      const sanitizedUsers = (users.map(sanitizeUser)) ?? [];      
-     
       const response: FetchUsersResponseDTO = {
         success: true,
         message: "Users fetched successfully",
-        users: sanitizedUsers,
+        users: users,
       };
 
       const validated = FetchUsersResponseSchema.safeParse(response);
@@ -52,30 +44,35 @@ const users = (await this.adminUserService.fetchUsers()) ?? [];
     }
   }
 
-  async toggleListing(req: Request<{},{},ToggleListingRequestDTO>, res: Response<ToggleListingResponseDTO | ErrorResponse>): Promise<void> {
+  async toggleListing(
+    req: Request<{}, {}, ToggleListingRequestDTO>,
+    res: Response<ToggleListingResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-         const parsed = ToggleListingRequestSchema.safeParse(req.body);
+      const parsed = ToggleListingRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         throw new Error("Invalid request body");
       }
 
       const email = parsed.data.email;
       const updatedUser = await this.adminUserService.toggleListing(email);
-         if (!updatedUser) {
+      if (!updatedUser) {
         throw new Error("User not found or could not update listing");
       }
-             const response: ToggleListingResponseDTO = {
+      const response: ToggleListingResponseDTO = {
         success: true,
-        message: `User has been ${updatedUser.isListed ? "unblocked" : "blocked"}`,
-        user: sanitizeUser(updatedUser),
+        message: `User has been ${
+          updatedUser.isListed ? "unblocked" : "blocked"
+        }`,
+        user: updatedUser,
       };
-          const validated = ToggleListingResponseSchema.safeParse(response);
+      const validated = ToggleListingResponseSchema.safeParse(response);
       if (!validated.success) {
         console.error("Zod validation error", validated.error);
         throw new Error("Response DTO validation failed");
       }
 
-        res.status(200).json(response);
+      res.status(200).json(response);
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
     }

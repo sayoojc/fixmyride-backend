@@ -42,4 +42,4 @@ const verificationSchema = new Schema<IVerification>({
   },
 });
 
-export const VerificationModel = mongoose.model<IVerification>("Verification", verificationSchema);
+export default mongoose.model<IVerification>("Verification", verificationSchema);

@@ -1,16 +1,21 @@
-import { ProviderRepository } from "../../repositories/provider.repo";
-import { VerificationRepository } from "../../repositories/verification.repo";
+import { TYPES } from "../../containers/types";
+import { inject, injectable } from "inversify";
+import { IProviderRepository } from "../../interfaces/repositories/IProviderRepository";
+import { IVerificationRepository } from "../../interfaces/repositories/IVerificationRepository";
 import { IServiceProvider } from "../../models/provider.model";
 import { IVerification } from "../../models/verification.model";
-import { MailService } from "../mail.service";
+import { IMailService } from "../../interfaces/services/IMailService";
 import { IAdminProviderService } from "../../interfaces/services/admin/IAdminProviderService";
 import { Types } from "mongoose";
 
+@injectable()
 export class AdminProviderService implements IAdminProviderService {
   constructor(
-    private providerRepository: ProviderRepository,
-    private verificationRepository: VerificationRepository,
-    private mailService: MailService
+    @inject(TYPES.ProviderRepository)
+    private readonly providerRepository: IProviderRepository,
+    @inject(TYPES.VerificationRepository)
+    private readonly verificationRepository: IVerificationRepository,
+    @inject(TYPES.MailRepository) private readonly mailService: IMailService
   ) {}
 
   async fetchProviders(): Promise<Partial<IServiceProvider>[] | undefined> {
@@ -132,9 +137,12 @@ export class AdminProviderService implements IAdminProviderService {
     try {
       const provider = await this.providerRepository.findOne({ _id: id });
       if (!provider) return undefined;
-      const updatedProvider = await this.providerRepository.updateById(new Types.ObjectId(id), {
-        isListed: !provider.isListed,
-      });
+      const updatedProvider = await this.providerRepository.updateById(
+        new Types.ObjectId(id),
+        {
+          isListed: !provider.isListed,
+        }
+      );
 
       if (!updatedProvider) return undefined;
       return {

@@ -1,4 +1,4 @@
-import { IAddress } from "../models/adress.model";
+import { IAddress } from "../models/address.model";
 export const formatAddress = (address: IAddress | undefined): string => {
     if (!address) return "No default address";
     const {

@@ -1,4 +1,4 @@
-import { IAddress } from "../models/adress.model";
+import { IAddress } from "../models/address.model";
 export interface TempUser {
     name: string;
     email: string;

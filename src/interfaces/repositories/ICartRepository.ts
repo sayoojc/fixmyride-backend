@@ -1,3 +1,9 @@
 import { IBaseRepository } from "./IBaseRepository";
 import { ICart } from "../../models/cart.model";
-export interface ICartRepository extends IBaseRepository<ICart> {}
+import { AddToCartDataDTO } from "../../dtos/repositories/cart.repository.dto";
+import { Types } from "mongoose";
+import { IPopulatedCart } from "../Cart.interface";
+export interface ICartRepository extends IBaseRepository<ICart> {
+    upsertCart(data:AddToCartDataDTO):Promise<ICart>
+    addVehicleToCart(idVehicle:Types.ObjectId,idUser:Types.ObjectId):Promise<IPopulatedCart>
+}

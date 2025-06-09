@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { UserAddressService } from "../../services/user/address.service";
+import { IUserAddressService } from "../../interfaces/services/user/IUserAddressService";
+import { TYPES } from "../../containers/types";
 import { IUserAddressController } from "../../interfaces/controllers/user/IUserAddressController";
 import {
   AddressSchema,
@@ -20,7 +21,8 @@ import {
 @injectable()
 export class UserAddressController implements IUserAddressController {
   constructor(
-    @inject(UserAddressService) private userAddressService: UserAddressService
+    @inject(TYPES.UserAddressService)
+    private readonly userAddressService: IUserAddressService
   ) {}
 
   async addAddress(
@@ -51,7 +53,7 @@ export class UserAddressController implements IUserAddressController {
 
   async setDefaultAddress(
     req: Request<{}, {}, SetDefaultAddressRequestDTO>,
-    res: Response<{ success: boolean; message: string } | ErrorResponse>
+    res: Response<SuccessResponse | ErrorResponse>
   ): Promise<void> {
     try {
       const parsed = SetDefaultAddressSchema.safeParse(req.body);
@@ -84,7 +86,7 @@ export class UserAddressController implements IUserAddressController {
     try {
       const parsed = UpdateAddressRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('The update address no parse');
+        console.log("The update address no parse");
         res
           .status(400)
           .json({ success: false, message: "Invalid address data" });

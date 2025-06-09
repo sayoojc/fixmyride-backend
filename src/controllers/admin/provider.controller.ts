@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { AdminProviderService } from "../../services/admin/provider.service";
+import {TYPES} from '../../containers/types'
+import { IAdminProviderService } from "../../interfaces/services/admin/IAdminProviderService";
 import { IAdminProviderController } from "../../interfaces/controllers/admin/IAdminProviderController";
 type ErrorResponse = { success: false; message: string };
 import {
@@ -23,8 +24,8 @@ import {
 @injectable()
 export class AdminProviderController implements IAdminProviderController {
   constructor(
-    @inject(AdminProviderService)
-    private adminProviderService: AdminProviderService
+    @inject(TYPES.AdminProviderService)
+    private readonly adminProviderService: IAdminProviderService
   ) {}
 
   async fetchProviders(

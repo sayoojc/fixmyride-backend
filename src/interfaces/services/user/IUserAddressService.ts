@@ -1,4 +1,4 @@
-import { IAddress } from "../../../models/adress.model";
+import { IAddress } from "../../../models/address.model";
 import {
   AddressSchema,
   AddAddressRequestDTO,

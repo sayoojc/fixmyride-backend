@@ -1,4 +1,6 @@
-import { ProviderRepository } from "../../repositories/provider.repo";
+import { inject,injectable } from "inversify";
+import {TYPES} from '../../containers/types'
+import { IProviderRepository } from "../../interfaces/repositories/IProviderRepository";
 import { IServiceProvider } from "../../models/provider.model";
 import { generateAccessToken, generateRefreshToken } from "../../utils/generateToken";
 import { hashPassword } from "../../utils/hashPassword";
@@ -8,13 +10,11 @@ import redis from "../../config/redisConfig";
 import { Providerdata,TempProvider } from "../../interfaces/Provider.interface";
 import { IProviderAuthService } from "../../interfaces/services/provider/IproviderAuthService";
 
+@injectable()
 export class ProviderAuthService implements IProviderAuthService {
-  private providerRepository:ProviderRepository
    constructor(
-    providerRepository:ProviderRepository
-  ) {
-    this.providerRepository = providerRepository
-  }
+  @inject(TYPES.ProviderRepository)private readonly providerRepository:IProviderRepository
+  ) {}
 
   
   async providerRegisterTemp(providerData:Providerdata): Promise<TempProvider> {

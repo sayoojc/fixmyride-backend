@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
+import {TYPES} from '../../containers/types'
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { UserVehicleService } from "../../services/user/vehicle.service";
+import { IUserVehicleService } from "../../interfaces/services/user/IUserVehicleService";
 import { IUserVehicleController } from "../../interfaces/controllers/user/IUserVehicleController";
 import { 
   AddVehicleRequestDTO,
@@ -17,7 +18,7 @@ import {
 @injectable()
 export class UserVehicleController implements IUserVehicleController {
   constructor(
-    @inject(UserVehicleService) private userVehicleService: UserVehicleService
+    @inject(TYPES.UserVehicleService) private readonly userVehicleService: IUserVehicleService
   ) {}
 
   async addVehicle(req: Request<{},{},AddVehicleRequestDTO>, res: Response<AddVehicleResponseDTO | ErrorResponse>): Promise<void> {

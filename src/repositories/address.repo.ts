@@ -1,5 +1,5 @@
 import { BaseRepository } from "./base/base.repo";
-import { IAddress } from "../models/adress.model";
+import { IAddress } from "../models/address.model";
 import { Model } from "mongoose";
 import { IAddressRepository } from "../interfaces/repositories/IAddressRepository";
 

@@ -1,16 +1,21 @@
 import express from "express";
-import container from "../../containers/container";
-import { UserAuthController } from "../../controllers/user/auth.controller";
+import container from "../../containers/container.config";
+import { IUserAuthController } from "../../interfaces/controllers/user/IUserAuthController";
+import { TYPES } from "../../containers/types";
 const router = express.Router();
 
-const userauthController = container.get<UserAuthController>(UserAuthController);
+const userauthController = container.get<IUserAuthController>(
+  TYPES.UserAuthController
+);
 
 /**
  * @route   POST /register-temp
  * @desc    Temporary storage for user signup
  * @access  Public
  */
-router.post("/register-temp", (req, res) => userauthController.registerTemp(req, res));
+router.post("/register-temp", (req, res) =>
+  userauthController.registerTemp(req, res)
+);
 
 /**
  * @route   POST /signup
@@ -33,13 +38,12 @@ router.post("/login", (req, res) => userauthController.userLogin(req, res));
  */
 router.post("/logout", (req, res) => userauthController.logout(req, res));
 
+router.post("/forgotPassword", (req, res) =>
+  userauthController.forgotPassword(req, res)
+);
 
-
-router.post("/forgotPassword",(req,res) => userauthController.forgotPassword(req,res));
-
-
-router.post("/reset-password",(req,res) => userauthController.resetPassword(req,res));
-
-
+router.post("/reset-password", (req, res) =>
+  userauthController.resetPassword(req, res)
+);
 
 export default router;

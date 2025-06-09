@@ -1,18 +1,25 @@
-import { UserRepository } from "../../repositories/user.repo";
+import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
+import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { IAdminUserService } from "../../interfaces/services/admin/IAdminUserService";
-import { SanitizedUser } from "../../interfaces/User.interface";
 import { Types } from "mongoose";
+import { UserDTO } from "../../dtos/controllers/admin/adminUser.controller.dto";
 
+@injectable()
 export class AdminUserService implements IAdminUserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    @inject(TYPES.UserRepository)
+    private readonly userRepository: IUserRepository
+  ) {}
 
-  async fetchUsers(): Promise<SanitizedUser[] | undefined> {
+  async fetchUsers(): Promise<UserDTO[] | undefined> {
     try {
       const users = await this.userRepository.find({ role: { $ne: "admin" } });
       return users.map((user) => ({
+        _id: user._id.toString(),
         name: user.name,
         email: user.email,
-        phone: user.phone,
+        phone: user.phone || "",
         role: user.role,
         isListed: user.isListed,
       }));
@@ -22,7 +29,7 @@ export class AdminUserService implements IAdminUserService {
     }
   }
 
-  async toggleListing(email: string): Promise<SanitizedUser | undefined> {
+  async toggleListing(email: string): Promise<UserDTO | undefined> {
     try {
       const user = await this.userRepository.findOne({ email });
       if (!user) return undefined;
@@ -37,9 +44,10 @@ export class AdminUserService implements IAdminUserService {
       if (!updatedUser) return undefined;
 
       return {
+        _id: updatedUser._id.toString(),
         name: updatedUser.name,
         email: updatedUser.email,
-        phone: updatedUser.phone,
+        phone: updatedUser.phone || "",
         role: updatedUser.role,
         isListed: updatedUser.isListed,
       };

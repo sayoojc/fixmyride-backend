@@ -1,6 +1,7 @@
+import {TYPES} from '../../containers/types'
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { AdminModelService } from "../../services/admin/model.service";
+import { IAdminModelService } from '../../interfaces/services/admin/IAdminModelService';
 import { IAdminModelController } from "../../interfaces/controllers/admin/IAdminModelController";
 import {
   AddModelRequestDTO,
@@ -24,7 +25,7 @@ type UpdateModelResponse = UpdateModelResponseDTO | { message: string; errors?: 
 @injectable()
 export class AdminModelController implements IAdminModelController {
   constructor(
-    @inject(AdminModelService) private adminModelService: AdminModelService
+    @inject(TYPES.AdminModelService) private readonly adminModelService: IAdminModelService
   ) {}
 
   async addModel(

@@ -4,58 +4,7 @@ import { ICartRepository } from "../interfaces/repositories/ICartRepository";
 import { ICart } from "../models/cart.model";
 import { AddToCartDataDTO } from "../dtos/services/user/cart.service.dto";
 import mongoose,{ Document } from "mongoose";
-export interface IService {
-  serviceId: mongoose.Types.ObjectId;
-  scheduledDate?: Date;
-  notes?: string;
-}
-
-export interface ICoupon {
-  code?: string;
-  discountType?: "percentage" | "flat";
-  discountValue: number;
-  discountAmount: number;
-  applied: boolean;
-}
-export interface IVehicle {
-   _id: string;
-    userId: string;
-    fuel: string;
-    isDefault: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    brandId: {
-      _id: string;
-      brandName: string;
-      imageUrl: string;
-      status: string;
-      createdAt: Date;
-      updatedAt: Date;
-    };
-    modelId: {
-      _id: string;
-      name: string;
-      imageUrl: string;
-      brandId: string;
-      fuelTypes: string[];
-      createdAt: Date;
-      updatedAt: Date;
-    };
-}
-
-export interface IPopulatedCart extends Document{
-  _id:mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
-  services?: IService[];
-  coupon?: ICoupon;
-  totalAmount?: number;
-  finalAmount?: number;
-  isCheckedOut?: boolean;
-  vehicleId: IVehicle;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
+import { IPopulatedCart } from "../interfaces/Cart.interface";
 
 export class CartRepository
   extends BaseRepository<ICart>
@@ -93,7 +42,6 @@ async addVehicleToCart(
   vehicleId: mongoose.Types.ObjectId,
   userId: mongoose.Types.ObjectId,
 ): Promise<IPopulatedCart> {
-  // Step 1: Try to find existing cart
   const existingCart = await this.model.findOne({
     userId,
     vehicleId,
@@ -137,6 +85,5 @@ async addVehicleToCart(
 
   return populatedCart;
 }
-
 }
 

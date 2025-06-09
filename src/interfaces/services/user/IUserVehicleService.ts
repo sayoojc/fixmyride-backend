@@ -9,4 +9,5 @@ export interface IUserVehicleService {
     modelName: string,
     fuelType: string
   ): Promise<VehicleDTO | undefined>;
+  getVehicle(id:string):Promise<VehicleDTO[] | undefined>
 }

@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { ProviderAuthService } from "../../services/provider/auth.service";
+import { IProviderAuthService } from "../../interfaces/services/provider/IproviderAuthService";
+import { IMailService } from "../../interfaces/services/IMailService";
+import { TYPES } from "../../containers/types";
 import { MailService } from "../../services/mail.service";
-import { UserRepository } from "../../repositories/user.repo";
 import { authenticator } from "otplib";
 import { UnauthorizedError } from "../../errors/unauthorizedError";
 import { IProviderAuthController } from "../../interfaces/controllers/provider/IProviderAuthController";
@@ -22,15 +23,16 @@ import {
 @injectable()
 export class ProviderAuthController implements IProviderAuthController {
   constructor(
-    @inject(ProviderAuthService)
-    private providerAuthService: ProviderAuthService,
-    @inject(MailService) private mailService: MailService,
-    @inject(UserRepository) private userRepository: UserRepository
+    @inject(TYPES.ProviderAuthService)
+    private providerAuthService: IProviderAuthService,
+    @inject(TYPES.MailService) private mailService: IMailService
   ) {}
-  async providerRegisterTemp( req: Request<{}, {}, ProviderRegisterTempDTO>,
-    res: Response<SuccessMessageDTO | ErrorResponse>): Promise<void> {
+  async providerRegisterTemp(
+    req: Request<{}, {}, ProviderRegisterTempDTO>,
+    res: Response<SuccessMessageDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-       const parsed = ProviderRegisterTempSchema.safeParse(req.body);
+      const parsed = ProviderRegisterTempSchema.safeParse(req.body);
       if (!parsed.success) throw new Error("Invalid provider data");
 
       const data = parsed.data;
@@ -58,11 +60,14 @@ export class ProviderAuthController implements IProviderAuthController {
     }
   }
 
-  async providerRegister(  req: Request<{}, {}, ProviderRegisterDTO>,
-    res: Response<SuccessMessageDTO | ErrorResponse>): Promise<void> {
+  async providerRegister(
+    req: Request<{}, {}, ProviderRegisterDTO>,
+    res: Response<SuccessMessageDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-        const parsed = ProviderRegisterSchema.safeParse(req.body);
-      if (!parsed.success) throw new Error("Invalid provider registration data");
+      const parsed = ProviderRegisterSchema.safeParse(req.body);
+      if (!parsed.success)
+        throw new Error("Invalid provider registration data");
 
       const provider = await this.providerAuthService.providerRegister({
         ...parsed.data,
@@ -72,16 +77,20 @@ export class ProviderAuthController implements IProviderAuthController {
         throw new Error("User registration failed");
       }
 
-      res.status(201).json({ success: true, message: "Provider registered successfully" });
+      res
+        .status(201)
+        .json({ success: true, message: "Provider registered successfully" });
     } catch (error) {
       res.status(400).json({ message: (error as Error).message });
     }
   }
 
-  async providerLogin(  req: Request<{}, {}, ProviderLoginDTO>,
-    res: Response<ProviderLoginResponseDTO | ErrorResponse>): Promise<void> {
+  async providerLogin(
+    req: Request<{}, {}, ProviderLoginDTO>,
+    res: Response<ProviderLoginResponseDTO | ErrorResponse>
+  ): Promise<void> {
     try {
-     const parsed = ProviderLoginSchema.safeParse(req.body);
+      const parsed = ProviderLoginSchema.safeParse(req.body);
       if (!parsed.success) throw new Error("Invalid login credentials");
 
       const { email, password } = parsed.data;
@@ -118,7 +127,10 @@ export class ProviderAuthController implements IProviderAuthController {
       }
     }
   }
-  async providerLogout(req: Request, res: Response<SuccessMessageDTO | ErrorResponse>) {
+  async providerLogout(
+    req: Request,
+    res: Response<SuccessMessageDTO | ErrorResponse>
+  ) {
     try {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");

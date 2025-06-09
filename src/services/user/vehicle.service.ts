@@ -1,9 +1,13 @@
-import { VehicleRepository } from "../../repositories/vehicle.repo";
+import { inject,injectable } from "inversify";
+import {TYPES} from '../../containers/types'
+import { IVehicleRepository } from "../../interfaces/repositories/IVehicleRepository";
 import mongoose from "mongoose";
 import { IUserVehicleService } from "../../interfaces/services/user/IUserVehicleService";
 import { VehicleDTO } from "../../dtos/controllers/user/userProfile.controller.dto";
+
+@injectable()
 export class UserVehicleService implements IUserVehicleService {
-  constructor(private vehicleRepository: VehicleRepository) {}
+  constructor(@inject(TYPES.VehicleRepository) private readonly vehicleRepository: IVehicleRepository) {}
   async addVehicle(
     userId: string,
     brandId: string,

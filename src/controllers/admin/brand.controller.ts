@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { AdminBrandService } from "../../services/admin/brand.service";
+import { IAdminBrandService } from "../../interfaces/services/admin/IAdminBrandService";
+import { TYPES } from "../../containers/types";
 import { IAdminBrandController } from "../../interfaces/controllers/admin/IAdminBrandController";
 type AddBrandResponse = AddBrandResponseDTO | { message: string; errors?: any };
 type GetBrandsResponse =
@@ -29,7 +30,8 @@ import {
 @injectable()
 export class AdminBrandController implements IAdminBrandController {
   constructor(
-    @inject(AdminBrandService) private adminBrandService: AdminBrandService
+    @inject(TYPES.AdminBrandService)
+    private readonly adminBrandService: IAdminBrandService
   ) {}
 
   async addBrand(
@@ -85,7 +87,7 @@ export class AdminBrandController implements IAdminBrandController {
         brandName: brand.brandName,
         imageUrl: brand.imageUrl,
         status: brand.status.toString(),
-        models:brand.models
+        models: brand.models,
       }));
       const response: GetBrandsResponseDTO = {
         success: true,

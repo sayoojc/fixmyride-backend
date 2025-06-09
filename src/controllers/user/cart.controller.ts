@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { UserCartService } from "../../services/user/cart.service";
+import { IUserCartService } from "../../interfaces/services/user/IUserCartService";
 import { IUserCartController } from "../../interfaces/controllers/user/IUserCartController";
 import {
   AddToCartRequestDTO,
@@ -18,65 +19,66 @@ import {
 @injectable()
 export class UserCartController implements IUserCartController {
   constructor(
-    @inject(UserCartService) private userCartService: UserCartService
+    @inject(TYPES.UserCartService)
+    private readonly userCartService: IUserCartService
   ) {}
-  // async addToCart(
-  //   req: Request<{}, {}, AddToCartRequestDTO>,
-  //   res: Response<AddToCartResponseDTO | ErrorResponseDTO>
-  // ): Promise<void> {
-  //   try {
-  //     const accessToken = req.cookies.accessToken;
-  //     if (!accessToken) {
-  //       res.status(401).json({
-  //         success: false,
-  //         message: "Not authorized, no access token",
-  //       });
-  //       return;
-  //     }
-  //     const userDetails = jwt.verify(
-  //       accessToken,
-  //       process.env.ACCESS_TOKEN_SECRET!
-  //     );
-  //     const user = userDetails as JwtPayload;
+  async addToCart(
+    req: Request<{}, {}, AddToCartRequestDTO>,
+    res: Response<AddToCartResponseDTO | ErrorResponseDTO>
+  ): Promise<void> {
+    try {
+      const accessToken = req.cookies.accessToken;
+      if (!accessToken) {
+        res.status(401).json({
+          success: false,
+          message: "Not authorized, no access token",
+        });
+        return;
+      }
+      const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      );
+      const user = userDetails as JwtPayload;
 
-  //     if (!user || !user.id) {
-  //       throw new Error("Failed to authenticate");
-  //     }
+      if (!user || !user.id) {
+        throw new Error("Failed to authenticate");
+      }
 
-  //     const parsed = AddServiceToCartRequestSchema.safeParse(req.body);
-  //     if (!parsed.success) {
-  //       res.status(400).json({
-  //         success: false,
-  //         message: "The request DTO doesnt match",
-  //       });
-  //       return;
-  //     }
-  //     const updatedCart = await this.userCartService.addToCart({
-  //       ...parsed.data,
-  //       userId: user.id,
-  //     });
-  //     if (!updatedCart) {
-  //       throw new Error("The cart updation failed");
-  //     }
-  //     const response = {
-  //       success: true,
-  //       message: "The card updation successfull",
-  //       cart: updatedCart,
-  //     };
-  //     const validate = AddServiceToCartResponseSchema.safeParse(response);
-  //     if (!validate) {
-  //       res.status(400).json({
-  //         success: false,
-  //         message: "The response DTO doesnt match",
-  //       });
-  //     }
-  //     res.status(201).json(response);
-  //   } catch (error) {
-  //     res
-  //       .status(400)
-  //       .json({ success: false, message: "The cart updation failed" });
-  //   }
-  // }
+      const parsed = AddServiceToCartRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          message: "The request DTO doesnt match",
+        });
+        return;
+      }
+      const updatedCart = await this.userCartService.addToCart({
+        ...parsed.data,
+        userId: user.id,
+      });
+      if (!updatedCart) {
+        throw new Error("The cart updation failed");
+      }
+      const response = {
+        success: true,
+        message: "The card updation successfull",
+        cart: updatedCart,
+      };
+      const validate = AddServiceToCartResponseSchema.safeParse(response);
+      if (!validate) {
+        res.status(400).json({
+          success: false,
+          message: "The response DTO doesnt match",
+        });
+      }
+      res.status(201).json(response);
+    } catch (error) {
+      res
+        .status(400)
+        .json({ success: false, message: "The cart updation failed" });
+    }
+  }
   async addVehicleToCart(
     req: Request<{}, {}, AddVehicleToCartRequestDTO>,
     res: Response<AddVehicleToCartResponseDTO | ErrorResponseDTO>
