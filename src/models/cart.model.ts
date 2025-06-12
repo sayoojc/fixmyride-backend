@@ -14,6 +14,7 @@ export interface ICoupon {
   applied: boolean;
 }
 
+
 export interface ICart extends Document {
   userId: mongoose.Types.ObjectId;
   services?: IService[];

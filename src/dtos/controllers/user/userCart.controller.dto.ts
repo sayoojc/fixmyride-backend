@@ -22,12 +22,10 @@ export const ServiceSchema = z.object({
 });
 
 export const AddServiceToCartRequestSchema = z.object({
-  serviceId: ObjectIdSchema,
-  vehicleId:ObjectIdSchema
+  serviceId: z.string(),
+  vehicleId: z.string(),
 });
 
-
-// ✅ Brand Schema
 export const BrandSchema = z.object({
   _id: z.string(),
   brandName: z.string(),
@@ -39,7 +37,6 @@ export const BrandSchema = z.object({
 
 export type BrandDTO = z.infer<typeof BrandSchema>;
 
-// ✅ Model Schema
 export const ModelSchema = z.object({
   _id: z.string(),
   name: z.string(),
@@ -52,7 +49,6 @@ export const ModelSchema = z.object({
 
 export type ModelDTO = z.infer<typeof ModelSchema>;
 
-// ✅ Vehicle Schema
 export const VehicleSchema = z.object({
   _id: z.string(),
   userId: z.string(),
@@ -65,12 +61,41 @@ export const VehicleSchema = z.object({
 });
 
 export type VehicleDTO = z.infer<typeof VehicleSchema>;
+// Real full service details being returned in populated cart
+export const ServiceDetailsSchema = z.object({
+  serviceId: z.object({
+    _id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    brandId: z.string(),
+    modelId: z.string(),
+    fuelType: z.enum(["petrol", "diesel", "lpg", "cng"]),
+    servicesIncluded: z.array(z.string()),
+    priceBreakup: z.object({
+      parts: z.array(
+        z.object({
+          name: z.string(),
+          price: z.number(),
+          quantity: z.number(),
+        })
+      ),
+      laborCharge: z.number(),
+      discount: z.number().optional(),
+      tax: z.number().optional(),
+      total: z.number(),
+    }),
+    isBlocked: z.boolean(),
+    createdAt: z.coerce.date(),
+  }),
+  scheduledDate: z.date().optional(),
+  notes: z.string().max(500).optional(),
+});
 
 export const CartSchema = z.object({
   _id: ObjectIdSchema,
   userId: ObjectIdSchema,
   vehicleId: VehicleSchema,
-  services: z.array(ServiceSchema).optional(),
+  services: z.array(ServiceDetailsSchema).optional(),
   coupon: CouponSchema.optional(),
   totalAmount: z.number().optional(),
   finalAmount: z.number().optional(),
@@ -81,33 +106,59 @@ export const CartSchema = z.object({
 export const AddServiceToCartResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
-  cart:CartSchema
+  cart: CartSchema,
 });
 
 export const GetCartResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string(),
   cart: CartSchema,
 });
 
 export const AddVehicleToCartRequestSchema = z.object({
-  vehicleId:z.string()
+  vehicleId: z.string(),
 });
 
 export const AddVehicleToCartResponseSchema = z.object({
-  success:z.boolean(),
-  message:z.string(),
-  cart:CartSchema
-})
+  success: z.boolean(),
+  message: z.string(),
+  cart: CartSchema,
+});
 
 export const ErrorResponseSchema = z.object({
   success: z.literal(false),
   message: z.string(),
 });
 
+export const GetCartRequestSchema = z.object({
+  vehicleId: z.string(),
+});
 
-export type AddToCartRequestDTO = z.infer<typeof AddServiceToCartRequestSchema >
-export type AddToCartResponseDTO = z.infer<typeof AddServiceToCartResponseSchema >
-export type ErrorResponseDTO = z.infer<typeof ErrorResponseSchema>
-export type AddVehicleToCartRequestDTO = z.infer<typeof AddVehicleToCartRequestSchema>
-export type AddVehicleToCartResponseDTO = z.infer<typeof AddVehicleToCartResponseSchema>
+export const RemoveFromCartRequestSchema = z.object({
+  cartId: z.string(),
+  packageId: z.string(),
+});
+
+export const RemoveFromCartResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  cart: CartSchema,
+});
+
+export type RemoveFromCartResponseDTO = z.infer<typeof RemoveFromCartResponseSchema >
+export type RemoveFromCartRequestDTO = z.infer<
+  typeof RemoveFromCartRequestSchema
+>;
+export type AddToCartRequestDTO = z.infer<typeof AddServiceToCartRequestSchema>;
+export type AddToCartResponseDTO = z.infer<
+  typeof AddServiceToCartResponseSchema
+>;
+export type ErrorResponseDTO = z.infer<typeof ErrorResponseSchema>;
+export type AddVehicleToCartRequestDTO = z.infer<
+  typeof AddVehicleToCartRequestSchema
+>;
+export type AddVehicleToCartResponseDTO = z.infer<
+  typeof AddVehicleToCartResponseSchema
+>;
+export type GetCartRequestDTO = z.infer<typeof GetCartRequestSchema>;
+export type GetCartResponseDTO = z.infer<typeof GetCartResponseSchema>;

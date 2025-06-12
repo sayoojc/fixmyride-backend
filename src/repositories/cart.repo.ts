@@ -36,7 +36,24 @@ export class CartRepository
       }
     );
 
-    return updatedCart!;
+      const populatedCart = await this.model.findById(updatedCart._id)
+    .populate({
+      path: "vehicleId",
+      populate: [
+        { path: "brandId" },
+        { path: "modelId" },
+      ],
+    })
+    .populate({
+      path: "services.serviceId",
+    })
+   
+
+  if (!populatedCart) {
+    throw new Error("Failed to populate cart after update");
+  }
+
+  return populatedCart;
   }
 async addVehicleToCart(
   vehicleId: mongoose.Types.ObjectId,
@@ -52,21 +69,20 @@ async addVehicleToCart(
       { path: "brandId" },
       { path: "modelId" },
     ]
-  }).lean<IPopulatedCart>();
+  }).populate({
+    path:"services.serviceId"
+  })
+  .lean<IPopulatedCart>();
 
   if (existingCart) {
     return existingCart;
   }
-
-  // Step 2: Create new cart
   const newCart = new this.model({
     userId,
     vehicleId,
     isCheckedOut: false,
   });
   await newCart.save();
-
-  // Step 3: Fetch & return the populated version
   const populatedCart = await this.model.findOne({
     userId,
     vehicleId,
@@ -77,7 +93,11 @@ async addVehicleToCart(
       { path: "brandId" },
       { path: "modelId" },
     ]
-  }).lean<IPopulatedCart>();
+  })
+  .populate({
+    path:"services.serviceId"
+  })
+  .lean<IPopulatedCart>();
 
   if (!populatedCart) {
     throw new Error("Failed to populate cart after creation");
@@ -85,5 +105,75 @@ async addVehicleToCart(
 
   return populatedCart;
 }
+async fetchCartPopulated(
+    vehicleId: mongoose.Types.ObjectId,
+  userId: mongoose.Types.ObjectId,
+): Promise<IPopulatedCart> {
+   const existingCart = await this.model.findOne({
+    userId,
+    vehicleId,
+    isCheckedOut: false,
+  }).populate({
+    path: "vehicleId",
+    populate: [
+      { path: "brandId" },
+      { path: "modelId" },
+    ]
+  }).lean<IPopulatedCart>();
+ if(!existingCart){
+  throw new Error('Cart not found');
+ }
+  return existingCart
+}
+async removePackageFromCart(
+  userObjectId: mongoose.Types.ObjectId,
+  cartObjectId: mongoose.Types.ObjectId,
+  servicePackageObjectId: mongoose.Types.ObjectId
+): Promise<IPopulatedCart> {
+  try {
+    await this.model.updateOne(
+      {
+        _id: cartObjectId,
+        userId: userObjectId,
+      },
+      {
+        $pull: {
+          services: {
+            serviceId: servicePackageObjectId,
+          },
+        },
+      }
+    );
+
+    const updatedCart = await this.model.findOne({
+      _id: cartObjectId,
+      userId: userObjectId,
+      isCheckedOut: false,
+    })
+      .populate({
+        path: "vehicleId",
+        populate: [
+          { path: "brandId" },
+          { path: "modelId" },
+        ],
+      })
+      .populate({
+        path: "services.serviceId",
+        model: "ServicePackage", // assuming this is the model name
+      })
+      .lean<IPopulatedCart>();
+
+    if (!updatedCart) {
+      throw new Error("Cart not found after removing service");
+    }
+
+    return updatedCart;
+  } catch (error) {
+    console.error("Error in removePackageFromCart:", error);
+    throw new Error("Failed to remove service from cart");
+  }
+}
+
+
 }
 

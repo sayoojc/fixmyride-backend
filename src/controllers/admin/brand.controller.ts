@@ -77,7 +77,7 @@ export class AdminBrandController implements IAdminBrandController {
 
   async getBrands(
     req: Request,
-    res: Response<GetBrandsResponse>
+    res: Response<GetBrandsResponse >
   ): Promise<void> {
     try {
       const brandsFromDB = await this.adminBrandService.getBrands();

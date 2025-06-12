@@ -21,8 +21,6 @@ export class UserBrandController implements IUserBrandController {
   ): Promise<void> {
     try {
       const brands = await this.userBrandService.getBrands();
-
-      // Transform brands and their models to match BrandSchema and ModelSchema
       const transformedBrands = brands.map((brand) => ({
         _id: brand._id.toString(),
         brandName: brand.brandName,

@@ -54,8 +54,6 @@ export class UserProfileController implements IUserProfileController {
       if (!sanitizedUser) {
         throw new Error("User profile not found");
       }
-
-      // Transform user to match SanitizedUserSchema
       const transformedUser = {
         id: sanitizedUser.id,
         name: sanitizedUser.name,
