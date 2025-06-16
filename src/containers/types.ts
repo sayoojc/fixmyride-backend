@@ -10,6 +10,7 @@ export const TYPES = {
   VehicleRepository: Symbol.for("VehicleRepository"),
   ServicePackageRepository: Symbol.for("ServicePackageRepository"),
   CartRepository: Symbol.for("CartRepository"),
+  OrderRepository:Symbol.for("OrderRepository"),
 
   // ========== SERVICES ==========
   MailService: Symbol.for("MailService"),
@@ -22,6 +23,7 @@ export const TYPES = {
   UserVehicleService: Symbol.for("UserVehicleService"),
   UserServicePackageService: Symbol.for("UserServicePackageService"),
   UserCartService: Symbol.for("UserCartService"),
+  UserOrderService:Symbol.for("UserOrderService"),
 
   // Admin services
   AdminAuthService: Symbol.for("AdminAuthService"),
@@ -53,6 +55,7 @@ export const TYPES = {
   UserVehicleController: Symbol.for("UserVehicleController"),
   UserServicePackageController: Symbol.for("UserServicePackageController"),
   UserCartController: Symbol.for("UserCartController"),
+  UserOrderController:Symbol.for("UserOrderController"),
 
   // Provider controllers
   ProviderAuthController: Symbol.for("ProviderAuthController"),

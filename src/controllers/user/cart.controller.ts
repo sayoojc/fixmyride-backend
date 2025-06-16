@@ -13,7 +13,6 @@ import {
   AddVehicleToCartRequestDTO,
   AddVehicleToCartResponseSchema,
   AddVehicleToCartResponseDTO,
-  GetCartRequestDTO,
   GetCartResponseDTO,
   GetCartRequestSchema,
   GetCartResponseSchema,
@@ -30,69 +29,69 @@ export class UserCartController implements IUserCartController {
     @inject(TYPES.UserCartService)
     private readonly userCartService: IUserCartService
   ) {}
-  // async getCart(
-  //   req: Request,
-  //   res: Response<GetCartResponseDTO | ErrorResponseDTO>
-  // ): Promise<void> {
-  //   try {
-  //     const accessToken = req.cookies.accessToken;
-  //     if (!accessToken) {
-  //       res.status(401).json({
-  //         success: false,
-  //         message: "Not authorized, no access token",
-  //       });
-  //       return;
-  //     }
-  //     const userDetails = jwt.verify(
-  //       accessToken,
-  //       process.env.ACCESS_TOKEN_SECRET!
-  //     );
-  //     const user = userDetails as JwtPayload;
-  //    console.log('The user parsed from the jwt ',user);
-  //     if (!user || !user.id) {
-  //       throw new Error("Failed to authenticate");
-  //     }
-  //     const parsed = GetCartRequestSchema.safeParse(req.query as { vehicleId: string });
-  //     if (!parsed.success) {
-  //       console.log("Request DTO doesnt match",parsed.error.message);
-  //       res.status(400).json({
-  //         success: false,
-  //         message: "Request DTO doesnt match",
-  //       });
-  //       return;
-  //     }
-  //     const cart = await this.userCartService.getCart(
-  //       user.id,
-  //       parsed.data.vehicleId
-  //     );
-  //     if(!cart){
-  //       console.log('no cart fetched');
-  //           res.status(400).json({
-  //         success: false,
-  //         message: "Cart not found",
-  //       });
-  //       return
-  //     }
-  //     const response = {
-  //       success: true,
-  //       message: "Fetching cart successfull",
-  //       cart,
-  //     };
-  //     const validate = GetCartResponseSchema.safeParse(response);
-  //     if (!validate.success) {
-  //       res.status(400).json({
-  //         success: false,
-  //         message: "The response DTO doesnt match",
-  //       });
-  //       return
-  //     }
-  //     res.status(200).json(response);
-  //   } catch (error) {
-  //     res
-  //       .status(400)
-  //       .json({ success: false, message: "The cart fetch failed" });
-  //   }
-  // }
+  async getCart(
+    req: Request,
+    res: Response<GetCartResponseDTO | ErrorResponseDTO>
+  ): Promise<void> {
+    try {
+      const accessToken = req.cookies.accessToken;
+      if (!accessToken) {
+        res.status(401).json({
+          success: false,
+          message: "Not authorized, no access token",
+        });
+        return;
+      }
+      const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      );
+      const user = userDetails as JwtPayload;
+      if (!user || !user.id) {
+        throw new Error("Failed to authenticate");
+      }
+      const parsed = GetCartRequestSchema.safeParse(req.query as { cartId: string });
+      if (!parsed.success) {
+        console.log("Request DTO doesnt match",parsed.error.message);
+        res.status(400).json({
+          success: false,
+          message: "Request DTO doesnt match",
+        });
+        return;
+      }
+      const cart = await this.userCartService.getCart(
+        user.id,
+        parsed.data.cartId
+      );
+      if(!cart){
+        console.log('no cart fetched');
+            res.status(400).json({
+          success: false,
+          message: "Cart not found",
+        });
+        return
+      }
+      const response = {
+        success: true,
+        message: "Fetching cart successfull",
+        cart,
+      };
+      const validate = GetCartResponseSchema.safeParse(response);
+      if (!validate.success) {
+        console.log('the response dto doesnt match',validate.error.message);
+        res.status(400).json({
+          success: false,
+          message: "The response DTO doesnt match",
+        });
+        return
+      }
+      res.status(200).json(response);
+    } catch (error) {
+      res
+        .status(400)
+        .json({ success: false, message: "The cart fetch failed" });
+    }
+  }
   async addToCart(
     req: Request<{}, {}, AddToCartRequestDTO>,
     res: Response<AddToCartResponseDTO | ErrorResponseDTO>

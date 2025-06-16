@@ -7,9 +7,9 @@ const router = express.Router();
 const cartController = container.get<IUserCartController>(
   TYPES.UserCartController
 );
-// router.get("/get-cart",verifyToken,(req,res) =>
-//   cartController.getCart(req,res)
-// );
+router.get("/get-cart",verifyToken,(req,res) =>
+  cartController.getCart(req,res)
+);
 
 router.patch("/add-to-cart", verifyToken, (req, res) =>
   cartController.addToCart(req, res)

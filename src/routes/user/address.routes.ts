@@ -9,6 +9,10 @@ const userAddressController = container.get<IUserAddressController>(
   TYPES.UserAddressController
 );
 
+router.get("/get-addresses",verifyToken,(req,res) => 
+ userAddressController.getAddresses(req,res)
+)
+
 router.post("/add-address", verifyToken, (req, res) =>
   userAddressController.addAddress(req, res)
 );

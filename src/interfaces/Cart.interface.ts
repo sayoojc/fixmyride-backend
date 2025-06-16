@@ -83,8 +83,7 @@ export interface SerializedCart {
 
 export interface IService {
   serviceId: mongoose.Types.ObjectId;
-  scheduledDate?: Date;
-  notes?: string;
+
 }
 export interface IServicePackage {
   _id: string;
@@ -143,16 +142,11 @@ export interface IVehicle {
       updatedAt: Date;
     };
 }
-export interface IPopulatedServiceEntry {
-  serviceId: IServicePackage;
-  scheduledDate?: Date;
-  notes?: string;
-}
 
 export interface IPopulatedCart extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
-  services?: IPopulatedServiceEntry[];
+  services?: IServicePackage[];
   coupon?: ICoupon;
   totalAmount?: number;
   finalAmount?: number;

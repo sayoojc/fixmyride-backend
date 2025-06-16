@@ -1,11 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface IService {
-  serviceId: mongoose.Types.ObjectId;
-  scheduledDate?: Date;
-  notes?: string;
-}
-
 export interface ICoupon {
   code?: string;
   discountType?: "percentage" | "flat";
@@ -14,10 +8,9 @@ export interface ICoupon {
   applied: boolean;
 }
 
-
 export interface ICart extends Document {
   userId: mongoose.Types.ObjectId;
-  services?: IService[];
+  services?: mongoose.Types.ObjectId[];
   coupon?: ICoupon;
   totalAmount?: number;
   finalAmount?: number;
@@ -42,24 +35,9 @@ const CartSchema = new Schema<ICart>(
     },
     services: [
       {
-        serviceId: {
-          type: Schema.Types.ObjectId,
-          ref: "ServicePackage",
-          required: true,
-        },
-        scheduledDate: {
-          type: Date,
-          validate: {
-            validator: (date: Date) => !date || date >= new Date(),
-            message: "Scheduled date must be in the future",
-          },
-        },
-        notes: {
-          type: String,
-          trim: true,
-          maxlength: 500,
-          default: "",
-        },
+        type: Schema.Types.ObjectId,
+        ref: "ServicePackage",
+        required: true,
       },
     ],
     coupon: {

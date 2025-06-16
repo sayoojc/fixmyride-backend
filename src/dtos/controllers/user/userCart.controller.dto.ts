@@ -131,7 +131,7 @@ export const ErrorResponseSchema = z.object({
 });
 
 export const GetCartRequestSchema = z.object({
-  vehicleId: z.string(),
+  cartId: z.string(),
 });
 
 export const RemoveFromCartRequestSchema = z.object({

@@ -3,18 +3,19 @@ import {
   AddAddressRequestDTO,
   UpdateAddressRequestDTO,
   SetDefaultAddressRequestDTO,
-  DeleteAddressRequestSchema,
+  GetAddressesResponseDTO,
   DeleteAddressRequestDTO,
   AddressResponseDTO,
   SuccessResponse,
   ErrorResponse,
-  SetDefaultAddressSchema,
   UpdateAddressResponseDTO,
-  UpdateAddressResponseSchema,
-  UpdateAddressRequestSchema,
 } from "../../../dtos/controllers/user/userAddress.controller.dto";
 
 export interface IUserAddressController {
+  getAddresses(
+    req:Request,
+    res:Response<GetAddressesResponseDTO>
+  ):Promise<void>
   addAddress(
     req: Request<{}, {}, AddAddressRequestDTO>,
     res: Response<AddressResponseDTO | ErrorResponse>

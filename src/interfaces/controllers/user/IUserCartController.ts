@@ -24,8 +24,8 @@ export interface IUserCartController {
     req:Request<{},{},RemoveFromCartRequestDTO>,
     res:Response<RemoveFromCartResponseDTO | ErrorResponseDTO>
   ):Promise<void>
-  // getCart(
-  //   req:Request,
-  //   res:Response<GetCartResponseDTO | ErrorResponseDTO>
-  // ):Promise<void>
+  getCart(
+    req:Request,
+    res:Response<GetCartResponseDTO | ErrorResponseDTO>
+  ):Promise<void>
 }

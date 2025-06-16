@@ -12,7 +12,7 @@ import { IProviderRepository } from "../../interfaces/repositories/IProviderRepo
 import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
 import { IVehicleRepository } from "../../interfaces/repositories/IVehicleRepository";
 import { IVerificationRepository } from "../../interfaces/repositories/IVerificationRepository";
-
+import { IOrderRepository } from "../../interfaces/repositories/IOrderRepository";
 // Models
 import userModel from "../../models/user.model";
 import addressModel from "../../models/address.model";
@@ -23,7 +23,7 @@ import providerModel from "../../models/provider.model";
 import servicePackageModel from "../../models/servicePackage.model";
 import vehicleModel from "../../models/vehicle.model";
 import verificationModel from "../../models/verification.model";
-
+import orderModel from "../../models/order.model";
 // Repositories
 import { UserRepository } from "../../repositories/user.repo";
 import { AddressRepository } from "../../repositories/address.repo";
@@ -35,7 +35,7 @@ import { ProviderRepository } from "../../repositories/provider.repo";
 import { ServicePackageRepository } from "../../repositories/servicePackage.repository";
 import { VehicleRepository } from "../../repositories/vehicle.repo";
 import { VerificationRepository } from "../../repositories/verification.repo";
-
+import { OrderRepository } from "../../repositories/order.repo";
 
 export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.UserRepository)) {
@@ -95,6 +95,11 @@ export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.VerificationRepository)) {
     container.bind<IVerificationRepository>(TYPES.VerificationRepository)
       .toDynamicValue(() => new VerificationRepository(verificationModel))
+      .inSingletonScope();
+  }
+    if (!container.isBound(TYPES.OrderRepository)) {
+    container.bind<IOrderRepository>(TYPES.OrderRepository)
+      .toDynamicValue(() => new OrderRepository(orderModel))
       .inSingletonScope();
   }
 };

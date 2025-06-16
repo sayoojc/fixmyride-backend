@@ -4,7 +4,7 @@ import { AddToCartDataDTO } from "../../dtos/repositories/cart.repository.dto";
 import { Types } from "mongoose";
 import { IPopulatedCart } from "../Cart.interface";
 export interface ICartRepository extends IBaseRepository<ICart> {
-  upsertCart(data: AddToCartDataDTO): Promise<ICart>;
+  upsertCart(data: AddToCartDataDTO): Promise<IPopulatedCart>;
   addVehicleToCart(
     idVehicle: Types.ObjectId,
     idUser: Types.ObjectId
@@ -18,4 +18,5 @@ export interface ICartRepository extends IBaseRepository<ICart> {
     cartObjectId: Types.ObjectId,
     packageObjectId: Types.ObjectId
   ): Promise<IPopulatedCart>;
+  findPopulatedCartById(id: Types.ObjectId): Promise<IPopulatedCart>;
 }

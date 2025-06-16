@@ -1,16 +1,13 @@
 import { IAddress } from "../../../models/address.model";
 import {
-  AddressSchema,
   AddAddressRequestDTO,
-  UpdateAddressRequestDTO,
-  SetDefaultAddressRequestDTO,
-  DeleteAddressRequestDTO,
   AddressResponseDTO,
-  SuccessResponse,
-  ErrorResponse,
+  AddressDTO,
 } from "../../../dtos/controllers/user/userAddress.controller.dto";
 
 export interface IUserAddressService {
+  getAddresses(userId:string):Promise<AddressDTO[]>
+
   addAddress(addressData: AddAddressRequestDTO): Promise<AddressResponseDTO>;
 
   setDefaultAddress(addressId: string, userId: string): Promise<void>;

@@ -18,6 +18,7 @@ import userProfileRoutes from './routes/user/profile.routes'
 import userVehicleRoutes from './routes/user/vehicle.routes'
 import userServicePackageRoutes from './routes/user/servicePackage.routes'
 import cartRoutes from './routes/user/cart.routes'
+import orderRoutes from './routes/user/order.routes'
 import adminAuthRoutes from './routes/admin/auth.routes'
 import adminProviderRoutes from './routes/admin/provider.routes'
 import userAuthRoutes from './routes/user/auth.routes'
@@ -69,6 +70,7 @@ app.use("/api/user",userProfileRoutes);
 app.use("/api/user",userVehicleRoutes);
 app.use("/api/user",userServicePackageRoutes);
 app.use("/api/user",cartRoutes);
+app.use("/api/user",orderRoutes);
 //provider routes
 app.use("/api/provider",providerAuthRoutes);
 app.use("/api/provider",providerProfileRoutes)

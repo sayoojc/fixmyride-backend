@@ -8,6 +8,7 @@ import { Types } from "mongoose";
 import {
   AddAddressRequestDTO,
   AddressResponseDTO,
+  AddressDTO
 } from "../../dtos/controllers/user/userAddress.controller.dto";
 
 injectable();
@@ -133,4 +134,31 @@ export class UserAddressService implements IUserAddressService {
       );
     }
   }
+async getAddresses(userId: string): Promise<AddressDTO[]> {
+  try {
+    const addresses = await this.addressRepository.find({ userId });
+
+    const addressDtos: AddressDTO[] = addresses.map((addr) => ({
+      _id:addr._id.toString(),
+      userId: addr.userId.toString(),  // 👈
+      addressType: addr.addressType,
+      addressLine1: addr.addressLine1,
+      addressLine2: addr.addressLine2,
+      street: addr.street,
+      city: addr.city,
+      state: addr.state,
+      zipCode: addr.zipCode,
+      isDefault: addr.isDefault,
+    }));
+
+    return addressDtos;
+  } catch (error) {
+    throw new Error(
+      `An error occurred while fetching the addresses: ${
+        (error as Error).message
+      }`
+    );
+  }
+}
+
 }

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { IUserAddressService } from "../../interfaces/services/user/IUserAddressService";
 import { TYPES } from "../../containers/types";
+import jwt,{JwtPayload} from 'jsonwebtoken'
 import { IUserAddressController } from "../../interfaces/controllers/user/IUserAddressController";
 import {
   AddressSchema,
@@ -11,6 +12,8 @@ import {
   DeleteAddressRequestSchema,
   DeleteAddressRequestDTO,
   AddressResponseDTO,
+  GetAddressesResponseSchema,
+  GetAddressesResponseDTO,
   SuccessResponse,
   ErrorResponse,
   SetDefaultAddressSchema,
@@ -153,6 +156,48 @@ export class UserAddressController implements IUserAddressController {
         success: false,
         message: (error as Error).message,
       });
+    }
+  }
+  async getAddresses(
+    req: Request,
+    res: Response<GetAddressesResponseDTO | ErrorResponse>
+  ): Promise<void> {
+    try {
+      const accessToken = req.cookies.accessToken;
+      if(!accessToken) {
+        res.status(401).json({
+          success:false,
+          message:"Not authorized, no access Token",
+        })
+        return;
+      }
+      const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      );
+      const user = userDetails as JwtPayload;
+        if (!user || !user.id) {
+        throw new Error("Failed to authenticate");
+      }
+      const addresses = await this.userAddressService.getAddresses(user.id);
+      const response = {
+        success:true,
+        message:"Address fetched success fully",
+        address:addresses
+      }
+      const validate = GetAddressesResponseSchema.safeParse(response);
+      if(!validate.success){
+           console.log('the response dto doesnt match',validate.error.message);
+        res.status(400).json({
+          success: false,
+          message: "The response DTO doesnt match",
+        });
+        return
+      }
+      res.status(200).json(response);
+    } catch (error) {
+       res.status(400)
+        .json({ success: false, message: "The cart fetch failed" });
     }
   }
 }
