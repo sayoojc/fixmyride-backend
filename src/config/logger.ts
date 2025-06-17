@@ -1,6 +1,6 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import morgan from 'morgan';
+import morgan, { StreamOptions } from 'morgan';
 import fs from 'fs';
 import path from 'path';
 
@@ -20,14 +20,12 @@ const logger = winston.createLogger({
     winston.format.json()
   ),
   transports: [
-  
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.simple()
       )
     }),
- 
     new DailyRotateFile({
       filename: path.join(logDirectory, 'application-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
@@ -36,7 +34,6 @@ const logger = winston.createLogger({
       maxFiles: '7d',
       level: 'info'
     }),
-
     new DailyRotateFile({
       filename: path.join(logDirectory, 'error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
@@ -48,8 +45,7 @@ const logger = winston.createLogger({
   ]
 });
 
-
-const morganStream = {
+const morganStream: StreamOptions = {
   write: (message: string) => {
     logger.info(message.trim());
   }

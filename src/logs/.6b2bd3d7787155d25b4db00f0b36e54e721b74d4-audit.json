@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 7
+    },
+    "auditLog": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\.6b2bd3d7787155d25b4db00f0b36e54e721b74d4-audit.json",
+    "files": [
+        {
+            "date": 1750092925680,
+            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-16.log",
+            "hash": "afda35368123adf884616997382e1ac156b18586da850ea2ffad686be70c0c12"
+        }
+    ],
+    "hashType": "sha256"
+}

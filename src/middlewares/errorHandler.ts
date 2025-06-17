@@ -1,5 +1,5 @@
-// src/middlewares/errorHandler.ts
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../config/logger";
 
 export const errorHandler = (
   err: any,
@@ -7,25 +7,34 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  console.error("💥 Error caught:", err);
+ 
+  logger.error({
+    message: err.message || 'Unhandled error',
+    error: err.stack || err.toString(),
+    statusCode: err.statusCode || 500,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+    user: req.user || 'anonymous',
+    body: req.body,
+    params: req.params,
+    query: req.query,
+    headers: {
+      'user-agent': req.headers['user-agent'],
+      referer: req.headers.referer
+    }
+  });
 
+  // Determine response status and message
   const status = err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
+  const message = status === 500 
+    ? 'Internal Server Error' 
+    : err.message || 'Something went wrong';
 
-  res.status(status).json({ success: false, message });
+  // Send error response
+  res.status(status).json({ 
+    success: false, 
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 };
-
-
-// export const errorHandler = (
-//   err: Error,
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ): Response => {
-//   console.error("Error:", err.message);
-
-//   const statusCode = (err as any).statusCode || 500;
-//   const message = err.message || "Internal Server Error";
-
-//   return res.status(statusCode).json({ message });
-// };
