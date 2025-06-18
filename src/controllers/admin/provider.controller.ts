@@ -150,7 +150,6 @@ export class AdminProviderController implements IAdminProviderController {
       } 
       const validated = VerifyProviderResponseSchema.safeParse(response);
       if(!validated.success){
-        console.error('Zod validation error',validated.error);
         throw new Error("Response DTO does not match schema");
       }
       res.status(200).json(response);
@@ -187,7 +186,6 @@ export class AdminProviderController implements IAdminProviderController {
       }
       const validated = ToggleListingResponseSchema.safeParse(response);
       if(!validated.success){
-           console.error('Zod validation error',validated.error);
         throw new Error("Response DTO does not match schema");
       }
       res.status(200).json(response);

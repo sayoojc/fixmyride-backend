@@ -43,8 +43,8 @@ const ModelSchema = z.object({
 export const ServicePackageSchemaWithPopulatedRefs = z.object({
   title: z.string().min(1).max(100).trim(),
   description: z.string().min(1).max(500).trim(),
-  brandId: BrandSchema, // changed from string to object
-  modelId: ModelSchema, // changed from string to object
+  brandId: BrandSchema, 
+  modelId: ModelSchema, 
   fuelType: z.enum(['petrol', 'diesel', 'lpg', 'cng']),
   servicesIncluded: z.array(z.string().min(1)).min(1).max(20),
   priceBreakup: PriceBreakupSchema
@@ -69,7 +69,7 @@ export const UpdateServicePackageRequestSchema = z.object({
 export const UpdateServicePackageResponseSchema = z.object({
   success:z.boolean(),
   message:z.string(),
-  servicePackages:z.array(ServicePackageSchema)
+  servicePackage:ServicePackageSchema
 })
 export const ToggleBlockStatusRequestSchema = z.object({
   id:z.string(),

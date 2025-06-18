@@ -24,9 +24,11 @@ export const ProviderRegisterTempSchema = z
   });
 export type ProviderRegisterTempDTO = z.infer<typeof ProviderRegisterTempSchema>;
 
-export const ProviderRegisterSchema = ProviderRegisterTempSchema.extend({
-  otp: z.string().length(6),
-});
+export const ProviderRegisterSchema = z.object({
+   otp:z.string(),
+    email:z.string(),
+     phone:z.string()
+})
 export type ProviderRegisterDTO = z.infer<typeof ProviderRegisterSchema>;
 
 export const ProviderLoginSchema = z.object({

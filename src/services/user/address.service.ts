@@ -31,7 +31,7 @@ export class UserAddressService implements IUserAddressService {
 
       const response: AddressResponseDTO = {
         ...addressObj,
-        _id: addressObj._id.toString(),
+        id: addressObj._id.toString(),
         userId: addressObj.userId.toString(),
       };
 
@@ -139,8 +139,8 @@ async getAddresses(userId: string): Promise<AddressDTO[]> {
     const addresses = await this.addressRepository.find({ userId });
 
     const addressDtos: AddressDTO[] = addresses.map((addr) => ({
-      _id:addr._id.toString(),
-      userId: addr.userId.toString(),  // 👈
+      id:addr._id.toString(),
+      userId: addr.userId.toString(),
       addressType: addr.addressType,
       addressLine1: addr.addressLine1,
       addressLine2: addr.addressLine2,

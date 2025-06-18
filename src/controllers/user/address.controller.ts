@@ -33,8 +33,10 @@ export class UserAddressController implements IUserAddressController {
     res: Response<AddressResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      console.log('the req.body of add address',req.body);
       const parsed = AddressSchema.safeParse(req.body);
       if (!parsed.success) {
+        console.log('The request parsing of the add address failed',parsed.error.message);
         res
           .status(400)
           .json({ success: false, message: "Invalid address data" });
@@ -42,10 +44,12 @@ export class UserAddressController implements IUserAddressController {
       }
 
       const newAddress = await this.userAddressService.addAddress(parsed.data);
+      console.log('the new address ',newAddress)
       const response: AddressResponseDTO = {
         ...newAddress,
-        _id: newAddress._id.toString(),
+        id: newAddress.id.toString(),
       };
+      console.log('the response fromo the add address',response);
       res.status(201).json(response);
     } catch (error) {
       res

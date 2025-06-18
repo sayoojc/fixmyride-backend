@@ -14,7 +14,7 @@ export const ProviderSchema = z.object({
   profileImage: z.string().url().optional(),
   isListed: z.boolean().optional(),
   verificationStatus: z.enum(["pending", "approved", "rejected"]).optional(),
-}).strict();
+})
 
 export interface SanitizedProvider {
   name: string;
@@ -44,12 +44,12 @@ export const UpdateProfileRequestSchema = z.object({
   verificationStatus: z.enum(["pending", "approved", "rejected"]).optional(),
   profileImage: z.string().url("Invalid URL").optional(),
   startedYear: z.number().optional(),
-}).strict();
+})
 
 
 export const VerifyProviderRequestSchema = z.object({
   verificationData: z.any(),
-}).strict();
+})
 
 // ---------------------
 // Response DTOs
@@ -63,18 +63,18 @@ export const GetProfileDataResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
   provider: ProviderSchema,
-}).strict();
+})
 
 export const UpdateProfileResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
   provider: ProviderSchema,
-}).strict();
+})
 
 export const VerifyProviderResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
-}).strict();
+})
 export type SuccessMessageDTO = {
   success: true;
   message: string;

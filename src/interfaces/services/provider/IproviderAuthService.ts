@@ -4,7 +4,7 @@ import { Providerdata, TempProvider } from "../../../interfaces/Provider.interfa
 export interface IProviderAuthService {
   providerRegisterTemp(providerData: Providerdata): Promise<TempProvider>;
 
-  providerRegister(providerData: Providerdata): Promise<IServiceProvider | null>;
+  providerRegister(providerData: {email:string,otp:string,phone:string}): Promise<IServiceProvider | null>;
 
   providerLogin(
     email: string,

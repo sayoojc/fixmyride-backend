@@ -7,31 +7,12 @@ import { IUserOrderService } from "../../interfaces/services/user/IUserOrderServ
 import { ICartRepository } from "../../interfaces/repositories/ICartRepository";
 import { RazorpayPaymentStatus } from "../../interfaces/checkout.interface";
 import mongoose, { Types } from "mongoose";
+import { RazorpayOrderResponse,TimeSlot,AvailableDate } from "../../interfaces/checkout.interface";
 
-export interface TimeSlot {
-  id: string;
-  time: string;
-  available: boolean;
-}
 
-export interface AvailableDate {
-  date: string;
-  available: boolean;
-  timeSlots: TimeSlot[];
-}
 
-export interface RazorpayOrderResponse {
-  id: string;
-  entity: string;
-  amount: number | string;
-  amount_paid: number | string;
-  amount_due: number | string;
-  currency: string;
-  receipt?: string | undefined;
-  status: string;
-  attempts: number;
-  created_at: number;
-}
+
+
 @injectable()
 export class UserOrderService implements IUserOrderService {
   constructor(
@@ -49,13 +30,16 @@ export class UserOrderService implements IUserOrderService {
   async createPaymentOrder(
     amountInRupees: number
   ): Promise<RazorpayOrderResponse> {
+    console.log('the amount got from the service function ',amountInRupees);
     const amountInPaise = amountInRupees * 100;
+    console.log('the amount in paisa',amountInPaise)
     const order = await this.razorpayInstance.orders.create({
       amount: amountInPaise,
       currency: "INR",
       receipt: `receipt_order_${Date.now()}`,
       payment_capture: true,
     });
+    console.log('the order created from the service',order);
     return order;
   }
 
@@ -90,8 +74,11 @@ export class UserOrderService implements IUserOrderService {
     try {
       console.log("selectedDate", selectedDate);
       console.log("selectedSlot", selectedSlot);
+            console.log('the cartid',cartId);
+      console.log('the addressid',selectedAddressId)
       const cartObjectId = new Types.ObjectId(cartId);
       const addressObjectId = new Types.ObjectId(selectedAddressId);
+
       const cart = await this.cartRepository.findPopulatedCartById(
         cartObjectId
       );

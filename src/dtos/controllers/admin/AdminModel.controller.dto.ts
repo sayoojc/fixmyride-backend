@@ -14,7 +14,7 @@ export const AddModelRequestSchema = z.object({
 export const ToggleModelStatusRequestSchema = z.object({
   brandId: z.string().min(1, "Brand ID is required"),
   modelId: z.string().min(1, "Model ID is required"),
-  newStatus: z.enum(["active", "inactive"], {
+  newStatus: z.enum(["active", "blocked"], {
     required_error: "Status must be either 'active' or 'inactive'",
   }),
 });

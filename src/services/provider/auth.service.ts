@@ -40,7 +40,7 @@ export class ProviderAuthService implements IProviderAuthService {
   
     return tempProvider;
   }
-  async providerRegister(providerData:Providerdata): Promise<IServiceProvider | null> {
+  async providerRegister(providerData:{email:string,otp:string,phone:string}): Promise<IServiceProvider | null> {
     
     const { otp, email, phone } = providerData;
   

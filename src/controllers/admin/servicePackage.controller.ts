@@ -33,6 +33,7 @@ export class AdminServicePackageController
     res: Response<AddServicePackageResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      
       const parsed = ServicePackageSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(400).json({
@@ -98,8 +99,10 @@ export class AdminServicePackageController
     res: Response<UpdateServicePackageResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      console.log('the update service package req.body',req.body);
       const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
       if(!parsed.success){
+        console.log('the service package update req dosnt match the dto',parsed.error.message);
         res.status(400).json({
             success:false,
             message:"request dto doesnt match"
@@ -108,6 +111,7 @@ export class AdminServicePackageController
       }
          const updatedServicePackage = await this.adminServicePackageService.updateServicePackage(parsed.data);
         if(!updatedServicePackage) {
+          console.log('the service layer doesnt return updated service package');
            throw new Error('The service package update failed'); 
         }
         const response = {
@@ -117,6 +121,7 @@ export class AdminServicePackageController
         }
         const validate = UpdateServicePackageResponseSchema.safeParse(response);
         if(!validate.success){
+          console.log('the response dto doesnt match',validate.error.message);
            res.status(400).json({
             success:false,
             message:"response dto doesnt match"
