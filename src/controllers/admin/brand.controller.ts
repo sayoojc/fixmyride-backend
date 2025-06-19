@@ -80,9 +80,40 @@ export class AdminBrandController implements IAdminBrandController {
     res: Response<GetBrandsResponse >
   ): Promise<void> {
     try {
-      const brandsFromDB = await this.adminBrandService.getBrands();
-
-      const formattedBrands = brandsFromDB.map((brand) => ({
+          const search = req.query.search?.toString() || "";
+    const page = parseInt(req.query.page as string) ;
+    const statusFilter = req.query.statusFilter?.toString() || "all";
+if(page < 0){
+  const brandsWithModels = await this.adminBrandService.getAllBrands()
+      const formattedBrands = brandsWithModels.map((brand) => ({
+        _id: brand._id.toString(),
+        brandName: brand.brandName,
+        imageUrl: brand.imageUrl,
+        status: brand.status.toString(),
+        models: brand.models,
+      }));
+         const response: GetBrandsResponseDTO = {
+        success: true,
+        message: "Brands fetched successfully",
+        BrandObject: {formattedBrands,totalPage:0},
+      };
+          const validated = GetBrandsResponseSchema.safeParse(response);
+      if (!validated.success) {
+        throw new Error("Response DTO does not match schema");
+      }
+      res.status(200).json(response);
+      return 
+}
+    const limit = 4;
+    const skip = (page - 1) * limit;
+        const { brandsWithModels, totalCount } = await this.adminBrandService.getBrands({
+      search,
+      skip,
+      limit,
+      statusFilter,
+    });
+    const totalPage = Math.max(totalCount/limit)
+      const formattedBrands = brandsWithModels.map((brand) => ({
         _id: brand._id.toString(),
         brandName: brand.brandName,
         imageUrl: brand.imageUrl,
@@ -92,7 +123,7 @@ export class AdminBrandController implements IAdminBrandController {
       const response: GetBrandsResponseDTO = {
         success: true,
         message: "Brands fetched successfully",
-        brand: formattedBrands,
+        BrandObject: {formattedBrands,totalPage},
       };
       const validated = GetBrandsResponseSchema.safeParse(response);
       if (!validated.success) {

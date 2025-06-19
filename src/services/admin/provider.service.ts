@@ -18,9 +18,40 @@ export class AdminProviderService implements IAdminProviderService {
     @inject(TYPES.MailRepository) private readonly mailService: IMailService
   ) {}
 
-  async fetchProviders(): Promise<Partial<IServiceProvider>[] | undefined> {
+  async fetchProviders({
+    search,
+    skip,
+    limit,
+    statusFilter,
+  }: {
+    search: string;
+    skip: number;
+    limit: number;
+    statusFilter: string;
+  }): Promise<{ sanitizedProviders: Partial<IServiceProvider>[],totalCount: number } | undefined> {
     try {
-      const providers = await this.providerRepository.find();
+            const query: any = {};
+
+      // Add search filter
+      if (search) {
+        query.name = { $regex: search, $options: "i" }; // case-insensitive search
+      }
+
+      // Add status filter
+      if (statusFilter == 'blocked') {
+        query.isListed = false;
+        
+      } else{
+        query.isListed = true;  
+      }
+    const totalCount = await this.providerRepository.countDocuments(query);
+
+      // Fetch paginated and filtered brands
+      const providers = await this.providerRepository.findWithPagination(
+        query,
+        skip,
+        limit
+      );
       const plainProviders = JSON.parse(JSON.stringify(providers));
       const sanitizedProviders = plainProviders.map(
         (provider: Partial<IServiceProvider>) => {
@@ -28,7 +59,7 @@ export class AdminProviderService implements IAdminProviderService {
           return rest;
         }
       );
-      return sanitizedProviders;
+      return {sanitizedProviders,totalCount};
     } catch (error) {
       throw error;
     }

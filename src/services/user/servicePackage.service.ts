@@ -13,7 +13,7 @@ export class UserServicePackageService implements IUserServicePackageService {
   async getServicePackages(): Promise<IServicePackage[]> {
     try {
       const servicePackages =
-        await this.servicePackageRepository.findServicePackagesWithPopulate();
+        await this.servicePackageRepository.findServicePackagesWithPopulate("",-1,-1);
       return servicePackages;
     } catch (error) {
       console.log("The catch block error", error);

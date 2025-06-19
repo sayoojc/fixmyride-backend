@@ -12,7 +12,8 @@ import { IServicePackage } from "../../models/servicePackage.model";
 @injectable()
 export class AdminServicePackageService implements IAdminServicePackageService {
   constructor(
-   @inject(TYPES.ServicePackageRepository) private readonly servicePackageRepository: IServicePackageRepository
+    @inject(TYPES.ServicePackageRepository)
+    private readonly servicePackageRepository: IServicePackageRepository
   ) {}
   async addServicePackage(
     data: AddServicePackageRequestDTO
@@ -36,11 +37,48 @@ export class AdminServicePackageService implements IAdminServicePackageService {
       throw error;
     }
   }
-  async getServicePackages(): Promise<IServicePackage[]> {
+  async getServicePackages({
+    search,
+    skip,
+    limit,
+    statusFilter,
+    fuelFilter,
+  }: {
+    search: string;
+    skip: number;
+    limit: number;
+    statusFilter: string;
+    fuelFilter: string;
+  }): Promise<{ servicePackages: IServicePackage[]; totalCount: number }> {
     try {
+      const query: any = {};
+    
+      if (search) {
+        query.title = { $regex: search, $options: "i" };
+      }
+      const fuel = fuelFilter.toString();
+      if (fuelFilter && fuelFilter !== "all") {
+        query.fuelType = { $regex: fuel, $options: "i" };
+      }
+     if (statusFilter === "blocked") {
+  query.isBlocked = true;
+} else if (statusFilter === "active") {
+  query.isBlocked = false;
+}
+      console.log('the query',query);
+      // Get total count before pagination
+      const totalCount = await this.servicePackageRepository.countDocuments(
+        query
+      );
+      console.log("the total count from the service layer", totalCount);
       const servicePackages =
-        await this.servicePackageRepository.findServicePackagesWithPopulate();
-      return servicePackages;
+        await this.servicePackageRepository.findServicePackagesWithPopulate(
+          query,
+          skip,
+          limit
+        );
+      console.log("the service pacckages", servicePackages);
+      return { servicePackages, totalCount };
     } catch (error) {
       console.log("The catch block error", error);
       throw error;
