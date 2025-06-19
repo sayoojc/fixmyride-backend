@@ -50,7 +50,11 @@ export const ToggleListingResponseSchema = z.object({
 export const FetchProvidersResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
-  providers: z.array(ProviderSchema),
+ providerResponse: z.object({
+sanitizedProviders: z.array(ProviderSchema),
+totalPage:z.number()
+  })
+  
 }).strict();
 
 export const FetchProviderResponseSchema = z.object({

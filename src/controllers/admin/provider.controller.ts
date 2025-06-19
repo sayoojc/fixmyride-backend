@@ -33,9 +33,20 @@ export class AdminProviderController implements IAdminProviderController {
     res: Response<FetchProvidersResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-  const rawProviders = (await this.adminProviderService.fetchProviders()) ?? [];
-    const sanitizedProviders = rawProviders.map((provider) => ({
-      _id: provider._id?.toString() || "", // safely convert ObjectId to string
+
+                const search = req.query.search?.toString() || "";
+    const page = parseInt(req.query.page as string) ;
+    const statusFilter = req.query.statusFilter?.toString() || "all";
+    const limit = 4;
+    const skip = (page - 1) * limit;
+      
+  const {sanitizedProviders,totalCount} = (await this.adminProviderService.fetchProviders( { search,
+      skip,
+      limit,
+      statusFilter,}))  ?? { sanitizedProviders: [], totalCount: 0 };
+      const totalPage = Math.max(totalCount/limit)
+    const providers = sanitizedProviders.map((provider) => ({
+      _id: provider._id?.toString() || "",
       name: provider.name || "",
       email: provider.email || "",
       isListed: provider.isListed ?? false,
@@ -45,7 +56,7 @@ export class AdminProviderController implements IAdminProviderController {
     const response: FetchProvidersResponseDTO = {
       success: true,
       message: "Providers fetched successfully",
-      providers: sanitizedProviders,
+      providerResponse: {sanitizedProviders:providers,totalPage},
     };
 
     const validated = FetchProvidersResponseSchema.safeParse(response);

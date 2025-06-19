@@ -60,7 +60,10 @@ export const AddServicePackageResponseSchema = z.object({
 export const getServicePackagesResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
-  servicePackages: z.array(ServicePackageSchemaWithPopulatedRefs)
+  servicePackageResponse:z.object({
+   servicePackages:z.array(ServicePackageSchemaWithPopulatedRefs),
+   totalCount:z.number()
+  }) 
 });
 export const UpdateServicePackageRequestSchema = z.object({
   id:z.string(),

@@ -40,7 +40,7 @@ export const AddBrandResponseSchema = z.object({
 export const GetBrandsResponseSchema = z.object({
   success: z.literal(true),
   message: z.literal("Brands fetched successfully"),
-  brand: z.array(BrandSchema),
+  BrandObject:z.object({formattedBrands:z.array(BrandSchema),totalPage:z.number()}) ,
 });
 
 export const ToggleBrandStatusResponseSchema = z.object({

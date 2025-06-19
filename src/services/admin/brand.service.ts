@@ -1,5 +1,5 @@
-import { inject,injectable } from "inversify";
-import {TYPES} from '../../containers/types'
+import { inject, injectable } from "inversify";
+import { TYPES } from "../../containers/types";
 import { IBrandRepository } from "../../interfaces/repositories/IBrandRepository";
 import { IModelRepository } from "../../interfaces/repositories/IModelRepository";
 import { IBrand } from "../../models/brand.model";
@@ -10,8 +10,10 @@ import { Types } from "mongoose";
 @injectable()
 export class AdminBrandService implements IAdminBrandService {
   constructor(
-   @inject(TYPES.BrandRepository) private readonly brandRepository:IBrandRepository,
-   @inject(TYPES.ModelRepository) private readonly modelRepository:IModelRepository
+    @inject(TYPES.BrandRepository)
+    private readonly brandRepository: IBrandRepository,
+    @inject(TYPES.ModelRepository)
+    private readonly modelRepository: IModelRepository
   ) {}
 
   async addBrand(brandName: string, imageUrl: string): Promise<IBrand> {
@@ -23,10 +25,65 @@ export class AdminBrandService implements IAdminBrandService {
       throw new Error(`Failed to add brand: ${(err as Error).message}`);
     }
   }
-
-  async getBrands(): Promise<(IBrand & { models: IModel[] })[]> {
+  async getAllBrands():Promise< (IBrand & { models: IModel[] })[]>{
     try {
+
       const brands = await this.brandRepository.find();
+           const brandsWithModels = await Promise.all(
+        brands.map(async (brand) => {
+          const models = await this.modelRepository.find({
+            brandId: brand._id,
+          });
+          return {
+            ...brand.toObject(),
+            models,
+          };
+        })
+      );
+      return brandsWithModels
+    } catch (err) {
+            throw new Error(`Failed to fetch brands: ${(err as Error).message}`);
+
+    }
+  }
+  async getBrands({
+    search,
+    skip,
+    limit,
+    statusFilter,
+  }: {
+    search: string;
+    skip: number;
+    limit: number;
+    statusFilter: string;
+  }): Promise<{
+    brandsWithModels: (IBrand & { models: IModel[] })[];
+    totalCount: number;
+  }> {
+    try {
+      const query: any = {};
+
+      // Add search filter
+      if (search) {
+        query.brandName = { $regex: search, $options: "i" }; // case-insensitive search
+      }
+
+      // Add status filter
+      if (statusFilter !== "all") {
+        query.status = statusFilter;
+      }
+
+      // Get total count before pagination
+      const totalCount = await this.brandRepository.countDocuments(query);
+
+      // Fetch paginated and filtered brands
+      const brands = await this.brandRepository.findWithPagination(
+        query,
+        skip,
+        limit
+      );
+
+      // For each brand, fetch related models
       const brandsWithModels = await Promise.all(
         brands.map(async (brand) => {
           const models = await this.modelRepository.find({
@@ -38,7 +95,8 @@ export class AdminBrandService implements IAdminBrandService {
           };
         })
       );
-      return brandsWithModels;
+
+      return { brandsWithModels, totalCount };
     } catch (err) {
       throw new Error(`Failed to fetch brands: ${(err as Error).message}`);
     }

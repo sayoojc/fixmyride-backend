@@ -5,9 +5,6 @@ import http from "http";
 import cors from "cors";
 import { json, urlencoded } from "express";
 import connectdb from "./config/dbConfig";
-// import authRoutes from "./routes/auth.routes"; 
-
-
 import adminUserRoutes from './routes/admin/user.routes'
 import adminBrandRoutes from './routes/admin/brand.routes'
 import adminModelRoutes from './routes/admin/model.routes'
@@ -73,8 +70,7 @@ app.use("/api/user",cartRoutes);
 app.use("/api/user",orderRoutes);
 //provider routes
 app.use("/api/provider",providerAuthRoutes);
-app.use("/api/provider",providerProfileRoutes)
-
+app.use("/api/provider",providerProfileRoutes);
 
 
 

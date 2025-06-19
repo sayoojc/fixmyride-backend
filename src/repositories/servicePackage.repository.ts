@@ -9,12 +9,18 @@ export class ServicePackageRepository extends BaseRepository<IServicePackage> im
     constructor(private readonly ServicePackageModel:Model<IServicePackage>){
         super(ServicePackageModel)
     }
-      async findServicePackagesWithPopulate(): Promise<ServicePackageDocument[]> {
+      async findServicePackagesWithPopulate( query:any,
+        skip:number,
+        limit:number): Promise<ServicePackageDocument[]> {
     return this.model
-      .find()
+      .find(query).skip(skip).limit(limit)
       .populate("brandId")
       .populate("modelId")
       .exec();
   }
+     async countDocuments(query: any): Promise<number> {
+    return this.ServicePackageModel.countDocuments(query);
+  }
+
 
 }
