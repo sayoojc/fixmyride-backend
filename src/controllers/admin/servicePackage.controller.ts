@@ -55,6 +55,7 @@ export class AdminServicePackageController
           success: false,
           message: "response dto doesnt match",
         });
+        return;
       }
       res.status(201).json(response);
     } catch (error) {
@@ -112,61 +113,52 @@ export class AdminServicePackageController
         .json({ success: false, message: (error as Error).message });
     }
   }
-  async updateServicePackage(
-    req: Request<{}, {}, UpdateServicePackageRequestDTO>,
-    res: Response<UpdateServicePackageResponseDTO | ErrorResponse>
-  ): Promise<void> {
-    try {
-      console.log('the update service package req.body',req.body);
-      const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
-      if (!parsed.success) {
-      if(!parsed.success){
-        console.log('the service package update req dosnt match the dto',parsed.error.message);
-        res.status(400).json({
-          success: false,
-          message: "request dto doesnt match",
-        });
-        return;
-      }
-      const updatedServicePackage =
-        await this.adminServicePackageService.updateServicePackage(parsed.data);
-      if (!updatedServicePackage) {
-        throw new Error("The service package update failed");
-      }
-      const response = {
-        success: true,
-        message: "The service package update is successfull",
-        servicePackage: updatedServicePackage,
-      };
-      const validate = UpdateServicePackageResponseSchema.safeParse(response);
-      if (!validate.success) {
-        res.status(400).json({
-          success: false,
-          message: "response dto doesnt match",
-         const updatedServicePackage = await this.adminServicePackageService.updateServicePackage(parsed.data);
-        if(!updatedServicePackage) {
-          console.log('the service layer doesnt return updated service package');
-           throw new Error('The service package update failed'); 
-        }
-        const response = {
-            success:true,
-            message:'The service package update is successfull',
-            servicePackage:updatedServicePackage
-        }
-        const validate = UpdateServicePackageResponseSchema.safeParse(response);
-        if(!validate.success){
-          console.log('the response dto doesnt match',validate.error.message);
-           res.status(400).json({
-            success:false,
-            message:"response dto doesnt match"
-        });
-        return;
-      }
-      res.status(200).json(response);
-    } catch (error) {
-      res.status(400).json({ success: false, message: (error as any).message });
+ async updateServicePackage(
+  req: Request<{}, {}, UpdateServicePackageRequestDTO>,
+  res: Response<UpdateServicePackageResponseDTO | ErrorResponse>
+): Promise<void> {
+  try {
+    console.log('the update service package req.body', req.body);
+    const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      console.log('the service package update req doesn\'t match the DTO', parsed.error.message);
+      res.status(400).json({
+        success: false,
+        message: "Request DTO doesn't match",
+      });
+      return;
     }
+
+    const updatedServicePackage = await this.adminServicePackageService.updateServicePackage(parsed.data);
+    
+    if (!updatedServicePackage) {
+      console.log('The service layer did not return an updated service package');
+      throw new Error("The service package update failed");
+    }
+
+    const response = {
+      success: true,
+      message: "The service package update is successful",
+      servicePackage: updatedServicePackage,
+    };
+
+    const validate = UpdateServicePackageResponseSchema.safeParse(response);
+    if (!validate.success) {
+      console.log('The response DTO doesn\'t match', validate.error.message);
+      res.status(400).json({
+        success: false,
+        message: "Response DTO doesn't match",
+      });
+      return;
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(400).json({ success: false, message: (error as any).message });
   }
+}
+
   async toggleBlockStatus(
     req: Request<{}, {}, ToggleBlockStatusRequestDTO>,
     res: Response<ToggleBlockStatusResponseDTO | ErrorResponse>

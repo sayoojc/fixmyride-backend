@@ -24,7 +24,10 @@ export class AdminUserController implements IAdminUserController {
     res: Response<FetchUsersResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const users = (await this.adminUserService.fetchUsers()) ?? [];
+       const search = (req.query.search as string) || "";
+    const page = parseInt(req.query.page as string) || 1;
+    const statusFilter = (req.query.statusFilter as string) || "all";
+    const users = await this.adminUserService.fetchUsers(search, page, statusFilter) ?? [];
 
       const response: FetchUsersResponseDTO = {
         success: true,

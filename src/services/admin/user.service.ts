@@ -12,17 +12,19 @@ export class AdminUserService implements IAdminUserService {
     private readonly userRepository: IUserRepository
   ) {}
 
-  async fetchUsers(): Promise<UserDTO[] | undefined> {
+  async fetchUsers(search: string,
+  page: number,
+  statusFilter: string): Promise<UserDTO[] | undefined> {
     try {
-      const users = await this.userRepository.find({ role: { $ne: "admin" } });
-      return users.map((user) => ({
-        _id: user._id.toString(),
-        name: user.name,
-        email: user.email,
-        phone: user.phone || "",
-        role: user.role,
-        isListed: user.isListed,
-      }));
+return await this.userRepository.fetchUsers(search, page, statusFilter);     
+//  return users.map((user) => ({
+//         _id: user._id.toString(),
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone || "",
+//         role: user.role,
+//         isListed: user.isListed,
+//       }));
     } catch (error) {
       console.error("Error fetching users:", error);
       return undefined;
