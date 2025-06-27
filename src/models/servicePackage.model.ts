@@ -19,11 +19,24 @@ export interface IServicePackage extends Document {
   description: string;
   brandId: mongoose.Types.ObjectId;
   modelId: mongoose.Types.ObjectId;
-  fuelType: 'petrol'|'diesel'|'lpg'|'cng';
+  fuelType: "petrol" | "diesel" | "lpg" | "cng";
   servicesIncluded: string[];
+  imageUrl:string,
   priceBreakup: IPriceBreakup;
   isBlocked: boolean;
   createdAt: Date;
+  servicePackageCategory: string;
+}
+enum ServiceCategory {
+  GENERAL = "general",
+  AC = "ac",
+  BRAKE = "brake",
+  WASHING = "washing",
+  DENT = "dent",
+  DETAILIng = 'detailing',
+  EMERGENCY = 'emergency',
+  TYRES = 'tyres',
+  BATTERY = 'battery'
 }
 
 const ServicePackageSchema = new Schema<IServicePackage>(
@@ -49,6 +62,15 @@ const ServicePackageSchema = new Schema<IServicePackage>(
       type: [String],
       required: true,
     },
+    imageUrl:{
+     type:String,
+     required:true
+    },
+    servicePackageCategory: {
+      type: String,
+      enum: Object.values(ServiceCategory),
+      required: true,
+    },
     priceBreakup: {
       parts: [
         {
@@ -71,6 +93,7 @@ const ServicePackageSchema = new Schema<IServicePackage>(
       default: Date.now,
     },
   },
+
   { timestamps: true }
 );
 

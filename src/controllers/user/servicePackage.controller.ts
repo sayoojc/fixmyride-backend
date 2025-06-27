@@ -23,9 +23,32 @@ export class UserServicePackageController
     res: Response<GetServicePackagesResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      console.log("the getservice packages controller function ", req.query);
+      const { vehicleId, serviceCategory, fuelType } = req.query;
+      
+      if (
+        typeof vehicleId !== "string" ||
+        typeof serviceCategory !== "string" ||
+        typeof fuelType !== "string"
+      ) {
+        console.log("the type of the queries not correct");
+        res.status(400).json({
+          success: false,
+          message:
+            "Missing or invalid query parameters: vehicleId or serviceCategoryId",
+        });
+        return;
+      }
       const servicePackages =
-        await this.userServicePackageService.getServicePackages();
-
+        await this.userServicePackageService.getServicePackages(
+          vehicleId,
+          serviceCategory,
+          fuelType
+        );
+      console.log(
+        "the service packages returned from teh service function consoled in the controller",
+        servicePackages
+      );
       const response = {
         success: true,
         message: "Service packages fetched successfully",

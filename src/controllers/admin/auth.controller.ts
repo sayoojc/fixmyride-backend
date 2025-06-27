@@ -18,7 +18,6 @@ export class AdminAuthController implements IAdminAuthController {
     @inject(TYPES.AdminAuthService)
     private readonly adminAuthService: IAdminAuthService
   ) {}
-
   async adminLogin(
     req: Request<{}, {}, AdminLoginRequestDTO>,
     res: Response<AdminLoginResponseDTO>

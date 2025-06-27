@@ -17,6 +17,8 @@ export const ServicePackageSchema = z.object({
   description: z.string().min(1, "Description is required").max(500, "Description too long").trim(),
   brandId: z.string().min(1, "Brand is required"),
   modelId: z.string().min(1, "Model is required"),
+  imageUrl:z.string().min(1,"imageUrl is required"),
+  servicePackageCategory: z.enum(["general", "ac", "brake", "washing",'dent','detailing','emergency','tyres','battery']),
   fuelType: z.enum(['petrol','diesel','lpg','cng'], {
     required_error: "Fuel type is required",
     invalid_type_error: "Invalid fuel type",
@@ -47,6 +49,7 @@ export const ServicePackageSchemaWithPopulatedRefs = z.object({
   modelId: ModelSchema, 
   fuelType: z.enum(['petrol', 'diesel', 'lpg', 'cng']),
   servicesIncluded: z.array(z.string().min(1)).min(1).max(20),
+  servicePackageCategory: z.enum(["general", "ac", "brake", "washing",'dent','detailing','emergency','tyres','battery']),
   priceBreakup: PriceBreakupSchema
 });
 
@@ -95,3 +98,4 @@ export type AddServicePackageResponseDTO = z.infer<typeof AddServicePackageRespo
 export type GetServicePackagesResponseDTO = z.infer<typeof getServicePackagesResponseSchema>
 export type ToggleBlockStatusRequestDTO = z.infer<typeof ToggleBlockStatusRequestSchema>
 export type ToggleBlockStatusResponseDTO = z.infer<typeof ToggleBlockStatusResponseSchema>
+export type ServicePackageDTO = z.infer<typeof ServicePackageSchema>

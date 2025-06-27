@@ -5,6 +5,7 @@ import {
   AddServicePackageRequestDTO,
   ToggleBlockStatusRequestDTO,
   UpdateServicePackageRequestDTO,
+  ServicePackageDTO
 } from "../../dtos/controllers/admin/adminServicePackageController.dto";
 import { Types } from "mongoose";
 import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
@@ -17,22 +18,38 @@ export class AdminServicePackageService implements IAdminServicePackageService {
   ) {}
   async addServicePackage(
     data: AddServicePackageRequestDTO
-  ): Promise<AddServicePackageRequestDTO> {
+  ): Promise<ServicePackageDTO> {
     try {
+      console.log('the add service package service function ');
       const servicePackageData = {
         ...data,
         brandId: new Types.ObjectId(data.brandId),
         modelId: new Types.ObjectId(data.modelId),
       };
+      console.log('service package data from the service layer',servicePackageData);
       const newServicePackage = await this.servicePackageRepository.create(
         servicePackageData
       );
-      const sanitizedServicePackage = {
-        ...newServicePackage,
-        brandId: newServicePackage.brandId.toString(),
-        modelId: newServicePackage.modelId.toString(),
-      };
-      return sanitizedServicePackage;
+      const plainObject = newServicePackage.toObject();
+     const sanitizedServicePackage: ServicePackageDTO = {
+  title: plainObject.title,
+  description: plainObject.description,
+  brandId: plainObject.brandId.toString(),
+  modelId: plainObject.modelId.toString(),
+  fuelType: plainObject.fuelType,
+  servicesIncluded: plainObject.servicesIncluded,
+  servicePackageCategory: plainObject.servicePackageCategory,
+  imageUrl:plainObject.imageUrl,
+  priceBreakup: {
+    parts: plainObject.priceBreakup.parts,
+    laborCharge: plainObject.priceBreakup.laborCharge,
+    discount: plainObject.priceBreakup.discount,
+    tax: plainObject.priceBreakup.tax,
+    total: plainObject.priceBreakup.total,
+  },
+};
+
+return sanitizedServicePackage;
     } catch (error) {
       throw error;
     }
@@ -51,8 +68,8 @@ export class AdminServicePackageService implements IAdminServicePackageService {
     fuelFilter: string;
   }): Promise<{ servicePackages: IServicePackage[]; totalCount: number }> {
     try {
-      const query: any = {};
-    
+      const query:any = {};
+
       if (search) {
         query.title = { $regex: search, $options: "i" };
       }
@@ -60,13 +77,11 @@ export class AdminServicePackageService implements IAdminServicePackageService {
       if (fuelFilter && fuelFilter !== "all") {
         query.fuelType = { $regex: fuel, $options: "i" };
       }
-     if (statusFilter === "blocked") {
-  query.isBlocked = true;
-} else if (statusFilter === "active") {
-  query.isBlocked = false;
-}
-      console.log('the query',query);
-      // Get total count before pagination
+      if (statusFilter === "blocked") {
+        query.isBlocked = true;
+      } else if (statusFilter === "active") {
+        query.isBlocked = false;
+      }
       const totalCount = await this.servicePackageRepository.countDocuments(
         query
       );

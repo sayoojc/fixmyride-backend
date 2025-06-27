@@ -33,24 +33,29 @@ export class AdminServicePackageController
     res: Response<AddServicePackageResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      
+      console.log('req.body',req.body);
       const parsed = ServicePackageSchema.safeParse(req.body);
       if (!parsed.success) {
+        console.log('the request data parsing is failed',parsed.error.message);
         res.status(400).json({
           success: false,
           message: "Invalid input",
         });
         return;
       }
+      console.log('the parsed data',parsed.data);
       const newServicePackage =
         await this.adminServicePackageService.addServicePackage(parsed.data);
+        console.log('the new service',newServicePackage);
       const response = {
         success: true,
         message: "Service package added successfully",
         servicePackage: newServicePackage,
       };
       const validate = AddServicePackageResponseSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
+        console.log('the service package controller response dto doesnt match',validate.error.message);
+        
         res.status(400).json({
           success: false,
           message: "response dto doesnt match",
@@ -75,10 +80,6 @@ export class AdminServicePackageController
       const fuelFilter = req.query.fuelFilter?.toString() || "";
       const limit = 4;
       const skip = (page - 1) * limit;
-      console.log('search',search);
-      console.log('page',page);
-      console.log('statusfilter',statusFilter);
-      console.log('fuelfilter',fuelFilter);
       const { servicePackages, totalCount } =
         await this.adminServicePackageService.getServicePackages({
           search,
