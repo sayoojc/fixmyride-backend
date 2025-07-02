@@ -36,6 +36,8 @@ import { ServicePackageRepository } from "../../repositories/servicePackage.repo
 import { VehicleRepository } from "../../repositories/vehicle.repo";
 import { VerificationRepository } from "../../repositories/verification.repo";
 import { OrderRepository } from "../../repositories/order.repo";
+import { ISocketService } from "../../sockets/ISocketService";
+import { SocketService } from "../../sockets/socketService";
 
 export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.UserRepository)) {
@@ -101,5 +103,10 @@ export const bindRepositoriesModule = (container: Container) => {
     container.bind<IOrderRepository>(TYPES.OrderRepository)
       .toDynamicValue(() => new OrderRepository(orderModel))
       .inSingletonScope();
+  }
+  if(!container.isBound(TYPES.SocketService)) {
+    container.bind<ISocketService>(TYPES.SocketService)
+    .toDynamicValue(() => new SocketService())
+    .inSingletonScope();
   }
 };

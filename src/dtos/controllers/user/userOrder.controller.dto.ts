@@ -1,5 +1,4 @@
 import { z } from "zod";
-import mongoose from "mongoose";
 export interface RazorpayOrderResponse {
   id: string;
   entity: string;
@@ -17,6 +16,15 @@ export interface TimeSlot {
   time: string;
   available: boolean;
 }
+const AddressSchema = z.object({
+  addressLine1: z.string(),
+  addressLine2: z.string(),
+  city: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  state: z.string(),
+  zipCode: z.string(),
+});
 
 export interface AvailableDate {
   date: string;
@@ -47,7 +55,7 @@ export const verifyRazorpayPaymentRequestSchema = z.object({
         razorpayPaymentId:z.string(),
         razorpaySignature:z.string(),
         cartId:z.string(),
-        selectedAddressId:z.string(),
+       selectedAddressId: z.union([z.string(), AddressSchema]),
         selectedDate:z.object({
             date:z.string(),
             available:z.boolean(),

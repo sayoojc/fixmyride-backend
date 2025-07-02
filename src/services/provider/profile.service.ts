@@ -32,6 +32,7 @@ export class ProviderProfileService implements IProviderProfileService {
       description,
       profileImage,
       verificationStatus,
+      location
     } = user.toObject();
           const sanitizedUser: SanitizedProvider = {
       _id: _id.toString(),
@@ -45,6 +46,7 @@ export class ProviderProfileService implements IProviderProfileService {
       description,
       profileImage,
       verificationStatus,
+      location
     };
       return sanitizedUser;
     } catch (error) {

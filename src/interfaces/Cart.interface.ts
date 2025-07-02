@@ -93,6 +93,7 @@ export interface IServicePackage {
   modelId: string;
   fuelType: "petrol" | "diesel" | "lpg" | "cng";
   servicesIncluded: string[];
+  servicePackageCategory:string;
   priceBreakup: {
     parts: {
       name: string;

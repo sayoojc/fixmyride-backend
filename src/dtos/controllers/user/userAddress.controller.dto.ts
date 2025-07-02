@@ -26,6 +26,8 @@ export const AddressSchema = z.object({
   state: z.string(),
   zipCode: z.string(),
   isDefault: z.boolean(),
+  latitude:z.number(),
+  longitude:z.number()
 });
 
 

@@ -6,36 +6,6 @@
     "auditLog": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\.6b2bd3d7787155d25b4db00f0b36e54e721b74d4-audit.json",
     "files": [
         {
-            "date": 1750392186356,
-            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-20.log",
-            "hash": "bf6cdf10a2eaaf5ba5e525f82bca921fb104183ead88d5aae7d4e4fbeafc9517"
-        },
-        {
-            "date": 1750519915226,
-            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-21.log",
-            "hash": "36106d3ff7ae0450ec68a29ce80738682181bcd2ed78df9e191dd1975ea24b73"
-        },
-        {
-            "date": 1750560122292,
-            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-22.log",
-            "hash": "d1fdc2348a636ddd5417da67fe3945a4eedc083bdc90377131bb8b7e36069b21"
-        },
-        {
-            "date": 1750655920492,
-            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-23.log",
-            "hash": "22d97a9469c611b5c5e5944616bbe7f10b1fdb7c25797ea803ed2edd831097c4"
-        },
-        {
-            "date": 1750745036914,
-            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-24.log",
-            "hash": "eacdf633a77c369f075daf421d248cd9ef25d4b7dbf976a8ccb4fcd4415521d3"
-        },
-        {
-            "date": 1750823795139,
-            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-25.log",
-            "hash": "545ac0fdf145a8154198e5b73ec8c9d51bf26c63f415203ec6f8eaf3a1469e36"
-        },
-        {
             "date": 1750910761002,
             "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-26.log",
             "hash": "dd6cf4ac66c34b00b36b868901265455a1cdbe6eb39e2f042a9ecf25f20af45c"
@@ -44,6 +14,26 @@
             "date": 1750996530496,
             "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-27.log",
             "hash": "2b9245a09a5ff82c081abb50845bb509269da2b7e1f075c6b73c08de6335ec7a"
+        },
+        {
+            "date": 1751085235006,
+            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-28.log",
+            "hash": "6de1f162f0a96a8e68701b854e3655768f311efde4b2c399de2695852e2d115e"
+        },
+        {
+            "date": 1751257538772,
+            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-06-30.log",
+            "hash": "92697307765e561d33c8b27cbf45b586fc90aad6f072657342beb0e03892ca82"
+        },
+        {
+            "date": 1751342987651,
+            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-07-01.log",
+            "hash": "71f077dfb24ac935b8f3bda951bb1051b4e5c62e33cede8b8d4ad7a8e417812a"
+        },
+        {
+            "date": 1751430183706,
+            "name": "C:\\Users\\sayoo\\fixmyride-backend\\src\\logs\\error-2025-07-02.log",
+            "hash": "81856e33baeb4f1710f7e7d443d09f70a5fa52edf420a3446e0f68e7a8d5ac90"
         }
     ],
     "hashType": "sha256"

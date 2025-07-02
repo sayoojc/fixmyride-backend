@@ -30,7 +30,15 @@ export interface IUserOrderService {
     razorpayPaymentId: string,
     razorpaySignature: string,
     cartId: string,
-    selectedAddressId: string,
+      selectedAddressId: string | {
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    latitude: number;
+    longitude: number;
+    state: string;
+    zipCode: string;
+  },
     selectedDate: AvailableDate,
     selectedSlot: TimeSlot
   ): Promise<IOrder>;
@@ -39,7 +47,15 @@ export interface IUserOrderService {
     orderId: string,
     paymentStatus: string,
     cartId: string,
-    selectedAddressId: string,
+      selectedAddressId: string | {
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    latitude: number;
+    longitude: number;
+    state: string;
+    zipCode: string;
+  },
     selectedDate: AvailableDate,
     selectedSlot: TimeSlot,
     razorpayPaymentId: string,

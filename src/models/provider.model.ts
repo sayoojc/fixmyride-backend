@@ -14,9 +14,9 @@ export interface IServiceProvider extends Document {
     state: string;
     pinCode: string;
   };
-  location?: {
-    latitude: number;
-    longitude: number;
+  location: {
+    type: 'Point',
+    coordinates: [number, number];
   };
   isListed: boolean;
   verificationStatus?:'pending' | 'approved' | 'rejected';
@@ -49,9 +49,16 @@ const ServiceProviderSchema: Schema = new Schema<IServiceProvider>(
       state: { type: String },
       pinCode: { type: String },
     },
-    location: {
-      latitude: { type: Number },
-      longitude: { type: Number },
+       location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
     },
     isListed: { type: Boolean, default: true },
     verificationStatus: {   type: String,enum: ["pending", "approved", "rejected"],},

@@ -37,6 +37,9 @@ export const TYPES = {
   ProviderAuthService: Symbol.for("ProviderAuthService"),
   ProviderProfileService: Symbol.for("ProviderProfileService"),
 
+  //Socket service
+  SocketService: Symbol.for("SocketService"),
+
   // ========== CONTROLLERS ==========
 
   // Admin controllers

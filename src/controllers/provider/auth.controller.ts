@@ -14,7 +14,6 @@ import {
   ProviderRegisterTempDTO,
   ProviderRegisterDTO,
   ProviderLoginDTO,
-  ProviderUserDTO,
   ErrorResponse,
   SuccessMessageDTO,
   ProviderLoginResponseDTO,
@@ -36,6 +35,7 @@ export class ProviderAuthController implements IProviderAuthController {
       if (!parsed.success) throw new Error("Invalid provider data");
 
       const data = parsed.data;
+      console.log("the data from the parsed data", data);
       const secret = authenticator.generateSecret();
       const otp = authenticator.generate(secret);
       const tempUser = await this.providerAuthService.providerRegisterTemp({
@@ -64,13 +64,11 @@ export class ProviderAuthController implements IProviderAuthController {
     res: Response<SuccessMessageDTO | ErrorResponse>
   ): Promise<void> {
     try {
-    console.log('the provider register  req.body',req.body);
+      console.log("the provider register  req.body", req.body);
       const parsed = ProviderRegisterSchema.safeParse(req.body);
-      if (!parsed.success){
-      console.log("the request parsing failed",parsed.error.message);
-              throw new Error("Invalid provider registration data");
-              
-
+      if (!parsed.success) {
+        console.log("the request parsing failed", parsed.error.message);
+        throw new Error("Invalid provider registration data");
       }
 
       const provider = await this.providerAuthService.providerRegister({
@@ -78,7 +76,10 @@ export class ProviderAuthController implements IProviderAuthController {
       });
 
       if (!provider) {
-      console.log('new provider is not returned from provider auth service',provider)
+        console.log(
+          "new provider is not returned from provider auth service",
+          provider
+        );
         throw new Error("User registration failed");
       }
 

@@ -63,6 +63,7 @@ export class UserCartService implements IUserCartService {
                   tax: service.priceBreakup.tax,
                   total: service.priceBreakup.total,
                 },
+                servicePackageCategory:service.servicePackageCategory,
                 isBlocked: service.isBlocked,
                 createdAt: service.createdAt,
                 updatedAt: service.updatedAt,
@@ -75,6 +76,7 @@ export class UserCartService implements IUserCartService {
         isCheckedOut: cart.isCheckedOut ?? false,
         createdAt: cart.createdAt,
         updatedAt: cart.updatedAt,
+
       };
       return parsedCart
     } catch (error) {

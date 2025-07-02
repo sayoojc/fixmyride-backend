@@ -186,7 +186,7 @@ export class UserAddressController implements IUserAddressController {
       const addresses = await this.userAddressService.getAddresses(user.id);
       const response = {
         success:true,
-        message:"Address fetched success fully",
+        message:"Address fetched successfully",
         address:addresses
       }
       const validate = GetAddressesResponseSchema.safeParse(response);

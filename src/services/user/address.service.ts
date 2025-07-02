@@ -23,9 +23,11 @@ export class UserAddressService implements IUserAddressService {
     addressData: AddAddressRequestDTO
   ): Promise<AddressResponseDTO> {
     try {
+
+      const {latitude,longitude,userId,...rest}  = addressData
       const newAddress = await this.addressRepository.create({
-        ...addressData,
-        userId: new Types.ObjectId(addressData.userId),
+       ...rest,userId:new Types.ObjectId(userId),location:{type:'Point',coordinates:[latitude,longitude]}
+        
       });
       const addressObj = newAddress.toObject();
 
@@ -149,6 +151,8 @@ async getAddresses(userId: string): Promise<AddressDTO[]> {
       state: addr.state,
       zipCode: addr.zipCode,
       isDefault: addr.isDefault,
+      latitude:addr.location.coordinates[0],
+      longitude:addr.location.coordinates[1]
     }));
 
     return addressDtos;

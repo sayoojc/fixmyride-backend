@@ -1,34 +1,31 @@
 import { z } from "zod";
 
-export const ProviderRegisterTempSchema = z
-  .object({
-    name: z.string().min(1),
-    email: z.string().email(),
-    phone: z.string().regex(/^[6-9]\d{9}$/),
-    password: z
-      .string()
-      .min(8)
-      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
-    address: z.object({
-      street: z.string().min(1),
-      city: z.string().min(1),
-      state: z.string().min(1),
-      pinCode: z.string().regex(/^\d{6}$/),
-    }),
-     location: z
-    .object({
-      latitude: z.number(),
-      longitude: z.number(),
-    })
-    .optional(),
-  });
-export type ProviderRegisterTempDTO = z.infer<typeof ProviderRegisterTempSchema>;
+export const ProviderRegisterTempSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().regex(/^[6-9]\d{9}$/),
+  password: z
+    .string()
+    .min(8)
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
+  address: z.object({
+    street: z.string().min(1),
+    city: z.string().min(1),
+    state: z.string().min(1),
+    pinCode: z.string().regex(/^\d{6}$/),
+  }),
+  latitude: z.number(),
+  longitude: z.number(),
+});
+export type ProviderRegisterTempDTO = z.infer<
+  typeof ProviderRegisterTempSchema
+>;
 
 export const ProviderRegisterSchema = z.object({
-   otp:z.string(),
-    email:z.string(),
-     phone:z.string()
-})
+  otp: z.string(),
+  email: z.string(),
+  phone: z.string(),
+});
 export type ProviderRegisterDTO = z.infer<typeof ProviderRegisterSchema>;
 
 export const ProviderLoginSchema = z.object({
@@ -52,7 +49,9 @@ export const ProviderLoginResponseSchema = z.object({
   user: ProviderUserSchema,
 });
 
-export type ProviderLoginResponseDTO = z.infer<typeof ProviderLoginResponseSchema>;
+export type ProviderLoginResponseDTO = z.infer<
+  typeof ProviderLoginResponseSchema
+>;
 
 export const SuccessMessageSchema = z.object({
   success: z.literal(true).optional(),

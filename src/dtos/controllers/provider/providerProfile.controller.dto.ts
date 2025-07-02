@@ -17,10 +17,19 @@ export const ProviderSchema = z.object({
 })
 
 export interface SanitizedProvider {
+  _id: string;
   name: string;
   email: string;
   phone?: string;
+  address: string;
+  description: string;
+  profileImage: string;
+  verificationStatus: string;
   isListed: boolean;
+  location:{
+    type:string,
+    coordinates:[number,number]
+  }
 }
 
 // ---------------------

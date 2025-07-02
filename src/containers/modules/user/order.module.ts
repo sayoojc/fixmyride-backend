@@ -6,6 +6,8 @@ import { IUserOrderService } from "../../../interfaces/services/user/IUserOrderS
 import { UserOrderController } from "../../../controllers/user/orderController";
 import { TYPES } from "../../types";
 import { ICartRepository } from "../../../interfaces/repositories/ICartRepository";
+import { IAddressRepository } from "../../../interfaces/repositories/IAddressRepository";
+import { ISocketService } from "../../../sockets/ISocketService";
 
 export const bindUserOrderModule = (container: Container) => {
   container
@@ -13,8 +15,10 @@ export const bindUserOrderModule = (container: Container) => {
     .toDynamicValue(() => {
       const orderRepo = container.get<IOrderRepository>(TYPES.OrderRepository);
       const cartRepo = container.get<ICartRepository>(TYPES.CartRepository);
+      const addressRepo = container.get<IAddressRepository>(TYPES.AddressRepository);
+      const socketService = container.get<ISocketService>(TYPES.SocketService)
 
-      return new UserOrderService(orderRepo,cartRepo);
+      return new UserOrderService(orderRepo,cartRepo,addressRepo,socketService);
     })
     .inSingletonScope();
   container

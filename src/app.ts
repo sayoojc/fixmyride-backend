@@ -28,8 +28,13 @@ import passport from 'passport';
 import './config/passport'
 import { authenticateGoogle } from "./services/googleServices";
 import { googleCallback,googleController } from "./services/googleServices";
-
 import { morganMiddleware, logger } from './config/logger';
+import  container  from "./containers/container.config";
+import { TYPES } from "./containers/types";
+import { ISocketService } from "./sockets/ISocketService";
+
+const socketService = container.get<ISocketService>(TYPES.SocketService);
+
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -79,7 +84,7 @@ app.use("/api/provider",providerProfileRoutes);
    res.status(StatusCode.NOT_FOUND).send({message:'Invalid Route'})
  })
  app.use(errorHandler);
-
+socketService.initialize(server);
 
 connectdb().then(() => {
     console.log("Database connected successfully");
