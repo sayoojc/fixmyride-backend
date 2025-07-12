@@ -8,23 +8,20 @@ import { Types } from "mongoose";
 export class UserServicePackageService implements IUserServicePackageService {
   constructor(
     @inject(TYPES.ServicePackageRepository)
-    private readonly servicePackageRepository: IServicePackageRepository
+    private readonly _servicePackageRepository: IServicePackageRepository
   ) {}
   async getServicePackages(vehicleId:string,serviceCategory:string,fuelType:string): Promise<IServicePackage[]> {
     try {
       const page = 1;
       const limit = 25;
       const skip = (page - 1) * limit;
-      console.log('the service package service function ');
       const query:any = {};
       query.servicePackageCategory = serviceCategory;
       query.fuelType = fuelType;
       query.modelId  = new Types.ObjectId(vehicleId);
-       query.isBlocked = false;
-    console.log('query',query);
+      query.isBlocked = false;
       const servicePackages =
-        await this.servicePackageRepository.findServicePackagesWithPopulate(query,skip,limit);
-        console.log('the service packages returned from the repository',servicePackages)
+      await this._servicePackageRepository.findServicePackagesWithPopulate(query,skip,limit);
       return servicePackages;
     } catch (error) {
       console.log("The catch block error", error);

@@ -11,6 +11,8 @@ export const TYPES = {
   ServicePackageRepository: Symbol.for("ServicePackageRepository"),
   CartRepository: Symbol.for("CartRepository"),
   OrderRepository:Symbol.for("OrderRepository"),
+  NotificationRepository:Symbol.for("NotificationRepository"),
+  ServiceRequestRepository:Symbol.for("ServiceRequestRepository"),
 
   // ========== SERVICES ==========
   MailService: Symbol.for("MailService"),

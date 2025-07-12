@@ -8,6 +8,7 @@ import {
   ErrorResponse,
   GetServicePackagesResponseSchema,
 } from "../../dtos/controllers/user/userServicePackage.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class UserServicePackageController
@@ -15,7 +16,7 @@ export class UserServicePackageController
 {
   constructor(
     @inject(TYPES.UserServicePackageService)
-    private readonly userServicePackageService: IUserServicePackageService
+    private readonly _userServicePackageService: IUserServicePackageService
   ) {}
 
   async getServicePackages(
@@ -23,7 +24,6 @@ export class UserServicePackageController
     res: Response<GetServicePackagesResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log("the getservice packages controller function ", req.query);
       const { vehicleId, serviceCategory, fuelType } = req.query;
       
       if (
@@ -31,8 +31,7 @@ export class UserServicePackageController
         typeof serviceCategory !== "string" ||
         typeof fuelType !== "string"
       ) {
-        console.log("the type of the queries not correct");
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message:
             "Missing or invalid query parameters: vehicleId or serviceCategoryId",
@@ -40,15 +39,12 @@ export class UserServicePackageController
         return;
       }
       const servicePackages =
-        await this.userServicePackageService.getServicePackages(
+        await this._userServicePackageService.getServicePackages(
           vehicleId,
           serviceCategory,
           fuelType
         );
-      console.log(
-        "the service packages returned from teh service function consoled in the controller",
-        servicePackages
-      );
+
       const response = {
         success: true,
         message: "Service packages fetched successfully",
@@ -56,20 +52,16 @@ export class UserServicePackageController
       };
       const validate = GetServicePackagesResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log(
-          "the response dto is not getting validated for hte get Service packages",
-          validate.error
-        );
-        res.status(400).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "The response dto doesnt match",
         });
         return;
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: (error as Error).message });
     }
   }

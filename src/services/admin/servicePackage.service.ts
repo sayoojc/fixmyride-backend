@@ -14,7 +14,7 @@ import { IServicePackage } from "../../models/servicePackage.model";
 export class AdminServicePackageService implements IAdminServicePackageService {
   constructor(
     @inject(TYPES.ServicePackageRepository)
-    private readonly servicePackageRepository: IServicePackageRepository
+    private readonly _servicePackageRepository: IServicePackageRepository
   ) {}
   async addServicePackage(
     data: AddServicePackageRequestDTO
@@ -27,7 +27,7 @@ export class AdminServicePackageService implements IAdminServicePackageService {
         modelId: new Types.ObjectId(data.modelId),
       };
       console.log('service package data from the service layer',servicePackageData);
-      const newServicePackage = await this.servicePackageRepository.create(
+      const newServicePackage = await this._servicePackageRepository.create(
         servicePackageData
       );
       const plainObject = newServicePackage.toObject();
@@ -82,12 +82,12 @@ return sanitizedServicePackage;
       } else if (statusFilter === "active") {
         query.isBlocked = false;
       }
-      const totalCount = await this.servicePackageRepository.countDocuments(
+      const totalCount = await this._servicePackageRepository.countDocuments(
         query
       );
       console.log("the total count from the service layer", totalCount);
       const servicePackages =
-        await this.servicePackageRepository.findServicePackagesWithPopulate(
+        await this._servicePackageRepository.findServicePackagesWithPopulate(
           query,
           skip,
           limit
@@ -109,7 +109,7 @@ return sanitizedServicePackage;
         modelId: new Types.ObjectId(data.data.modelId),
       };
       const updatedServicePackage =
-        await this.servicePackageRepository.findOneAndUpdate(
+        await this._servicePackageRepository.findOneAndUpdate(
           { _id: data.id },
           refinedData,
           { new: true }
@@ -128,7 +128,7 @@ return sanitizedServicePackage;
     try {
       const status = data.actionType === "block" ? true : false;
       const updatedServicePackage =
-        await this.servicePackageRepository.findOneAndUpdate(
+        await this._servicePackageRepository.findOneAndUpdate(
           { _id: data.id },
           { isBlocked: status },
           { new: true }

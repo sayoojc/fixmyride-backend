@@ -164,25 +164,37 @@ const updatedCart = await this.model.findOneAndUpdate(
       throw new Error("Failed to remove service from cart");
     }
   }
-  async findPopulatedCartById(id:Types.ObjectId):Promise<IPopulatedCart>{
-    try {
-      const cart = await this.model
-        .findById(id)
-        .populate({
-          path: "vehicleId",
-          populate: [{ path: "brandId" }, { path: "modelId" }],
-        })
-        .populate("services")
-        .lean<IPopulatedCart>();
+  async findPopulatedCartById(id: Types.ObjectId): Promise<IPopulatedCart> {
+  try {
+    const cart = await this.model
+      .findById(id)
+      .populate({
+        path: "vehicleId",
+        select: "_id brandId modelId fuel year",
+        populate: [
+          { path: "brandId", select: "_id brandName" },
+          { path: "modelId", select: "_id name" },
+        ],
+      })
+      .populate({
+        path: "userId",
+        select: "_id name email phone"
+      })
+      .populate({
+        path: "services", // Optional: select only needed fields
+        select: "_id title description fuelType servicePackageCategory priceBreakup"
+      })
+      .lean<IPopulatedCart>();
 
-      if (!cart) {
-        throw new Error("Cart not found after removing service");
-      }
-
-      return cart;
-    } catch (error) {
-         console.error("Error fetching cart:", error);
-      throw new Error("Failed to fetch cart by cartid");
+    if (!cart) {
+      throw new Error("Cart not found after removing service");
     }
+
+    return cart;
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    throw new Error("Failed to fetch cart by cartId");
   }
+}
+
 }

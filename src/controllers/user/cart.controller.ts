@@ -22,12 +22,13 @@ import {
   RemoveFromCartResponseSchema,
   ErrorResponseDTO,
 } from "../../dtos/controllers/user/userCart.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class UserCartController implements IUserCartController {
   constructor(
     @inject(TYPES.UserCartService)
-    private readonly userCartService: IUserCartService
+    private readonly _userCartService: IUserCartService
   ) {}
   async getCart(
     req: Request,
@@ -36,7 +37,7 @@ export class UserCartController implements IUserCartController {
     try {
       const accessToken = req.cookies.accessToken;
       if (!accessToken) {
-        res.status(401).json({
+        res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: "Not authorized, no access token",
         });
@@ -53,19 +54,19 @@ export class UserCartController implements IUserCartController {
       const parsed = GetCartRequestSchema.safeParse(req.query as { cartId: string });
       if (!parsed.success) {
         console.log("Request DTO doesnt match",parsed.error.message);
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Request DTO doesnt match",
         });
         return;
       }
-      const cart = await this.userCartService.getCart(
+      const cart = await this._userCartService.getCart(
         user.id,
         parsed.data.cartId
       );
       if(!cart){
         console.log('no cart fetched');
-            res.status(400).json({
+            res.status(StatusCode.NOT_FOUND).json({
           success: false,
           message: "Cart not found",
         });
@@ -79,16 +80,16 @@ export class UserCartController implements IUserCartController {
       const validate = GetCartResponseSchema.safeParse(response);
       if (!validate.success) {
         console.log('the response dto doesnt match',validate.error.message);
-        res.status(400).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "The response DTO doesnt match",
         });
         return
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "The cart fetch failed" });
     }
   }
@@ -99,7 +100,7 @@ export class UserCartController implements IUserCartController {
     try {
       const accessToken = req.cookies.accessToken;
       if (!accessToken) {
-        res.status(401).json({
+        res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: "Not authorized, no access token",
         });
@@ -114,18 +115,16 @@ export class UserCartController implements IUserCartController {
       if (!user || !user.id) {
         throw new Error("Failed to authenticate");
       }
-      console.log("The request body", req.body);
-
       const parsed = AddServiceToCartRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         console.log("The request DTO doesnt match", parsed.error.message);
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "The request DTO doesnt match",
         });
         return;
       }
-      const updatedCart = await this.userCartService.addToCart({
+      const updatedCart = await this._userCartService.addToCart({
         ...parsed.data,
         userId: user.id,
       });
@@ -142,7 +141,7 @@ export class UserCartController implements IUserCartController {
       const validate = AddServiceToCartResponseSchema.safeParse(response);
       if (!validate) {
         console.log("The response DTO doesnt match");
-        res.status(400).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "The response DTO doesnt match",
         });
@@ -150,7 +149,7 @@ export class UserCartController implements IUserCartController {
       res.status(201).json(response);
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "The cart updation failed" });
     }
   }
@@ -161,7 +160,7 @@ export class UserCartController implements IUserCartController {
     try {
       const accessToken = req.cookies.accessToken;
       if (!accessToken) {
-        res.status(401).json({
+        res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: "Not authorized, no access token",
         });
@@ -177,13 +176,13 @@ export class UserCartController implements IUserCartController {
       }
       const parsed = AddVehicleToCartRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "The request DTO doesnt match",
         });
         return;
       }
-      const updatedCart = await this.userCartService.addVehicleToCart(
+      const updatedCart = await this._userCartService.addVehicleToCart(
         parsed.data.vehicleId,
         user.id
       );
@@ -198,15 +197,15 @@ export class UserCartController implements IUserCartController {
       const validate = AddVehicleToCartResponseSchema.safeParse(response);
       if (!validate.success) {
         console.log("The response dto doesnt match", validate.error.message);
-        res.status(400).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "The response DTO doesnt match",
         });
       }
-      res.status(201).json(response);
+      res.status(StatusCode.CREATED).json(response);
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "The add vehicle to cart failed" });
     }
   }
@@ -217,7 +216,7 @@ export class UserCartController implements IUserCartController {
     try {
       const accessToken = req.cookies.accessToken;
       if (!accessToken) {
-        res.status(401).json({
+        res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: "Not authorized, no access token",
         });
@@ -233,13 +232,13 @@ export class UserCartController implements IUserCartController {
       }
       const parsed = RemoveFromCartRequestSchema.safeParse(req.body);
       if(!parsed.success){
-          res.status(400).json({
+          res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Request DTO doesnt match",
         });
         return;
       }
-      let cart = await this.userCartService.removeFromCart(user.id,parsed.data.cartId,parsed.data.packageId)
+      let cart = await this._userCartService.removeFromCart(user.id,parsed.data.cartId,parsed.data.packageId)
        let response = {
         success:true,
         message:"Service removed from cart successfully",
@@ -247,15 +246,15 @@ export class UserCartController implements IUserCartController {
        }
        const validate = RemoveFromCartResponseSchema.safeParse(response);
        if(!validate.success){
-          res.status(400).json({
+          res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response DTO doesnt match",
         });
        }
-       res.status(200).json(response);
+       res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "The remove from cart failed" });
     }
   }

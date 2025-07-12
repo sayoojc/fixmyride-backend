@@ -12,10 +12,10 @@ import { Types } from "mongoose";
 export class AdminProviderService implements IAdminProviderService {
   constructor(
     @inject(TYPES.ProviderRepository)
-    private readonly providerRepository: IProviderRepository,
+    private readonly _providerRepository: IProviderRepository,
     @inject(TYPES.VerificationRepository)
-    private readonly verificationRepository: IVerificationRepository,
-    @inject(TYPES.MailRepository) private readonly mailService: IMailService
+    private readonly _verificationRepository: IVerificationRepository,
+    @inject(TYPES.MailRepository) private readonly _mailService: IMailService
   ) {}
 
   async fetchProviders({
@@ -44,10 +44,10 @@ export class AdminProviderService implements IAdminProviderService {
       } else{
         query.isListed = true;  
       }
-    const totalCount = await this.providerRepository.countDocuments(query);
+    const totalCount = await this._providerRepository.countDocuments(query);
 
       // Fetch paginated and filtered brands
-      const providers = await this.providerRepository.findWithPagination(
+      const providers = await this._providerRepository.findWithPagination(
         query,
         skip,
         limit
@@ -66,7 +66,7 @@ export class AdminProviderService implements IAdminProviderService {
   }
   async fetchVerificationData(id: string): Promise<IVerification | null> {
     try {
-      const verificationData = await this.verificationRepository.findOne({
+      const verificationData = await this._verificationRepository.findOne({
         providerId: id,
       });
       return verificationData;
@@ -78,7 +78,7 @@ export class AdminProviderService implements IAdminProviderService {
     id: string
   ): Promise<Partial<IServiceProvider> | undefined> {
     try {
-      const providers = await this.providerRepository.findOne({ _id: id });
+      const providers = await this._providerRepository.findOne({ _id: id });
       const plainProvider = JSON.parse(JSON.stringify(providers));
       const { password, ...sanitizedProvider } = plainProvider;
       return sanitizedProvider;
@@ -92,12 +92,12 @@ export class AdminProviderService implements IAdminProviderService {
     adminNotes: string
   ): Promise<Partial<IServiceProvider> | undefined> {
     try {
-      const provider = await this.providerRepository.findOne({
+      const provider = await this._providerRepository.findOne({
         _id: providerId,
       });
       if (!provider) throw new Error("Provider not found");
       if (verificationAction === "Verified") {
-        const verificationData = (await this.verificationRepository.findOne({
+        const verificationData = (await this._verificationRepository.findOne({
           providerId,
         })) as IVerification;
 
@@ -116,7 +116,7 @@ export class AdminProviderService implements IAdminProviderService {
 
         // Step 4: Save provider
         await provider.save();
-        await this.verificationRepository.deleteById(
+        await this._verificationRepository.deleteById(
           verificationData.id.toString()
         );
         const subject = "Your Provider Account is Verified!";
@@ -130,12 +130,12 @@ export class AdminProviderService implements IAdminProviderService {
           <p>Warm regards,<br/><strong>The Admin Team</strong></p>
         </div>
       `;
-        await this.mailService.sendWelcomeEmail(provider.email, subject, html);
+        await this._mailService.sendWelcomeEmail(provider.email, subject, html);
 
         const { password, ...sanitized } = provider.toObject();
         return sanitized;
       } else {
-        await this.providerRepository.findOneAndUpdate(
+        await this._providerRepository.findOneAndUpdate(
           { _id: providerId },
           { verificationStatus: "rejected" }
         );
@@ -146,11 +146,11 @@ export class AdminProviderService implements IAdminProviderService {
   <p>${adminNotes}</p>
   <p>Feel free to contact our support team for assistance.</p>
 `;
-        await this.verificationRepository.findOneAndUpdate(
+        await this._verificationRepository.findOneAndUpdate(
           { providerId },
           { adminNotes }
         );
-        await this.mailService.sendWelcomeEmail(
+        await this._mailService.sendWelcomeEmail(
           provider.email,
           "Verification Failed",
           html
@@ -166,9 +166,9 @@ export class AdminProviderService implements IAdminProviderService {
     id: string
   ): Promise<Partial<IServiceProvider> | undefined> {
     try {
-      const provider = await this.providerRepository.findOne({ _id: id });
+      const provider = await this._providerRepository.findOne({ _id: id });
       if (!provider) return undefined;
-      const updatedProvider = await this.providerRepository.updateById(
+      const updatedProvider = await this._providerRepository.updateById(
         new Types.ObjectId(id),
         {
           isListed: !provider.isListed,

@@ -81,6 +81,6 @@ const ServiceProviderSchema: Schema = new Schema<IServiceProvider>(
   }
 );
 
-const ServiceCenter = mongoose.model<IServiceProvider>('ServiceCenter', ServiceProviderSchema);
+export default mongoose.model<IServiceProvider>('ServiceCenter', ServiceProviderSchema);
 
-export default ServiceCenter;
+

@@ -9,22 +9,14 @@ import { UserDTO } from "../../dtos/controllers/admin/adminUser.controller.dto";
 export class AdminUserService implements IAdminUserService {
   constructor(
     @inject(TYPES.UserRepository)
-    private readonly userRepository: IUserRepository
+    private readonly _userRepository: IUserRepository
   ) {}
 
   async fetchUsers(search: string,
   page: number,
   statusFilter: string): Promise<UserDTO[] | undefined> {
     try {
-return await this.userRepository.fetchUsers(search, page, statusFilter);     
-//  return users.map((user) => ({
-//         _id: user._id.toString(),
-//         name: user.name,
-//         email: user.email,
-//         phone: user.phone || "",
-//         role: user.role,
-//         isListed: user.isListed,
-//       }));
+return await this._userRepository.fetchUsers(search, page, statusFilter);     
     } catch (error) {
       console.error("Error fetching users:", error);
       return undefined;
@@ -33,10 +25,10 @@ return await this.userRepository.fetchUsers(search, page, statusFilter);
 
   async toggleListing(email: string): Promise<UserDTO | undefined> {
     try {
-      const user = await this.userRepository.findOne({ email });
+      const user = await this._userRepository.findOne({ email });
       if (!user) return undefined;
 
-      const updatedUser = await this.userRepository.updateById(
+      const updatedUser = await this._userRepository.updateById(
         new Types.ObjectId(user._id),
         {
           isListed: !user.isListed,

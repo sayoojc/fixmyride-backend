@@ -9,15 +9,15 @@ import { IUserBrandService } from "../../interfaces/services/user/IUserBrandServ
 @injectable()
 export class UserBrandService implements IUserBrandService {
   constructor(
-    @inject(TYPES.BrandRepository) private readonly brandRepository: IBrandRepository,
-    @inject(TYPES.ModelRepository) private readonly modelRepository: IModelRepository
+    @inject(TYPES.BrandRepository) private readonly _brandRepository: IBrandRepository,
+    @inject(TYPES.ModelRepository) private readonly _modelRepository: IModelRepository
   ) {}
   async getBrands(): Promise<(IBrand & { models: IModel[] })[]> {
     try {
-      const brands = await this.brandRepository.find();
+      const brands = await this._brandRepository.find();
       const brandsWithModels = await Promise.all(
         brands.map(async (brand) => {
-          const models = await this.modelRepository.find({
+          const models = await this._modelRepository.find({
             brandId: brand._id,
           });
           return {

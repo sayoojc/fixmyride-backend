@@ -31,13 +31,14 @@ import {
   ResetPasswordResponseDTO,
   ErrorResponse,
 } from "../../dtos/controllers/user/userAuth.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 
 @injectable()
 export class UserAuthController {
   constructor(
-    @inject(TYPES.UserAuthService) private readonly userAuthService: IUserAuthService,
-    @inject(TYPES.MailService) private readonly mailService: IMailService,
+    @inject(TYPES.UserAuthService) private readonly _userAuthService: IUserAuthService,
+    @inject(TYPES.MailService) private readonly _mailService: IMailService,
   ) {}
 
   /**
@@ -49,7 +50,7 @@ export class UserAuthController {
     try {
  const parsed = RegisterTempRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input: " + parsed.error.message,
         });
@@ -59,7 +60,7 @@ export class UserAuthController {
       const { name, email, phone, password } = parsed.data;      const secret = authenticator.generateSecret();
       const otp = authenticator.generate(secret);
       console.log(`OTP: ${otp}, Secret: ${secret}`);
-      const tempUser = await this.userAuthService.registerTempUser({
+      const tempUser = await this._userAuthService.registerTempUser({
         name,
         email,
         phone,
@@ -67,7 +68,7 @@ export class UserAuthController {
         otp,
       });
 
-      await this.mailService.sendWelcomeEmail(
+      await this._mailService.sendWelcomeEmail(
         email,
         "Sign up OTP",
         `Welcome to FixMyRide. Your OTP is ${otp}`
@@ -80,16 +81,16 @@ export class UserAuthController {
 
       const validatedResponse = RegisterTempResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
         return;
       }
 
-      res.status(201).json(response);
+      res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-  res.status(400).json({
+  res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });    }
@@ -104,7 +105,7 @@ export class UserAuthController {
     try {
  const parsed = RegisterRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input: " + parsed.error.message,
         });
@@ -113,7 +114,7 @@ export class UserAuthController {
 
       const { otpValue, email, phone } = parsed.data;      // Register user after OTP validation
       const { user, accessToken, refreshToken } =
-        await this.userAuthService.registerUser(otpValue, email, phone);
+        await this._userAuthService.registerUser(otpValue, email, phone);
   const response: RegisterResponseDTO = {
         message: "User registered successfully",
         user: {
@@ -126,7 +127,7 @@ export class UserAuthController {
 
       const validatedResponse = RegisterResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
@@ -146,9 +147,9 @@ export class UserAuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-    res.status(201).json(response);
+    res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-  res.status(400).json({
+  res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });    }
@@ -163,7 +164,7 @@ export class UserAuthController {
     try {
          const parsed = LoginRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input: " + parsed.error.message,
         });
@@ -171,7 +172,7 @@ export class UserAuthController {
       }
        const { email, password } = parsed.data;
       const { user, accessToken, refreshToken } =
-        await this.userAuthService.userLogin(email, password);
+        await this._userAuthService.userLogin(email, password);
 
       const { password: userPassword, ...userWithoutPassword } =
         user.toObject();
@@ -187,7 +188,7 @@ export class UserAuthController {
 
       const validatedResponse = LoginResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
@@ -208,7 +209,7 @@ export class UserAuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Error during login:", error);
 
@@ -216,11 +217,11 @@ export class UserAuthController {
         error instanceof NotFoundError ||
         error instanceof UnauthorizedError
       ) {
-        res.status(error.statusCode || 401).json({success:false, message: error.message });
+        res.status(error.statusCode || StatusCode.UNAUTHORIZED).json({success:false, message: error.message });
         return;
       }
 
-      res.status(500).json({success:false, message: "Server error" });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: "Server error" });
       return;
     }
   }
@@ -234,23 +235,23 @@ export class UserAuthController {
     const validatedResponse = LogoutResponseSchema.safeParse(response);
 
   if (!validatedResponse.success) {
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
         return;
       }
 
-      res.status(200).json(response);    } catch (error) {
+      res.status(StatusCode.OK).json(response);    } catch (error) {
       console.error("Logout error:", error);
-      res.status(500).json({success: false, message: "Failed to logout" });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success: false, message: "Failed to logout" });
     }
   }
   async forgotPassword(req: Request<{},{},ForgotPasswordRequestDTO>, res: Response<ForgotPasswordResponseDTO | ErrorResponse>): Promise<void> {
     try {
         const parsed = ForgotPasswordRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input: " + parsed.error.message,
         });
@@ -258,12 +259,12 @@ export class UserAuthController {
       }
 
       const { email } = parsed.data;
-      const { user, token } = await this.userAuthService.forgotPassword(email);
+      const { user, token } = await this._userAuthService.forgotPassword(email);
 
       if (user) {
         const resetUrl = `${process.env.PASSWORD_RESET_URL}${token}`;
 
-        await this.mailService.sendWelcomeEmail(
+        await this._mailService.sendWelcomeEmail(
           email,
           "Reset your password",
           `
@@ -280,16 +281,16 @@ export class UserAuthController {
 
       const validatedResponse = ForgotPasswordResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
         return;
       }
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-       res.status(400).json({
+       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });
@@ -300,7 +301,7 @@ export class UserAuthController {
     try {
      const parsed = ResetPasswordRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input: " + parsed.error.message,
         });
@@ -308,23 +309,23 @@ export class UserAuthController {
       }
 
       const { token, password } = parsed.data;
-      await this.userAuthService.resetPassword(token, password);
+      await this._userAuthService.resetPassword(token, password);
         const response: ResetPasswordResponseDTO = {
         message: "Password reset successful",
       };
 
       const validatedResponse = ResetPasswordResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
         return;
       }
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-  res.status(400).json({
+  res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });    }

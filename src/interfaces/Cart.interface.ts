@@ -125,6 +125,7 @@ export interface IVehicle {
     isDefault: boolean;
     createdAt: Date;
     updatedAt: Date;
+    year:string;
     brandId: {
       _id: string;
       brandName: string;
@@ -144,9 +145,16 @@ export interface IVehicle {
     };
 }
 
+     interface user  {
+      _id:string,
+      name:string,
+      email:string,
+      phone:string,
+    };
+
 export interface IPopulatedCart extends Document {
   _id: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
+  userId: user;
   services?: IServicePackage[];
   coupon?: ICoupon;
   totalAmount?: number;

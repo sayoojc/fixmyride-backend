@@ -9,7 +9,6 @@ import {
   ChangePasswordRequestSchema,
   GetProfileResponseSchema,
   UpdateProfileResponseSchema,
-  ChangePasswordResponseSchema,
   UpdateProfileRequestDTO,
   ChangePasswordRequestDTO,
   GetProfileResponseDTO,
@@ -17,11 +16,12 @@ import {
   ChangePasswordResponseDTO,
   ErrorResponse,
 } from "../../dtos/controllers/user/userProfile.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 @injectable()
 export class UserProfileController implements IUserProfileController {
   constructor(
     @inject(TYPES.UserProfileService)
-    private userProfileService: IUserProfileService
+    private _userProfileService: IUserProfileService
   ) {}
 
   async getProfileData(
@@ -30,7 +30,7 @@ export class UserProfileController implements IUserProfileController {
   ): Promise<void> {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      res.status(401).json({
+      res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
         message: "Not authorized, no access token",
       });
@@ -48,7 +48,7 @@ export class UserProfileController implements IUserProfileController {
         throw new Error("Failed to authenticate");
       }
 
-      const sanitizedUser = await this.userProfileService.getProfileData(
+      const sanitizedUser = await this._userProfileService.getProfileData(
         user.id
       );
       if (!sanitizedUser) {
@@ -112,7 +112,7 @@ export class UserProfileController implements IUserProfileController {
           "Response validation error from get profile data:",
           validatedResponse.error
         );
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message:
             "Response validation failed: " + validatedResponse.error.message,
@@ -120,9 +120,9 @@ export class UserProfileController implements IUserProfileController {
         return;
       }
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(401).json({
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });
@@ -135,14 +135,14 @@ export class UserProfileController implements IUserProfileController {
     try {
       const parsed = UpdateProfileRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input " + parsed.error.message,
         });
         return;
       }
       const { phone, userId, userName } = parsed.data;
-      const updatedUser = await this.userProfileService.updateProfile(
+      const updatedUser = await this._userProfileService.updateProfile(
         phone,
         userId,
         userName
@@ -158,17 +158,17 @@ export class UserProfileController implements IUserProfileController {
       const validatedResponse = UpdateProfileResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
         console.error("Response validation error:", validatedResponse.error);
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message:
             "Response validation failed: " + validatedResponse.error.message,
         });
         return;
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Error in updateProfile:", error);
-      res.status(400).json({
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });
@@ -181,14 +181,14 @@ export class UserProfileController implements IUserProfileController {
     try {
       const parsed = ChangePasswordRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid input",
         });
         return;
       }
       const { userId, currentPassword, newPassword } = parsed.data;
-      const updatedUser = await this.userProfileService.changePassword(
+      const updatedUser = await this._userProfileService.changePassword(
         userId,
         currentPassword,
         newPassword
@@ -196,13 +196,13 @@ export class UserProfileController implements IUserProfileController {
       if (!updatedUser) {
         throw new Error("Failed to change password");
       }
-      res.status(200).json({
+      res.status(StatusCode.OK).json({
         success: true,
         message: "password changed successfully",
       });
     } catch (error) {
       console.error("Error in changePassword:", error);
-      res.status(400).json({
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });

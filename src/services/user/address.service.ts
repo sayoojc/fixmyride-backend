@@ -15,9 +15,9 @@ injectable();
 export class UserAddressService implements IUserAddressService {
   constructor(
     @inject(TYPES.UserRepository)
-    private readonly userRepository: IUserRepository,
+    private readonly _userRepository: IUserRepository,
     @inject(TYPES.AddressRepository)
-    private readonly addressRepository: IAddressRepository
+    private readonly _addressRepository: IAddressRepository
   ) {}
   async addAddress(
     addressData: AddAddressRequestDTO
@@ -25,7 +25,7 @@ export class UserAddressService implements IUserAddressService {
     try {
 
       const {latitude,longitude,userId,...rest}  = addressData
-      const newAddress = await this.addressRepository.create({
+      const newAddress = await this._addressRepository.create({
        ...rest,userId:new Types.ObjectId(userId),location:{type:'Point',coordinates:[latitude,longitude]}
         
       });
@@ -49,7 +49,7 @@ export class UserAddressService implements IUserAddressService {
     ) {
       throw new Error("Invalid userId or addressId");
     }
-    const targetAddress = await this.addressRepository.findOne({
+    const targetAddress = await this._addressRepository.findOne({
       _id: addressId,
       userId: userId,
     });
@@ -58,14 +58,14 @@ export class UserAddressService implements IUserAddressService {
       throw new Error("Address not found");
     }
 
-    const updatedAddress = await this.addressRepository.updateById(
+    const updatedAddress = await this._addressRepository.updateById(
       new Types.ObjectId(addressId),
       {
         isDefault: true,
       }
     );
 
-    await this.addressRepository.updateMany(
+    await this._addressRepository.updateMany(
       {
         userId: userId,
         _id: { $ne: addressId },
@@ -86,13 +86,13 @@ export class UserAddressService implements IUserAddressService {
     userId: string
   ) {
     if (addressForm.isDefault) {
-      await this.addressRepository.updateMany(
+      await this._addressRepository.updateMany(
         { userId, isDefault: true, _id: { $ne: _id } },
         { $set: { isDefault: false } }
       );
     }
 
-    const updatedAddress = await this.addressRepository.updateById(
+    const updatedAddress = await this._addressRepository.updateById(
       new Types.ObjectId(_id),
       {
         ...addressForm,
@@ -114,12 +114,12 @@ export class UserAddressService implements IUserAddressService {
   }
   async deleteAddress(addressId: string, userId: string) {
     try {
-      const user = await this.userRepository.findOne({ _id: userId });
+      const user = await this._userRepository.findOne({ _id: userId });
 
       if (!user) {
         throw new Error("User not found");
       }
-      const addressDeleted = await this.addressRepository.deleteById(
+      const addressDeleted = await this._addressRepository.deleteById(
         new Types.ObjectId(addressId)
       );
       if (!addressDeleted) {
@@ -138,7 +138,7 @@ export class UserAddressService implements IUserAddressService {
   }
 async getAddresses(userId: string): Promise<AddressDTO[]> {
   try {
-    const addresses = await this.addressRepository.find({ userId });
+    const addresses = await this._addressRepository.find({ userId });
 
     const addressDtos: AddressDTO[] = addresses.map((addr) => ({
       id:addr._id.toString(),

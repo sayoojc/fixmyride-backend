@@ -1,6 +1,7 @@
 import { injectable } from "inversify";
 import { Server, Socket } from "socket.io";
 import { ISocketService } from "./ISocketService";
+import redis from "../config/redisConfig";
 
 interface ProviderInfo {
   socketId: string;
@@ -15,37 +16,46 @@ export class SocketService implements ISocketService {
   public initialize(server: any): void {
     this.io = new Server(server, {
       cors: {
-        origin: "*", // Update as needed
+        origin: `${process.env.CLIENT_URL}`,
         methods: ["GET", "POST"],
       },
     });
 
     this.io.on("connection", (socket: Socket) => {
       console.log(`Socket connected: ${socket.id}`);
+      socket.on(
+        "register:provider",
+        async (data: {
+          providerId: string;
+          location: { lat: number; lng: number };
+        }) => {
+          const { providerId, location } = data;
+          console.log(
+            `Provider registered: ${providerId} at location`,
+            location
+          );
+          await redis.set(`provider:socket:${providerId}`, socket.id);
+          await redis.geoadd(
+            "providers:locations",
+            location.lng,
+            location.lat,
+            providerId
+          );
 
-      // Register provider with location
-      socket.on("register:provider", (data: { providerId: string; location: { lat: number; lng: number } }) => {
-        const { providerId, location } = data;
-        console.log(`Provider registered: ${providerId} at location`, location);
-        this.providerSocketMap.set(providerId, {
-          socketId: socket.id,
-          location,
-        });
-      });
+          await redis.set(`provider:online:${providerId}`, "true", "EX", 60);
+        }
 
-      // Receive chat message
+      );
+
       socket.on("chat:message", (data) => {
         console.log("Chat message received:", data);
         this.io.emit("chat:message", data);
       });
-
-      // Emergency trigger
       socket.on("emergency:trigger", (data) => {
         console.log("Emergency triggered:", data);
-        this.io.emit("emergency:new", data); // Can be narrowed later
+        this.io.emit("emergency:new", data);
       });
 
-      // Handle disconnect
       socket.on("disconnect", () => {
         console.log(`Socket disconnected: ${socket.id}`);
         for (const [providerId, info] of this.providerSocketMap.entries()) {
@@ -66,47 +76,55 @@ export class SocketService implements ISocketService {
   }
 
   public emitToProvider(providerId: string, event: string, data: any): void {
+    console.log("the emit to providers function hits");
     const providerInfo = this.providerSocketMap.get(providerId);
     if (providerInfo) {
       this.io.to(providerInfo.socketId).emit(event, data);
     }
   }
 
-  // ✅ New: Emit to providers within a 20 km radius
-  public emitToNearbyProviders(
+  public async emitToNearbyProviders(
     customerLat: number,
     customerLng: number,
     event: string,
     data: any
-  ): void {
-    for (const [providerId, info] of this.providerSocketMap.entries()) {
-      const distance = this.getDistanceFromLatLonInKm(
-        customerLat,
+  ): Promise<void> {
+    try {
+      const providerIds= await redis.georadius(
+        "providers:locations",
         customerLng,
-        info.location.lat,
-        info.location.lng
-      );
+        customerLat,
+        20,
+        "km"
+      ) as string[] 
 
-      if (distance <= 20) {
-        this.io.to(info.socketId).emit(event, data);
-        console.log(`🚨 Notified ${providerId} (Distance: ${distance.toFixed(2)} km)`);
+      if (!providerIds.length) {
+        console.log("No nearby providers found within 20km.");
+        return;
       }
+      const pipeline = redis.pipeline();
+      providerIds.forEach((id) => pipeline.get(`provider:socket:${id}`));
+      const results = await pipeline.exec();
+       if (!results) {
+      console.error("Redis pipeline returned null.");
+      return;
     }
-  }
+      results.forEach(([err, socketId], index) => {
+        const providerId = providerIds[index];
+        if (err) {
+          console.error(`Redis error for ${providerId}:`, err);
+          return;
+        }
 
-  private getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth radius in km
-    const dLat = this.deg2rad(lat2 - lat1);
-    const dLon = this.deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  private deg2rad(deg: number): number {
-    return deg * (Math.PI / 180);
+        if (typeof socketId === "string") {
+          this.io.to(socketId).emit(event, data);
+          console.log(`🚀 Notified ${providerId} via socket ${socketId}`);
+        } else {
+          console.log(`⚠️ No socket found for ${providerId}`);
+        }
+      });
+    } catch (err) {
+      console.error("Failed to emit to nearby providers:", err);
+    }
   }
 }

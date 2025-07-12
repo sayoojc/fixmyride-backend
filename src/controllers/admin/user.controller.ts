@@ -12,11 +12,12 @@ import {
   ToggleListingResponseSchema,
   ErrorResponse,
 } from "../../dtos/controllers/admin/adminUser.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class AdminUserController implements IAdminUserController {
   constructor(
-    @inject(TYPES.AdminUserService) private readonly adminUserService: IAdminUserService
+    @inject(TYPES.AdminUserService) private readonly _adminUserService: IAdminUserService
   ) {}
 
   async fetchUsers(
@@ -27,7 +28,7 @@ export class AdminUserController implements IAdminUserController {
        const search = (req.query.search as string) || "";
     const page = parseInt(req.query.page as string) || 1;
     const statusFilter = (req.query.statusFilter as string) || "all";
-    const users = await this.adminUserService.fetchUsers(search, page, statusFilter) ?? [];
+    const users = await this._adminUserService.fetchUsers(search, page, statusFilter) ?? [];
 
       const response: FetchUsersResponseDTO = {
         success: true,
@@ -37,13 +38,12 @@ export class AdminUserController implements IAdminUserController {
 
       const validated = FetchUsersResponseSchema.safeParse(response);
       if (!validated.success) {
-        console.error("Zod validation failed", validated.error);
         throw new Error("Response DTO validation failed");
       }
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
     }
   }
 
@@ -58,7 +58,7 @@ export class AdminUserController implements IAdminUserController {
       }
 
       const email = parsed.data.email;
-      const updatedUser = await this.adminUserService.toggleListing(email);
+      const updatedUser = await this._adminUserService.toggleListing(email);
       if (!updatedUser) {
         throw new Error("User not found or could not update listing");
       }
@@ -75,9 +75,9 @@ export class AdminUserController implements IAdminUserController {
         throw new Error("Response DTO validation failed");
       }
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
     }
   }
 }

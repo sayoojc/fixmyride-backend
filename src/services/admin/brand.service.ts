@@ -11,16 +11,16 @@ import { Types } from "mongoose";
 export class AdminBrandService implements IAdminBrandService {
   constructor(
     @inject(TYPES.BrandRepository)
-    private readonly brandRepository: IBrandRepository,
+    private readonly _brandRepository: IBrandRepository,
     @inject(TYPES.ModelRepository)
-    private readonly modelRepository: IModelRepository
+    private readonly _modelRepository: IModelRepository
   ) {}
 
   async addBrand(brandName: string, imageUrl: string): Promise<IBrand> {
     try {
-      const existingBrand = await this.brandRepository.findOne({ brandName });
+      const existingBrand = await this._brandRepository.findOne({ brandName });
       if (existingBrand) throw new Error("Brand already exists");
-      return await this.brandRepository.create({ brandName, imageUrl });
+      return await this._brandRepository.create({ brandName, imageUrl });
     } catch (err) {
       throw new Error(`Failed to add brand: ${(err as Error).message}`);
     }
@@ -28,10 +28,10 @@ export class AdminBrandService implements IAdminBrandService {
   async getAllBrands():Promise< (IBrand & { models: IModel[] })[]>{
     try {
 
-      const brands = await this.brandRepository.find();
+      const brands = await this._brandRepository.find();
            const brandsWithModels = await Promise.all(
         brands.map(async (brand) => {
-          const models = await this.modelRepository.find({
+          const models = await this._modelRepository.find({
             brandId: brand._id,
           });
           return {
@@ -74,10 +74,10 @@ export class AdminBrandService implements IAdminBrandService {
       }
 
       // Get total count before pagination
-      const totalCount = await this.brandRepository.countDocuments(query);
+      const totalCount = await this._brandRepository.countDocuments(query);
 
       // Fetch paginated and filtered brands
-      const brands = await this.brandRepository.findWithPagination(
+      const brands = await this._brandRepository.findWithPagination(
         query,
         skip,
         limit
@@ -86,7 +86,7 @@ export class AdminBrandService implements IAdminBrandService {
       // For each brand, fetch related models
       const brandsWithModels = await Promise.all(
         brands.map(async (brand) => {
-          const models = await this.modelRepository.find({
+          const models = await this._modelRepository.find({
             brandId: brand._id,
           });
           return {
@@ -107,7 +107,7 @@ export class AdminBrandService implements IAdminBrandService {
     newStatus: string
   ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(
+      return await this._brandRepository.updateById(
         new Types.ObjectId(brandId),
         {
           status: newStatus,
@@ -126,7 +126,7 @@ export class AdminBrandService implements IAdminBrandService {
     imageUrl: string
   ): Promise<IBrand | null> {
     try {
-      return await this.brandRepository.updateById(new Types.ObjectId(id), {
+      return await this._brandRepository.updateById(new Types.ObjectId(id), {
         brandName: name,
         imageUrl,
       });

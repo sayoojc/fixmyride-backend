@@ -40,6 +40,10 @@ export const ProviderUserSchema = z.object({
   email: z.string(),
   phone: z.string(),
   isListed: z.boolean().optional(),
+  location:z.object({
+   type:z.string(),
+   coordinates:z.array(z.number())
+  })
 });
 
 export type ProviderUserDTO = z.infer<typeof ProviderUserSchema>;

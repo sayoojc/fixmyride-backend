@@ -13,12 +13,12 @@ import mongoose from "mongoose";
 @injectable()
 export class ProviderProfileService implements IProviderProfileService {
   constructor(
-    @inject(TYPES.ProviderRepository) private providerRepository: IProviderRepository,
-   @inject(TYPES.VerificationRepository) private verificationRepository: IVerificationRepository
+    @inject(TYPES.ProviderRepository) private _providerRepository: IProviderRepository,
+   @inject(TYPES.VerificationRepository) private _verificationRepository: IVerificationRepository
   ) {}
   async getProfileData(id: string): Promise<SanitizedProvider | undefined> {
     try {
-      const user = await this.providerRepository.findOne({ _id: id });
+      const user = await this._providerRepository.findOne({ _id: id });
       if (!user) {
         throw new Error("User details not found");
       }
@@ -67,11 +67,11 @@ export class ProviderProfileService implements IProviderProfileService {
       "startedYear",
       "description",
     ];
-   await this.providerRepository.updateById(
+   await this._providerRepository.updateById(
       new mongoose.Types.ObjectId(providerId),
       { verificationStatus: "pending" }
     );
-    const result = await this.verificationRepository.upsertVerification(
+    const result = await this._verificationRepository.upsertVerification(
       providerId,
       {
         ...data,
@@ -92,7 +92,7 @@ export class ProviderProfileService implements IProviderProfileService {
     console.log('the data from update profile service function ',data);
 
     const { _id,addressToSend, ...rest } = data;
-  const updatedProvider = await this.providerRepository.updateById(
+  const updatedProvider = await this._providerRepository.updateById(
     new mongoose.Types.ObjectId(_id),
     {...rest,address:addressToSend}
   );

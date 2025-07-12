@@ -14,19 +14,27 @@ import {
 } from "../../interfaces/checkout.interface";
 import { ISocketService } from "../../sockets/ISocketService";
 import { IAddressRepository } from "../../interfaces/repositories/IAddressRepository";
+import { AddressSnapshot } from "../../interfaces/address.interface";
+import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
+import { IServiceRequestRepository } from "../../interfaces/repositories/IServiceRequestRepository";
+import redis from "../../config/redisConfig";
+import { INearbyProvider } from "../../models/serviceRequest.model";
 
 @injectable()
 export class UserOrderService implements IUserOrderService {
   constructor(
     @inject(TYPES.OrderRepository)
-    private readonly orderRepository: IOrderRepository,
+    private readonly _orderRepository: IOrderRepository,
     @inject(TYPES.CartRepository)
-    private readonly cartRepository: ICartRepository,
+    private readonly _cartRepository: ICartRepository,
     @inject(TYPES.AddressRepository)
-    private readonly addressRepository: IAddressRepository,
+    private readonly _addressRepository: IAddressRepository,
     @inject(TYPES.SocketService)
-    private readonly socketService: ISocketService
-
+    private readonly _socketService: ISocketService,
+    @inject(TYPES.NotificationRepository)
+    private readonly _notificationRepository: INotificationRepository,
+    @inject(TYPES.ServiceRequestRepository)
+    private readonly _serviceRequestRepository: IServiceRequestRepository
   ) {}
 
   private razorpayInstance = new Razorpay({
@@ -37,16 +45,13 @@ export class UserOrderService implements IUserOrderService {
   async createPaymentOrder(
     amountInRupees: number
   ): Promise<RazorpayOrderResponse> {
-    console.log("the amount got from the service function ", amountInRupees);
     const amountInPaise = amountInRupees * 100;
-    console.log("the amount in paisa", amountInPaise);
     const order = await this.razorpayInstance.orders.create({
       amount: amountInPaise,
       currency: "INR",
       receipt: `receipt_order_${Date.now()}`,
       payment_capture: true,
     });
-    console.log("the order created from the service", order);
     return order;
   }
 
@@ -55,17 +60,12 @@ export class UserOrderService implements IUserOrderService {
     paymentId: string,
     razorpaySignature: string
   ): boolean {
-    console.log("the orderId", orderId);
-    console.log("the paymentId", paymentId);
-    console.log("razorpay signature", razorpaySignature);
     const body = orderId + "|" + paymentId;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_SECRET!)
       .update(body.toString())
       .digest("hex");
-
     console.log("expected signature", expectedSignature);
-
     return expectedSignature === razorpaySignature;
   }
 
@@ -74,43 +74,94 @@ export class UserOrderService implements IUserOrderService {
     razorpayPaymentId: string,
     razorpaySignature: string,
     cartId: string,
-      selectedAddressId: string | {
-    addressLine1: string;
-    addressLine2: string;
-    city: string;
-    latitude: number;
-    longitude: number;
-    state: string;
-    zipCode: string;
-  },
+    selectedAddressId:
+      | string
+      | {
+          addressLine1: string;
+          addressLine2?: string;
+          city: string;
+          latitude: number;
+          longitude: number;
+          state: string;
+          zipCode: string;
+        },
     selectedDate: AvailableDate,
     selectedSlot: TimeSlot
   ) {
     try {
-         const cartObjectId = new Types.ObjectId(cartId);
-      
-      const cart = await this.cartRepository.findPopulatedCartById(
+      const cartObjectId = new Types.ObjectId(cartId);
+
+      const cart = await this._cartRepository.findPopulatedCartById(
         cartObjectId
       );
-            if (!cart) {
+      if (!cart) {
         throw new Error("Cart not found");
       }
-      let addressObjectId;
-      if(typeof selectedAddressId === 'string'){
-      addressObjectId = new Types.ObjectId(selectedAddressId);
-      } else {
-        const newAddress = await this.addressRepository.create({...selectedAddressId,userId:cart.userId});
-        addressObjectId = newAddress._id;
-      }
-   
 
-      const serviceIdArray = cart.services?.map(
-        (item) => new Types.ObjectId(item._id)
-      );
+      const userSnapshot = {
+        _id: new Types.ObjectId(cart.userId._id),
+        name: cart.userId.name,
+        email: cart.userId.email,
+        phone: cart.userId.phone,
+      };
+
+      const vehicleSnapshot = {
+        _id: new Types.ObjectId(cart.vehicleId._id),
+        brandId: new Types.ObjectId(cart.vehicleId.brandId._id),
+        brandName: cart.vehicleId.brandId.brandName,
+        modelName: cart.vehicleId.modelId.name,
+        modelId: new Types.ObjectId(cart.vehicleId.modelId._id),
+        year: 0,
+        fuel: cart.vehicleId.fuel,
+      };
+
+      const servicesSnapshot = (cart.services ?? []).map((service) => ({
+        _id: new Types.ObjectId(service._id),
+        title: service.title,
+        description: service.description,
+        fuelType: service.fuelType,
+        servicePackageCategory: service.servicePackageCategory,
+        priceBreakup: service.priceBreakup,
+      }));
+
+      let addressSnapshot: AddressSnapshot;
+      if (typeof selectedAddressId === "string") {
+        const addressDoc = await this._addressRepository.findOne({
+          _id: new Types.ObjectId(selectedAddressId),
+        });
+
+        if (!addressDoc) throw new Error("Address not found");
+
+        addressSnapshot = {
+          _id: new Types.ObjectId(addressDoc._id),
+          addressLine1: addressDoc.addressLine1,
+          addressLine2: addressDoc.addressLine2 ?? "",
+          city: addressDoc.city,
+          state: addressDoc.state,
+          zipCode: addressDoc.zipCode,
+          location: addressDoc.location,
+        };
+      } else {
+        addressSnapshot = {
+          _id: undefined,
+          addressLine1: selectedAddressId.addressLine1,
+          addressLine2: selectedAddressId.addressLine2 || "",
+          city: selectedAddressId.city,
+          state: selectedAddressId.state,
+          zipCode: selectedAddressId.zipCode,
+          location: {
+            type: "Point",
+            coordinates: [
+              selectedAddressId.latitude,
+              selectedAddressId.longitude,
+            ],
+          },
+        };
+      }
       const orderData = {
-        userId: cart.userId,
-        vehicleId: new Types.ObjectId(cart.vehicleId._id),
-        services: serviceIdArray,
+        user: userSnapshot,
+        vehicle: vehicleSnapshot,
+        services: servicesSnapshot,
         coupon: cart.coupon,
         totalAmount: cart.totalAmount,
         finalAmount: cart.finalAmount ?? 0,
@@ -122,49 +173,102 @@ export class UserOrderService implements IUserOrderService {
         orderStatus: "placed" as const,
         serviceDate: selectedDate.date.toString(),
         selectedSlot: selectedSlot.time.toString(),
-        address: addressObjectId,
+        address: addressSnapshot,
         orderedAt: new Date(),
       };
       const session = await mongoose.startSession();
       session.startTransaction();
 
       try {
-        const newOrder = await this.orderRepository.create(orderData);
+        const newOrder = await this._orderRepository.create(orderData);
+        const nearbyProviderIds = (await redis.georadius(
+          "providers:locations",
+          addressSnapshot.location.coordinates[1],
+          addressSnapshot.location.coordinates[0], 
+          20,
+          "km"
+        )) as string[];
+        const pipeline = redis.pipeline();
+
+        for (const providerId of nearbyProviderIds) {
+          pipeline.get(`provider:socket:${providerId}`);
+        }
+
+        const results = await pipeline.exec();
+        const nearbyProviders: INearbyProvider[] = [];
+
+        results?.forEach(([err, socketId], index) => {
+          const providerId = nearbyProviderIds[index];
+
+          nearbyProviders.push({
+            providerId: new Types.ObjectId(providerId),
+            socketId: typeof socketId === "string" ? socketId : undefined,
+            status: "notified",
+          });
+        });
+        servicesSnapshot.map(async (service) => {
+          await this._serviceRequestRepository.create({
+            userId: new Types.ObjectId(cart.userId._id),
+            orderId: new Types.ObjectId(newOrder._id),
+            serviceType: service.servicePackageCategory,
+            location: {
+              lat: addressSnapshot.location.coordinates[0],
+              lng: addressSnapshot.location.coordinates[1],
+            },
+            status: "pending",
+            nearbyProviders: nearbyProviders,
+          });
+        });
+        console.log('the nearby providers',nearbyProviderIds);
+        const notifications = nearbyProviderIds.map((providerId) => ({
+          recipientId: new Types.ObjectId(providerId),
+          recipientType: "provider" as "provider",
+          type: "service_request" as "service_request",
+          message: "A new service request is available nearby!",
+          link: `/provider/orders/${newOrder._id}`,
+          isRead: false,
+          createdAt: new Date(),
+        }));
+        console.log('the notifications',notifications);
+        const insertManyResult = await this._notificationRepository.insertMany(notifications);
+        console.log('the notification insertMany result',insertManyResult);
         if (!newOrder) {
           console.log("The new order is not getting");
           throw new Error("Order creation failed");
         }
-        const deleteResult = await this.cartRepository.deleteById(cartObjectId);
+        const deleteResult = await this._cartRepository.deleteById(
+          cartObjectId
+        );
 
         if (!deleteResult) {
           console.log("The cart deletion is failed");
           throw new Error("Cart deletion failed");
         }
-        const address = await this.addressRepository.findOne({_id:addressObjectId});
 
         await session.commitTransaction();
-    if (
-  address &&
-  address.location &&
-  Array.isArray(address.location.coordinates) &&
-  typeof address.location.coordinates[0] === 'number' &&
-  typeof address.location.coordinates[1] === 'number'
-) {
-  this.socketService.emitToNearbyProviders(
-    address.location.coordinates[0],
-    address.location.coordinates[1],
-    "service:available",
-    {
-      orderId: newOrder._id,
-      vehicleId: newOrder.vehicleId,
-      services: newOrder.services,
-      message: "A new service request is available nearby!",
-    }
-  );
-} else {
-  console.log("Invalid address coordinates", address);
-  throw new Error("Unable to emit event: Invalid address coordinates");
-}
+        if (
+          addressSnapshot &&
+          addressSnapshot.location &&
+          Array.isArray(addressSnapshot.location.coordinates) &&
+          typeof addressSnapshot.location.coordinates[0] === "number" &&
+          typeof addressSnapshot.location.coordinates[1] === "number"
+        ) {
+          this._socketService.emitToNearbyProviders(
+            addressSnapshot.location.coordinates[1],
+            addressSnapshot.location.coordinates[0],
+            "service:available",
+            {
+              orderId: newOrder._id,
+              vehicleId: newOrder.vehicle._id,
+              services: newOrder.services,
+              message: "A new service request is available nearby!",
+            }
+          );
+          console.log("the socket event emitted");
+        } else {
+          console.log("the socket event emitting failed");
+          throw new Error("Unable to emit event: Invalid address coordinates");
+        }
         return newOrder;
       } catch (error) {
         await session.abortTransaction();
@@ -189,75 +293,134 @@ export class UserOrderService implements IUserOrderService {
   }
 
   async handleFailedPayment(
-    orderId: string,
+    razorpayOrderId: string,
     paymentStatus: string,
     cartId: string,
-      selectedAddressId: string | {
-    addressLine1: string;
-    addressLine2: string;
-    city: string;
-    latitude: number;
-    longitude: number;
-    state: string;
-    zipCode: string;
-  },
+    selectedAddressId:
+      | string
+      | {
+          addressLine1: string;
+          addressLine2?: string;
+          city: string;
+          latitude: number;
+          longitude: number;
+          state: string;
+          zipCode: string;
+        },
     selectedDate: AvailableDate,
     selectedSlot: TimeSlot,
     razorpayPaymentId: string,
     razorpaySignature: string
   ): Promise<void> {
     try {
-   const cartObjectId = new Types.ObjectId(cartId);
-      
-      const cart = await this.cartRepository.findPopulatedCartById(
+      const cartObjectId = new Types.ObjectId(cartId);
+      const cart = await this._cartRepository.findPopulatedCartById(
         cartObjectId
       );
-            if (!cart) {
+
+      if (!cart) {
         throw new Error("Cart not found");
       }
-      let addressObjectId;
-      if(typeof selectedAddressId === 'string'){
-      addressObjectId = new Types.ObjectId(selectedAddressId);
+
+      const userSnapshot = {
+        _id: cart.userId._id,
+        name: cart.userId.name,
+        email: cart.userId.email,
+        phone: cart.userId.phone,
+      };
+
+      const vehicleSnapshot = {
+        _id: cart.vehicleId._id,
+        brandId: cart.vehicleId.brandId,
+        modelId: cart.vehicleId.modelId,
+        year: cart.vehicleId.year,
+        fuel: cart.vehicleId.fuel,
+      };
+
+      const servicesSnapshot = (cart.services ?? []).map((service) => ({
+        _id: service._id,
+        title: service.title,
+        description: service.description,
+        fuelType: service.fuelType,
+        servicePackageCategory: service.servicePackageCategory,
+        priceBreakup: service.priceBreakup,
+      }));
+
+      let addressSnapshot: AddressSnapshot;
+
+      if (typeof selectedAddressId === "string") {
+        const addressDoc = await this._addressRepository.findOne({
+          _id: new Types.ObjectId(selectedAddressId),
+        });
+
+        if (!addressDoc) throw new Error("Address not found");
+
+        addressSnapshot = {
+          _id: addressDoc._id,
+          addressLine1: addressDoc.addressLine1,
+          addressLine2: addressDoc.addressLine2 ?? "",
+          city: addressDoc.city,
+          state: addressDoc.state,
+          zipCode: addressDoc.zipCode,
+          location: addressDoc.location,
+        };
       } else {
-        const newAddress = await this.addressRepository.create({...selectedAddressId,userId:cart.userId});
-        addressObjectId = newAddress._id;
+        addressSnapshot = {
+          _id: new Types.ObjectId(),
+          addressLine1: selectedAddressId.addressLine1,
+          addressLine2: selectedAddressId.addressLine2 || "",
+          city: selectedAddressId.city,
+          state: selectedAddressId.state,
+          zipCode: selectedAddressId.zipCode,
+          location: {
+            type: "Point",
+            coordinates: [
+              selectedAddressId.latitude,
+              selectedAddressId.longitude,
+            ],
+          },
+        };
       }
-      const serviceIdArray = cart.services?.map(
-        (item) => new Types.ObjectId(item._id)
-      );
+
       const orderData = {
-        userId: cart.userId,
-        vehicleId: new Types.ObjectId(cart.vehicleId._id),
-        services: serviceIdArray,
+        userId: userSnapshot,
+        vehicleId: vehicleSnapshot,
+        services: servicesSnapshot,
         coupon: cart.coupon,
         totalAmount: cart.totalAmount,
         finalAmount: cart.finalAmount ?? 0,
         paymentMethod: "online" as const,
         paymentStatus,
-        razorpayOrderId: orderId,
+        razorpayOrderId,
         razorpayPaymentId,
         razorpaySignature,
-        orderStatus: "placed" as const,
+        orderStatus: "failed" as const, // or however you distinguish it
         serviceDate: selectedDate.date.toString(),
         selectedSlot: selectedSlot.time.toString(),
-        address: addressObjectId,
+        address: addressSnapshot,
         orderedAt: new Date(),
       };
+
       const session = await mongoose.startSession();
       session.startTransaction();
 
       try {
-        const newOrder = await this.orderRepository.create(orderData);
+        const newOrder = await this._orderRepository.create(orderData);
+
         if (!newOrder) {
           console.log("The new order is not getting");
           throw new Error("Order creation failed");
         }
-        const deleteResult = await this.cartRepository.deleteById(cartObjectId);
+
+        const deleteResult = await this._cartRepository.deleteById(
+          cartObjectId
+        );
 
         if (!deleteResult) {
           console.log("The cart deletion is failed");
           throw new Error("Cart deletion failed");
         }
+
         await session.commitTransaction();
       } catch (error) {
         await session.abortTransaction();

@@ -14,13 +14,13 @@ import { IAdminAuthService } from "../../interfaces/services/admin/IAdminAuthSer
 @injectable()
 export class AdminAuthService implements IAdminAuthService {
   constructor(
-    @inject(TYPES.UserRepository) private readonly userRepository: IUserRepository
+    @inject(TYPES.UserRepository) private readonly _userRepository: IUserRepository
   ) {}
   async adminLogin(
     email: string,
     password: string
   ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
-    const user = await this.userRepository.findOne({ email });
+    const user = await this._userRepository.findOne({ email });
     if (!user) {
       throw new Error("User doesn't exist");
     }

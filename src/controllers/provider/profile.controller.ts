@@ -17,12 +17,13 @@ import {
   VerifyProviderResponseSchema,
   UpdateProfileRequestDTO,
 } from "../../dtos/controllers/provider/providerProfile.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class ProviderProfileController implements IProviderProfileController {
   constructor(
     @inject(TYPES.ProviderProfileService)
-    private readonly providerProfileService: IProviderProfileService
+    private readonly _providerProfileService: IProviderProfileService
   ) {}
 
   async getProfileData(
@@ -31,7 +32,7 @@ export class ProviderProfileController implements IProviderProfileController {
   ): Promise<void> {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      res.status(401).json({ message: "Not authorized, no access token" });
+      res.status(StatusCode.UNAUTHORIZED).json({ message: "Not authorized, no access token" });
       return;
     }
 
@@ -46,11 +47,11 @@ export class ProviderProfileController implements IProviderProfileController {
         throw new Error("Failed to Authenticate");
       }
 
-      const sanitizedUser = await this.providerProfileService.getProfileData(
+      const sanitizedUser = await this._providerProfileService.getProfileData(
         user.id
       );
       if (!sanitizedUser) {
-        res.status(404).json({ message: "Provider not found" });
+        res.status(StatusCode.NOT_FOUND).json({ message: "Provider not found" });
         return;
       }
       const response: GetProfileDataResponseDTO = {
@@ -63,9 +64,9 @@ export class ProviderProfileController implements IProviderProfileController {
         console.error("Zod validation failed", validated.error);
         throw new Error("Response DTO validation failed");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
     }
   }
   async verifyProvider(
@@ -89,7 +90,7 @@ export class ProviderProfileController implements IProviderProfileController {
         throw new Error("Failed to Authenticate");
       }
 
-      const savedData = this.providerProfileService.verifyProvider(
+      await this._providerProfileService.verifyProvider(
         verificationData,
         user.id
       );
@@ -103,10 +104,10 @@ export class ProviderProfileController implements IProviderProfileController {
         console.error("Zod validation error", validated.error);
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Verification error:", error);
-      res.status(500).json({ success: false, message: "Server error" });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
     }
   }
 
@@ -123,12 +124,12 @@ export class ProviderProfileController implements IProviderProfileController {
         throw new Error("The request dto doesnt match");
       }
      
-      const updatedProfile = await this.providerProfileService.updateProfile(
+      const updatedProfile = await this._providerProfileService.updateProfile(
         parsed.data
       );
 
       if (updatedProfile) {
-        res.status(200).json({
+        res.status(StatusCode.OK).json({
           success: true,
           message: "Profile updated successfully",
           provider: {
@@ -141,12 +142,12 @@ export class ProviderProfileController implements IProviderProfileController {
           },
         });
       } else {
-        res.status(404).json({ success: false, message: "Provider not found" });
+        res.status(StatusCode.NOT_FOUND).json({ success: false, message: "Provider not found" });
       }
     } catch (error) {
       console.error("Error updating provider:", error);
       res
-        .status(500)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "Internal server error" });
     }
   }

@@ -10,7 +10,7 @@ injectable();
 export class AdminModelService implements IAdminModelService {
   constructor(
     @inject(TYPES.ModelRepository)
-    private readonly modelRepository: IModelRepository
+    private readonly _modelRepository: IModelRepository
   ) {}
 
   async addModel(
@@ -19,12 +19,12 @@ export class AdminModelService implements IAdminModelService {
     brandId: string,
     fuelTypes: string[]
   ): Promise<IModel> {
-    const existingModel = await this.modelRepository.findOne({ name });
+    const existingModel = await this._modelRepository.findOne({ name });
     if (existingModel) throw new Error("Model already exists");
 
     const brandObjectId = new mongoose.Types.ObjectId(brandId);
 
-    return this.modelRepository.create({
+    return this._modelRepository.create({
       name,
       imageUrl,
       brandId: brandObjectId,
@@ -37,7 +37,7 @@ export class AdminModelService implements IAdminModelService {
     name: string,
     imageUrl: string
   ): Promise<IModel | null> {
-    return this.modelRepository.updateById(new Types.ObjectId(id), {
+    return this._modelRepository.updateById(new Types.ObjectId(id), {
       name,
       imageUrl,
     });
@@ -48,15 +48,15 @@ export class AdminModelService implements IAdminModelService {
     modelId: string,
     newStatus: string
   ): Promise<IModel | null> {
-    const model = await this.modelRepository.findOne({ _id: modelId });
+    const model = await this._modelRepository.findOne({ _id: modelId });
     if (!model || model.brandId.toString() !== brandId) return null;
 
-    return this.modelRepository.updateById(new Types.ObjectId(modelId), {
+    return this._modelRepository.updateById(new Types.ObjectId(modelId), {
       status: newStatus,
     });
   }
 
   async getModelsByBrand(brandId: string): Promise<IModel[]> {
-    return this.modelRepository.find({ brandId });
+    return this._modelRepository.find({ brandId });
   }
 }

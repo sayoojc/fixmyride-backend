@@ -15,12 +15,12 @@ import {
   TempProvider,
 } from "../../interfaces/Provider.interface";
 import { IProviderAuthService } from "../../interfaces/services/provider/IproviderAuthService";
-
+import { SanitizedProvider } from "../../interfaces/Provider.interface";
 @injectable()
 export class ProviderAuthService implements IProviderAuthService {
   constructor(
     @inject(TYPES.ProviderRepository)
-    private readonly providerRepository: IProviderRepository
+    private readonly _providerRepository: IProviderRepository
   ) {}
 
   async providerRegisterTemp(
@@ -80,14 +80,15 @@ export class ProviderAuthService implements IProviderAuthService {
     const { otp: redisOtp, latitude, longitude, ...userData } = redisProvider;
 
     if (redisOtp !== otp) {
-      
       return null;
     }
-const data = { ...userData,
-        location: { type: "Point", coordinates: [latitude, longitude] },}
-        console.log('THE DATA TO BE SAVED',data);
+    const data = {
+      ...userData,
+      location: { type: "Point", coordinates: [latitude, longitude] },
+    };
+    console.log("THE DATA TO BE SAVED", data);
     try {
-      const provider = await this.providerRepository.create(data);
+      const provider = await this._providerRepository.create(data);
       return provider;
     } catch (err) {
       throw new Error("Failed to create provider");
@@ -98,15 +99,25 @@ const data = { ...userData,
     email: string,
     password: string
   ): Promise<{
-    provider: IServiceProvider;
+    sanitizedProvider: SanitizedProvider;
     accessToken: string;
     refreshToken: string;
   }> {
-    const provider = await this.providerRepository.findOne({ email });
+    const provider = await this._providerRepository.findOne({ email });
+
+ 
     if (!provider) {
       throw new UnauthorizedError("User doesn't exist");
     }
-
+    if (
+      !provider.name ||
+      !provider.email ||
+      !provider.phone ||
+      !provider._id ||
+      !provider.location
+    ) {
+      throw new UnauthorizedError("Incomplete provider data");
+    }
     if (!provider.password) {
       throw new UnauthorizedError("Invalid credentials");
     }
@@ -114,6 +125,22 @@ const data = { ...userData,
     if (!passwordMatch) {
       throw new UnauthorizedError("Incorrect password");
     }
+const address = provider?.address;
+
+const sanitizedProvider: SanitizedProvider = {
+  address: address
+    ? `${address.street || ""}, ${address.city || ""}, ${address.state || ""}, ${address.pinCode || ""}`
+    : "",
+  location: provider.location!, // ensure it's defined before this step
+  _id: provider._id.toString(),
+  name: provider.name!,
+  email: provider.email!,
+  phone: provider.phone!,
+  isListed: true,
+  description: provider.description!,
+  profileImage: provider.profilePicture!,
+  verificationStatus: provider.verificationStatus!,
+};
 
     const accessToken = generateAccessToken(
       provider._id.toString(),
@@ -125,14 +152,17 @@ const data = { ...userData,
     );
 
     const refreshTokenKey = `refreshToken:provider:${provider._id}`;
-    const refreshTokenExpirySeconds = 7 * 24 * 60 * 60; // 7 days in seconds
+    const refreshTokenExpirySeconds = 7 * 24 * 60 * 60;
     await redis.set(
       refreshTokenKey,
       refreshToken,
       "EX",
       refreshTokenExpirySeconds
     );
-
-    return { provider, accessToken, refreshToken };
+    console.log(
+      "the provider from the backend service file when logs in ",
+      provider
+    );
+    return { sanitizedProvider, accessToken, refreshToken };
   }
 }

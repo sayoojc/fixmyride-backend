@@ -13,6 +13,11 @@ import { IServicePackageRepository } from "../../interfaces/repositories/IServic
 import { IVehicleRepository } from "../../interfaces/repositories/IVehicleRepository";
 import { IVerificationRepository } from "../../interfaces/repositories/IVerificationRepository";
 import { IOrderRepository } from "../../interfaces/repositories/IOrderRepository";
+import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
+import { ISocketService } from "../../sockets/ISocketService";
+import { IServiceRequestRepository } from "../../interfaces/repositories/IServiceRequestRepository";
+
+
 // Models
 import userModel from "../../models/user.model";
 import addressModel from "../../models/address.model";
@@ -24,6 +29,8 @@ import servicePackageModel from "../../models/servicePackage.model";
 import vehicleModel from "../../models/vehicle.model";
 import verificationModel from "../../models/verification.model";
 import orderModel from "../../models/order.model";
+import notificationModel from "../../models/notification.model"
+import serviceRequestModel from "../../models/serviceRequest.model"
 // Repositories
 import { UserRepository } from "../../repositories/user.repo";
 import { AddressRepository } from "../../repositories/address.repo";
@@ -36,8 +43,9 @@ import { ServicePackageRepository } from "../../repositories/servicePackage.repo
 import { VehicleRepository } from "../../repositories/vehicle.repo";
 import { VerificationRepository } from "../../repositories/verification.repo";
 import { OrderRepository } from "../../repositories/order.repo";
-import { ISocketService } from "../../sockets/ISocketService";
 import { SocketService } from "../../sockets/socketService";
+import { NotificationRepository } from "../../repositories/notification.repository";
+import { ServiceRequestRepository } from "../../repositories/serviceRequest.repository";
 
 export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.UserRepository)) {
@@ -108,5 +116,13 @@ export const bindRepositoriesModule = (container: Container) => {
     container.bind<ISocketService>(TYPES.SocketService)
     .toDynamicValue(() => new SocketService())
     .inSingletonScope();
+  }
+  if(!container.isBound(TYPES.NotificationRepository)){
+    container.bind<INotificationRepository>(TYPES.NotificationRepository)
+    .toDynamicValue(() => new NotificationRepository(notificationModel))
+  }
+  if(!container.isBound(TYPES.ServiceRequestRepository)){
+    container.bind<IServiceRequestRepository>(TYPES.ServiceRequestRepository)
+    .toDynamicValue(() => new ServiceRequestRepository(serviceRequestModel))
   }
 };

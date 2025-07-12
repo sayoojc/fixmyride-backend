@@ -21,11 +21,12 @@ import {
   UpdateAddressResponseSchema,
   UpdateAddressRequestSchema,
 } from "../../dtos/controllers/user/userAddress.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 @injectable()
 export class UserAddressController implements IUserAddressController {
   constructor(
     @inject(TYPES.UserAddressService)
-    private readonly userAddressService: IUserAddressService
+    private readonly _userAddressService: IUserAddressService
   ) {}
 
   async addAddress(
@@ -33,27 +34,23 @@ export class UserAddressController implements IUserAddressController {
     res: Response<AddressResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log('the req.body of add address',req.body);
       const parsed = AddressSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('The request parsing of the add address failed',parsed.error.message);
         res
           .status(400)
           .json({ success: false, message: "Invalid address data" });
         return;
       }
 
-      const newAddress = await this.userAddressService.addAddress(parsed.data);
-      console.log('the new address ',newAddress)
+      const newAddress = await this._userAddressService.addAddress(parsed.data);
       const response: AddressResponseDTO = {
         ...newAddress,
         id: newAddress.id.toString(),
       };
-      console.log('the response fromo the add address',response);
-      res.status(201).json(response);
+      res.status(StatusCode.CREATED).json(response);
     } catch (error) {
       res
-        .status(500)
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "Failed to add address" });
     }
   }
@@ -65,23 +62,23 @@ export class UserAddressController implements IUserAddressController {
     try {
       const parsed = SetDefaultAddressSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ success: false, message: "Invalid input" });
+        res.status(StatusCode.BAD_REQUEST).json({ success: false, message: "Invalid input" });
         return;
       }
 
       const { addressId, userId } = parsed.data;
-      const newAddress = await this.userAddressService.setDefaultAddress(
+      const newAddress = await this._userAddressService.setDefaultAddress(
         addressId,
         userId
       );
 
-      res.status(200).json({
+      res.status(StatusCode.OK).json({
         success: true,
         message: "Address set as default successfully",
       });
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.BAD_REQUEST)
         .json({ success: false, message: (error as Error).message });
     }
   }
@@ -93,14 +90,13 @@ export class UserAddressController implements IUserAddressController {
     try {
       const parsed = UpdateAddressRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log("The update address no parse");
         res
-          .status(400)
+          .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: "Invalid address data" });
         return;
       }
       const { addressForm, _id, userId } = parsed.data;
-      const updatedAddress = await this.userAddressService.updateAddress(
+      const updatedAddress = await this._userAddressService.updateAddress(
         addressForm,
         _id,
         userId
@@ -113,14 +109,14 @@ export class UserAddressController implements IUserAddressController {
       const validate = UpdateAddressResponseSchema.safeParse(response);
       if (!validate) {
         res
-          .status(500)
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({ success: false, message: "Response validation failed: " });
         return;
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
-        .status(400)
+        .status(StatusCode.BAD_REQUEST)
         .json({ success: false, message: (error as Error).message });
     }
   }
@@ -132,31 +128,31 @@ export class UserAddressController implements IUserAddressController {
     try {
       const parsed = DeleteAddressRequestSchema.safeParse(req.query);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "Invalid addressId or userId: " + parsed.error.message,
         });
         return;
       }
       const { addressId, userId } = parsed.data;
-      const response = await this.userAddressService.deleteAddress(
+      const response = await this._userAddressService.deleteAddress(
         addressId,
         userId
       );
 
       if (response.success) {
-        res.status(200).json({
+        res.status(StatusCode.OK).json({
           success: true,
           message: "Address deleted successfully",
         });
       } else {
-        res.status(404).json({
+        res.status(StatusCode.NOT_FOUND).json({
           success: false,
           message: "Address not found",
         });
       }
     } catch (error) {
-      res.status(500).json({
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });
@@ -169,7 +165,7 @@ export class UserAddressController implements IUserAddressController {
     try {
       const accessToken = req.cookies.accessToken;
       if(!accessToken) {
-        res.status(401).json({
+        res.status(StatusCode.UNAUTHORIZED).json({
           success:false,
           message:"Not authorized, no access Token",
         })
@@ -183,7 +179,7 @@ export class UserAddressController implements IUserAddressController {
         if (!user || !user.id) {
         throw new Error("Failed to authenticate");
       }
-      const addresses = await this.userAddressService.getAddresses(user.id);
+      const addresses = await this._userAddressService.getAddresses(user.id);
       const response = {
         success:true,
         message:"Address fetched successfully",
@@ -191,16 +187,15 @@ export class UserAddressController implements IUserAddressController {
       }
       const validate = GetAddressesResponseSchema.safeParse(response);
       if(!validate.success){
-           console.log('the response dto doesnt match',validate.error.message);
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: "The response DTO doesnt match",
         });
         return
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-       res.status(400)
+       res.status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "The cart fetch failed" });
     }
   }

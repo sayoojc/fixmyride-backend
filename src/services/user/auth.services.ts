@@ -20,7 +20,7 @@ import { IUserAuthService } from "../../interfaces/services/user/IUserAuthServic
 export class UserAuthService implements IUserAuthService {
 
   constructor(
-    @inject(TYPES.UserRepository)private readonly userRepository: IUserRepository) {
+    @inject(TYPES.UserRepository)private readonly _userRepository: IUserRepository) {
     
   }
   async registerTempUser(userData: Partial<TempUser>): Promise<TempUser> {
@@ -58,12 +58,12 @@ export class UserAuthService implements IUserAuthService {
     email: string,
     phone: string
   ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
-    const existingUser = await this.userRepository.findOne({ email });
+    const existingUser = await this._userRepository.findOne({ email });
     if (existingUser) {
       throw new Error("User already exists. Please log in.");
     }
 
-    const existingPhone = await this.userRepository.findOne({ phone });
+    const existingPhone = await this._userRepository.findOne({ phone });
     if (existingPhone) {
       throw new Error("The phone number is already in use. Please log in.");
     }
@@ -81,7 +81,7 @@ export class UserAuthService implements IUserAuthService {
       throw new Error("OTP mismatch.");
     }
 
-    const user = await this.userRepository.create({
+    const user = await this._userRepository.create({
       name: tempUser.name,
       email: tempUser.email,
       phone: tempUser.phone,
@@ -109,7 +109,7 @@ export class UserAuthService implements IUserAuthService {
     email: string,
     password: string
   ): Promise<{ user: IUser; accessToken: string; refreshToken: string }> {
-    const user = await this.userRepository.findOne({ email });
+    const user = await this._userRepository.findOne({ email });
     if (!user) {
       throw new NotFoundError("User doesn't exist");
     }
@@ -145,7 +145,7 @@ export class UserAuthService implements IUserAuthService {
     return await redis.get(redisKey);
   }
   async forgotPassword(email: string): Promise<{ user: IUser; token: string }> {
-    const user = await this.userRepository.findOne({ email });
+    const user = await this._userRepository.findOne({ email });
     if (!user) throw new Error("User doesn't exist");
 
     if (user.role !== "user")
@@ -171,7 +171,7 @@ export class UserAuthService implements IUserAuthService {
         throw new Error("Invalid token payload");
       }
 
-      const user = await this.userRepository.findOne({ _id: payload.userId });
+      const user = await this._userRepository.findOne({ _id: payload.userId });
       if (!user) throw new Error("User not found");
       const hashedPassword = await hashPassword(password);
       user.password = hashedPassword;

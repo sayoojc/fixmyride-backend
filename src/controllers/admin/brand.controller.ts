@@ -3,6 +3,7 @@ import { inject, injectable } from "inversify";
 import { IAdminBrandService } from "../../interfaces/services/admin/IAdminBrandService";
 import { TYPES } from "../../containers/types";
 import { IAdminBrandController } from "../../interfaces/controllers/admin/IAdminBrandController";
+import { StatusCode } from "../../enums/statusCode.enum";
 type AddBrandResponse = AddBrandResponseDTO | { message: string; errors?: any };
 type GetBrandsResponse =
   | GetBrandsResponseDTO
@@ -31,7 +32,7 @@ import {
 export class AdminBrandController implements IAdminBrandController {
   constructor(
     @inject(TYPES.AdminBrandService)
-    private readonly adminBrandService: IAdminBrandService
+    private readonly _adminBrandService: IAdminBrandService
   ) {}
 
   async addBrand(
@@ -41,7 +42,7 @@ export class AdminBrandController implements IAdminBrandController {
     try {
       const parsed = AddBrandRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           message: "Invalid input",
           errors: parsed.error.flatten(),
         });
@@ -49,7 +50,7 @@ export class AdminBrandController implements IAdminBrandController {
       }
       let { brandName, imageUrl } = parsed.data;
       brandName = brandName[0].toUpperCase() + brandName.slice(1).toLowerCase();
-      const newBrand = await this.adminBrandService.addBrand(
+      const newBrand = await this._adminBrandService.addBrand(
         brandName,
         imageUrl
       );
@@ -69,9 +70,9 @@ export class AdminBrandController implements IAdminBrandController {
       if (!validated.success) {
         throw new Error("Response DTO does not match schema");
       }
-      res.status(201).json(response);
+      res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
     }
   }
 
@@ -84,7 +85,7 @@ export class AdminBrandController implements IAdminBrandController {
     const page = parseInt(req.query.page as string) ;
     const statusFilter = req.query.statusFilter?.toString() || "all";
 if(page < 0){
-  const brandsWithModels = await this.adminBrandService.getAllBrands()
+  const brandsWithModels = await this._adminBrandService.getAllBrands()
       const formattedBrands = brandsWithModels.map((brand) => ({
         _id: brand._id.toString(),
         brandName: brand.brandName,
@@ -101,12 +102,12 @@ if(page < 0){
       if (!validated.success) {
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
       return 
 }
     const limit = 4;
     const skip = (page - 1) * limit;
-        const { brandsWithModels, totalCount } = await this.adminBrandService.getBrands({
+        const { brandsWithModels, totalCount } = await this._adminBrandService.getBrands({
       search,
       skip,
       limit,
@@ -129,9 +130,9 @@ if(page < 0){
       if (!validated.success) {
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({ message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
     }
   }
 
@@ -140,23 +141,23 @@ if(page < 0){
     res: Response<ToggleBrandStatusResponseDTO>
   ): Promise<void> {
     try {
-      const parsesd = ToggleBrandStatusRequestSchema.safeParse(req.body);
-      if (!parsesd.success) {
-        res.status(400).json({
+      const parsed = ToggleBrandStatusRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(StatusCode.BAD_REQUEST).json({
           message: "Invalid input",
-          errors: parsesd.error.flatten(),
+          errors: parsed.error.flatten(),
         } as any);
         return;
       }
-      const { brandId, newStatus } = parsesd.data;
+      const { brandId, newStatus } = parsed.data;
 
-      const updatedBrand = await this.adminBrandService.toggleBrandStatus(
+      const updatedBrand = await this._adminBrandService.toggleBrandStatus(
         brandId,
         newStatus
       );
 
       if (!updatedBrand) {
-        res.status(404).json({
+        res.status(StatusCode.NOT_FOUND).json({
           success: false,
           message: "Brand not found or failed to update status",
         });
@@ -176,9 +177,9 @@ if(page < 0){
       if (!validated.success) {
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: (error as Error).message,
       });
@@ -192,21 +193,21 @@ if(page < 0){
     try {
       const parsed = UpdateBrandRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({
+        res.status(StatusCode.BAD_REQUEST).json({
           message: "Invalid input",
           errors: parsed.error.flatten(),
         });
         return;
       }
       const { id, name, imageUrl } = parsed.data;
-      const updatedBrand = await this.adminBrandService.updateBrand(
+      const updatedBrand = await this._adminBrandService.updateBrand(
         id,
         name,
         imageUrl
       );
 
       if (!updatedBrand) {
-        res.status(404).json({ message: "Brand not found" });
+        res.status(StatusCode.NOT_FOUND).json({ message: "Brand not found" });
         return;
       }
       const brand = { ...updatedBrand, _id: updatedBrand._id.toString() };
@@ -218,10 +219,10 @@ if(page < 0){
       if (!validated.success) {
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Error updating brand:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
     }
   }
 }

@@ -8,6 +8,8 @@ import { TYPES } from "../../types";
 import { ICartRepository } from "../../../interfaces/repositories/ICartRepository";
 import { IAddressRepository } from "../../../interfaces/repositories/IAddressRepository";
 import { ISocketService } from "../../../sockets/ISocketService";
+import { INotificationRepository } from "../../../interfaces/repositories/INotificationRepository";
+import { IServiceRequestRepository } from "../../../interfaces/repositories/IServiceRequestRepository";
 
 export const bindUserOrderModule = (container: Container) => {
   container
@@ -16,9 +18,11 @@ export const bindUserOrderModule = (container: Container) => {
       const orderRepo = container.get<IOrderRepository>(TYPES.OrderRepository);
       const cartRepo = container.get<ICartRepository>(TYPES.CartRepository);
       const addressRepo = container.get<IAddressRepository>(TYPES.AddressRepository);
-      const socketService = container.get<ISocketService>(TYPES.SocketService)
+      const socketService = container.get<ISocketService>(TYPES.SocketService);
+      const notificationRepo = container.get<INotificationRepository>(TYPES.NotificationRepository);
+      const serviceRequestRepo = container.get<IServiceRequestRepository>(TYPES.ServiceRequestRepository);
 
-      return new UserOrderService(orderRepo,cartRepo,addressRepo,socketService);
+      return new UserOrderService(orderRepo,cartRepo,addressRepo,socketService,notificationRepo,serviceRequestRepo);
     })
     .inSingletonScope();
   container

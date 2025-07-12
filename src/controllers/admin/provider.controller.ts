@@ -20,12 +20,13 @@ import {
   VerifyProviderResponseSchema,
   VerifyProviderResponseDTO,
 } from "../../dtos/controllers/admin/AdminProvider.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class AdminProviderController implements IAdminProviderController {
   constructor(
     @inject(TYPES.AdminProviderService)
-    private readonly adminProviderService: IAdminProviderService
+    private readonly _adminProviderService: IAdminProviderService
   ) {}
 
   async fetchProviders(
@@ -40,7 +41,7 @@ export class AdminProviderController implements IAdminProviderController {
     const limit = 4;
     const skip = (page - 1) * limit;
       
-  const {sanitizedProviders,totalCount} = (await this.adminProviderService.fetchProviders( { search,
+  const {sanitizedProviders,totalCount} = (await this._adminProviderService.fetchProviders( { search,
       skip,
       limit,
       statusFilter,}))  ?? { sanitizedProviders: [], totalCount: 0 };
@@ -65,9 +66,9 @@ export class AdminProviderController implements IAdminProviderController {
       throw new Error("Response DTO does not match schema");
     }
 
-    res.status(200).json(response);
+    res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({success:false, message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: (error as Error).message });
     }
   }
 
@@ -77,7 +78,7 @@ export class AdminProviderController implements IAdminProviderController {
   ): Promise<void> {
     try {
       const id = req.query.id as string;
-      const verificationData = await this.adminProviderService.fetchVerificationData(id);
+      const verificationData = await this._adminProviderService.fetchVerificationData(id);
       const response:FetchVerificationDataResponseDTO = {
          success: true,
         message: "Verification data fetched successfully",
@@ -88,9 +89,9 @@ export class AdminProviderController implements IAdminProviderController {
         console.error('Zod validation error',validated.error);
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({success:false, message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: (error as Error).message });
     }
   }
 
@@ -100,7 +101,7 @@ export class AdminProviderController implements IAdminProviderController {
   ): Promise<void> {
     try {
       const providerId = req.query.id as string;
-      const rawProvider = await this.adminProviderService.fetchProviderById(providerId);
+      const rawProvider = await this._adminProviderService.fetchProviderById(providerId);
          if (!rawProvider) {
       throw new Error("Provider not found");
     }
@@ -123,9 +124,9 @@ export class AdminProviderController implements IAdminProviderController {
       console.error("Zod validation error:",validated.error);
       throw new Error("Response DTO does not match schema");
     }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({success:false, message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: (error as Error).message });
     }
   }
 
@@ -139,7 +140,7 @@ export class AdminProviderController implements IAdminProviderController {
         throw  new Error("the request dto doesnt match");
       }
       const { providerId, verificationAction, adminNotes } = parsed.data;
-      const rawProvider = await this.adminProviderService.verifyProvider(
+      const rawProvider = await this._adminProviderService.verifyProvider(
        providerId,
         verificationAction,
         adminNotes??""
@@ -163,9 +164,9 @@ export class AdminProviderController implements IAdminProviderController {
       if(!validated.success){
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({success:false,message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false,message: (error as Error).message });
     }
   }
 
@@ -179,7 +180,7 @@ export class AdminProviderController implements IAdminProviderController {
         throw new Error('The request dto doesnt match');
       }
       const providerId = parsed.data.providerId
-      const rawProvider = await this.adminProviderService.toggleListing(providerId);
+      const rawProvider = await this._adminProviderService.toggleListing(providerId);
              if (!rawProvider) {
       throw new Error("Provider not found");
     }
@@ -199,9 +200,9 @@ export class AdminProviderController implements IAdminProviderController {
       if(!validated.success){
         throw new Error("Response DTO does not match schema");
       }
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(400).json({success:false,message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false,message: (error as Error).message });
     }
   }
 }

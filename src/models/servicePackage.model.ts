@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-
+import { ServiceCategoryEnum } from "../enums/serviceCategor.enum";
 interface IPart {
   name: string;
   price: number;
@@ -27,17 +27,7 @@ export interface IServicePackage extends Document {
   createdAt: Date;
   servicePackageCategory: string;
 }
-enum ServiceCategory {
-  GENERAL = "general",
-  AC = "ac",
-  BRAKE = "brake",
-  WASHING = "washing",
-  DENT = "dent",
-  DETAILIng = 'detailing',
-  EMERGENCY = 'emergency',
-  TYRES = 'tyres',
-  BATTERY = 'battery'
-}
+
 
 const ServicePackageSchema = new Schema<IServicePackage>(
   {
@@ -68,7 +58,7 @@ const ServicePackageSchema = new Schema<IServicePackage>(
     },
     servicePackageCategory: {
       type: String,
-      enum: Object.values(ServiceCategory),
+      enum: Object.values(ServiceCategoryEnum),
       required: true,
     },
     priceBreakup: {

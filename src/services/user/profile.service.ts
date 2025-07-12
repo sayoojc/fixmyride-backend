@@ -12,14 +12,14 @@ import {PartialSanitizedUserDTO,} from '../../dtos/controllers/user/userProfile.
 injectable()
 export class UserProfileService implements IUserProfileService {
   constructor(
-    @inject(TYPES.UserRepository) private readonly userRepository: IUserRepository,
-    @inject(TYPES.AddressRepository) private readonly addressRepository: IAddressRepository,
-    @inject(TYPES.VehicleRepository) private readonly vehicleRepository: IVehicleRepository
+    @inject(TYPES.UserRepository) private readonly _userRepository: IUserRepository,
+    @inject(TYPES.AddressRepository) private readonly _addressRepository: IAddressRepository,
+    @inject(TYPES.VehicleRepository) private readonly _vehicleRepository: IVehicleRepository
   ) {}
   async getProfileData(id: string): Promise<UserProfileDTO | undefined> {
     try {
-      const user = await this.userRepository.findOne({ _id: id });
-      const addresses = await this.addressRepository.find({ userId: id });
+      const user = await this._userRepository.findOne({ _id: id });
+      const addresses = await this._addressRepository.find({ userId: id });
       const defaultAddressObject = addresses.find(
         (address) => address.isDefault === true
       );
@@ -27,7 +27,7 @@ export class UserProfileService implements IUserProfileService {
         ? formatAddress(defaultAddressObject)
         : "";
       const vehicles =
-        await this.vehicleRepository.findVehicleDataPopulatedByUserId(user?.id);
+        await this._vehicleRepository.findVehicleDataPopulatedByUserId(user?.id);
       if (!user) {
         throw new Error("User details not found");
       }
@@ -54,7 +54,7 @@ export class UserProfileService implements IUserProfileService {
   userId: string,
   userName: string
 ): Promise<PartialSanitizedUserDTO> {
-  const user = await this.userRepository.findOneAndUpdate(
+  const user = await this._userRepository.findOneAndUpdate(
     { _id: userId },
     { phone, name: userName }
   );
@@ -74,7 +74,7 @@ export class UserProfileService implements IUserProfileService {
     newPassword: string
   ): Promise<PartialSanitizedUserDTO | undefined> {
     try {
-      const user = await this.userRepository.findOne({ _id: userId });
+      const user = await this._userRepository.findOne({ _id: userId });
       if (!user) {
         throw new Error("User not found");
       }

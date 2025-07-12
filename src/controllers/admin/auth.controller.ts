@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
+import { StatusCode } from "../../enums/statusCode.enum";
 import { TYPES } from "../../containers/types";
 import { IAdminAuthService } from "../../interfaces/services/admin/IAdminAuthService";
 import { IAdminAuthController } from "../../interfaces/controllers/admin/IAdminAuthController";
@@ -16,7 +17,7 @@ import {
 export class AdminAuthController implements IAdminAuthController {
   constructor(
     @inject(TYPES.AdminAuthService)
-    private readonly adminAuthService: IAdminAuthService
+    private readonly _adminAuthService: IAdminAuthService
   ) {}
   async adminLogin(
     req: Request<{}, {}, AdminLoginRequestDTO>,
@@ -25,13 +26,13 @@ export class AdminAuthController implements IAdminAuthController {
     try {
       const parsed = AdminLoginRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res.status(400).json({ errors: parsed.error.flatten() } as any);
+        res.status(StatusCode.BAD_REQUEST).json({ errors: parsed.error.flatten() } as any);
         return;
       }
 
       const { email, password } = parsed.data;
       const { user, accessToken, refreshToken } =
-        await this.adminAuthService.adminLogin(email, password);
+        await this._adminAuthService.adminLogin(email, password);
 
       const { _id, name, email: rawEmail, role } = user.toObject();
       const filteredUser = { _id: _id.toString(), name, email: rawEmail, role };
@@ -56,10 +57,10 @@ export class AdminAuthController implements IAdminAuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Error during login:", error);
-      res.status(500).json({ message: "Server error" } as any); // fallback type
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Server error" } as any); // fallback type
     }
   }
 
@@ -77,10 +78,10 @@ export class AdminAuthController implements IAdminAuthController {
 
       AdminLogoutResponseSchema.parse(response);
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Admin logout error:", error);
-      res.status(500).json({ message: "Failed to logout" } as any);
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to logout" } as any);
     }
   }
 }

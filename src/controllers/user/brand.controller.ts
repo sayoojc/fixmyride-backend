@@ -8,11 +8,12 @@ import {
   GetBrandsResponseDTO,
   ErrorResponse,
 } from "../../dtos/controllers/user/userBrandController.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class UserBrandController implements IUserBrandController {
   constructor(
-    @inject(TYPES.UserBrandService) private readonly userBrandService: IUserBrandService
+    @inject(TYPES.UserBrandService) private readonly _userBrandService: IUserBrandService
   ) {}
 
   async getBrands(
@@ -20,7 +21,7 @@ export class UserBrandController implements IUserBrandController {
     res: Response<GetBrandsResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const brands = await this.userBrandService.getBrands();
+      const brands = await this._userBrandService.getBrands();
       const transformedBrands = brands.map((brand) => ({
         _id: brand._id.toString(),
         brandName: brand.brandName,
@@ -45,17 +46,17 @@ export class UserBrandController implements IUserBrandController {
       const validatedResponse = GetBrandsResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
         console.error("Response validation error:", validatedResponse.error);
-        res.status(500).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response validation failed: " + validatedResponse.error.message,
         });
         return;
       }
 
-      res.status(200).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Error in getBrands:", error);
-      res.status(500).json({
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: "Server error: " + (error as Error).message,
       });

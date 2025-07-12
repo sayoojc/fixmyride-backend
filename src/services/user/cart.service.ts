@@ -11,13 +11,13 @@ injectable();
 export class UserCartService implements IUserCartService {
   constructor(
     @inject(TYPES.CartRepository)
-    private readonly cartRepository: ICartRepository
+    private readonly _cartRepository: ICartRepository
   ) {}
   async getCart(userId:string,cartId:string):Promise<SerializedCart | undefined> {
     try {
       const idCart = new Types.ObjectId(cartId);
       const idUser = new Types.ObjectId(userId);
-      const cart = await this.cartRepository.fetchCartPopulated(idCart,idUser)
+      const cart = await this._cartRepository.fetchCartPopulated(idCart,idUser)
        const parsedCart = {
         _id: cart._id.toString(),
         userId: cart.userId.toString(),
@@ -86,7 +86,7 @@ console.log("The get cart function failed", error);
   }
   async addToCart(data: AddToCartDataDTO): Promise<SerializedCart | undefined> {
     try {
-      const cart = await this.cartRepository.upsertCart(data);
+      const cart = await this._cartRepository.upsertCart(data);
       if (!cart) return undefined;
 
        const parsedCart = {
@@ -161,7 +161,7 @@ console.log("The get cart function failed", error);
     try {
       const idVehicle = new mongoose.Types.ObjectId(vehicleId);
       const idUser = new mongoose.Types.ObjectId(userId);
-      const cart = await this.cartRepository.addVehicleToCart(
+      const cart = await this._cartRepository.addVehicleToCart(
         idVehicle,
         idUser
       );
@@ -239,7 +239,7 @@ console.log("The get cart function failed", error);
       const userObjectId = new Types.ObjectId(userId);
       const cartObjectId = new Types.ObjectId(cartId);
       const packageObjectId = new Types.ObjectId(packageId);
-      const cart = await this.cartRepository.removePackageFromCart(userObjectId,cartObjectId,packageObjectId);
+      const cart = await this._cartRepository.removePackageFromCart(userObjectId,cartObjectId,packageObjectId);
          if (!cart) {
         console.log("error block");
         throw new Error("cart is not found");

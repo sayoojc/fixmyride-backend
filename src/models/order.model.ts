@@ -1,9 +1,25 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
+import { IUser } from "./user.model";
+import { IVehicle } from "./vehicle.model";
+import { IServicePackage } from "./servicePackage.model";
 
-export interface IOrder extends Document {
-  userId: mongoose.Types.ObjectId;
-  vehicleId: mongoose.Types.ObjectId;
-  services: mongoose.Types.ObjectId[];
+export interface IOrder extends Document<Types.ObjectId> {
+  user: Pick<IUser, "_id" | "name" | "email" | "phone">;
+  vehicle: Pick<
+    IVehicle,
+    "_id" | "brandId" | "modelId" | "year" | "fuel"
+  > & {brandName:string,modelName:string};
+  services: Array<
+    Pick<
+      IServicePackage,
+      | "_id"
+      | "title"
+      | "description"
+      | "fuelType"
+      | "priceBreakup"
+      | "servicePackageCategory"
+    >
+  >;
   coupon?: {
     code?: string;
     discountType?: "percentage" | "flat";
@@ -26,57 +42,117 @@ export interface IOrder extends Document {
     | "in-progress"
     | "completed"
     | "cancelled"
-    |"failed";
+    | "failed";
   statusReason?: string;
-  address: mongoose.Types.ObjectId;
+  address:{
+  _id?: Types.ObjectId;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+};
+
 }
+
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+    user: {
+      _id: { type: Schema.Types.ObjectId, required: true },
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+      phone: { type: String },
     },
-    vehicleId: {
-      type: Schema.Types.ObjectId,
-      ref: "Vehicle",
+    vehicle: {
+      _id: { type: Schema.Types.ObjectId, required: true },
+      brandId: { type: Schema.Types.ObjectId, required: true },
+      brandName:{type:String,required:true},
+      modelName:{type:String,required:true},
+      modelId: { type: Schema.Types.ObjectId, required: true },
+      year: { type: Number },
+      fuel: { type: String, required: true },
     },
     services: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "ServicePackage",
+        _id: { type: Schema.Types.ObjectId, required: true },
+        title: { type: String, required: true },
+        description: { type: String, required: true },
+        fuelType: { type: String, required: true },
+        servicePackageCategory: { type: String, required: true },
+        priceBreakup: {
+          parts: [
+            {
+              name: { type: String, required: true },
+              price: { type: Number, required: true },
+              quantity: { type: Number, required: true },
+            },
+          ],
+          laborCharge: { type: Number, required: true },
+          discount: { type: Number, default: 0 },
+          tax: { type: Number, default: 0 },
+          total: { type: Number, required: true },
+        },
       },
     ],
     coupon: {
-      code: String,
-      discountType: String,
-      discountValue: Number,
-      discountAmount: Number,
-      applied: Boolean,
+      code: { type: String },
+      discountType: { type: String },
+      discountValue: { type: Number },
+      discountAmount: { type: Number },
+      applied: { type: Boolean },
     },
-    totalAmount: Number,
-    finalAmount: Number,
-    paymentMethod: String,
-    paymentStatus: String,
-    razorpayOrderId: String,
-    razorpayPaymentId: String,
-    razorpaySignature: String,
-    serviceDate: String,
-    selectedSlot: String,
-    orderStatus: String,
-    statusReason: String,
+    totalAmount: { type: Number, required: true },
+    finalAmount: { type: Number, required: true },
+    paymentMethod: { type: String, enum: ["cash", "online"], required: true },
+    paymentStatus: { type: String, required: true },
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
+    razorpaySignature: { type: String },
+    serviceDate: { type: String },
+    selectedSlot: { type: String },
+    orderStatus: {
+      type: String,
+      enum: [
+        "placed",
+        "confirmed",
+        "in-progress",
+        "completed",
+        "cancelled",
+        "failed",
+      ],
+      required: true,
+    },
+    statusReason: { type: String },
     address: {
-      type: Schema.Types.ObjectId,
-      ref: "Address",
+      _id: { type: Schema.Types.ObjectId },
+      addressLine1: { type: String, required: true },
+      addressLine2: { type: String },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      zipCode: { type: String, required: true },
+      location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          default: "Point",
+        },
+        coordinates: {
+          type: [Number],
+          default: [0, 0],
+        },
+      },
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Optional indexes
-OrderSchema.index({ userId: 1, orderStatus: 1 });
-OrderSchema.index({ vehicleId: 1 });
-OrderSchema.index({ orderedAt: -1 });
+// Indexes
+OrderSchema.index({ "user._id": 1, orderStatus: 1 });
+OrderSchema.index({ "vehicle._id": 1 });
+OrderSchema.index({ createdAt: -1 });
 
 export default mongoose.model<IOrder>("Order", OrderSchema);

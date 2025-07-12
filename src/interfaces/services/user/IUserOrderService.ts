@@ -32,7 +32,7 @@ export interface IUserOrderService {
     cartId: string,
       selectedAddressId: string | {
     addressLine1: string;
-    addressLine2: string;
+    addressLine2?: string;
     city: string;
     latitude: number;
     longitude: number;
@@ -49,7 +49,7 @@ export interface IUserOrderService {
     cartId: string,
       selectedAddressId: string | {
     addressLine1: string;
-    addressLine2: string;
+    addressLine2?: string;
     city: string;
     latitude: number;
     longitude: number;

@@ -7,7 +7,7 @@ import { VehicleDTO } from "../../dtos/controllers/user/userProfile.controller.d
 
 @injectable()
 export class UserVehicleService implements IUserVehicleService {
-  constructor(@inject(TYPES.VehicleRepository) private readonly vehicleRepository: IVehicleRepository) {}
+  constructor(@inject(TYPES.VehicleRepository) private readonly _vehicleRepository: IVehicleRepository) {}
   async addVehicle(
     userId: string,
     brandId: string,
@@ -18,7 +18,7 @@ export class UserVehicleService implements IUserVehicleService {
   ): Promise<VehicleDTO | undefined> {
     try {
       let id = new mongoose.Types.ObjectId(userId);
-      const vehicle = await this.vehicleRepository.create({
+      const vehicle = await this._vehicleRepository.create({
         userId: id,
         brandId: new mongoose.Types.ObjectId(brandId),
         modelId: new mongoose.Types.ObjectId(modelId),
@@ -84,7 +84,7 @@ modelId: {
   }
 async getVehicle(id: string) {
   try {
-    const vehicles = await this.vehicleRepository.findVehicleDataPopulatedByUserId( id )
+    const vehicles = await this._vehicleRepository.findVehicleDataPopulatedByUserId( id )
 
     if(!vehicles){
       throw new Error("vehicle fetching failed")

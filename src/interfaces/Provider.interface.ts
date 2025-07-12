@@ -34,7 +34,7 @@ export interface SanitizedProvider {
   _id: string;
   name: string;
   email: string;
-  phone?: string;
+  phone: string;
   address: string;
   description: string;
   profileImage: string;
@@ -45,6 +45,24 @@ export interface SanitizedProvider {
     coordinates:[number,number]
   }
 }
+// export type SanitizedProvider = {
+//   _id: string; // or Types.ObjectId, but string is safer for frontend
+//   name: string;
+//   email: string;
+//   phone: string;
+//   isListed: boolean;
+//   address?: {
+//     street: string;
+//     city: string;
+//     state: string;
+//     pinCode: string;
+//   };
+//   location: {
+//     type: 'Point';
+//     coordinates: [number, number];
+//   };
+// };
+
 
 export interface VerificationFormData {
   licenseImage: string;

@@ -14,22 +14,23 @@ import {
   GetVehicleResponseSchema
 
 } from "../../dtos/controllers/user/userVehicle.controller.dto";
+import { StatusCode } from "../../enums/statusCode.enum";
 
 @injectable()
 export class UserVehicleController implements IUserVehicleController {
   constructor(
-    @inject(TYPES.UserVehicleService) private readonly userVehicleService: IUserVehicleService
+    @inject(TYPES.UserVehicleService) private readonly _userVehicleService: IUserVehicleService
   ) {}
 
   async addVehicle(req: Request<{},{},AddVehicleRequestDTO>, res: Response<AddVehicleResponseDTO | ErrorResponse>): Promise<void> {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      res.status(401).json({success:false, message: "Not authorized, no access token" });
+      res.status(StatusCode.UNAUTHORIZED).json({success:false, message: "Not authorized, no access token" });
       return;
     }
     const parsed = AddVehicleRequestSchema.safeParse(req.body);
     if(!parsed.success) {
-       res.status(400).json({
+       res.status(StatusCode.BAD_REQUEST).json({
           success:false,
           message:"Invalid input " + parsed.error.message,
         });
@@ -47,7 +48,7 @@ export class UserVehicleController implements IUserVehicleController {
         throw new Error("Failed to Authenticate");
       }
 
-      const newVehicle = await this.userVehicleService.addVehicle(
+      const newVehicle = await this._userVehicleService.addVehicle(
         user.id,
         brandId,
         brandName,
@@ -56,7 +57,7 @@ export class UserVehicleController implements IUserVehicleController {
         fuelType
       );
       if (!newVehicle) {
-        res.status(400).json({
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Adding vehicle failed",
         });
@@ -70,22 +71,22 @@ export class UserVehicleController implements IUserVehicleController {
         const validate = AddVehicleResponseSchema.safeParse(response);
         if(!validate.success){
           console.log('The add vehicle response dto doesnt match',validate.error.message);
-   res.status(400).json({
+   res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Vehicle add Response dto doesnt match",
         });
         return
         }
-       res.status(201).json(response);
+       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-      res.status(400).json({success:false,message: (error as Error).message });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false,message: (error as Error).message });
     }
   }
   async getVehicle(req:Request,res:Response<GetVehicleResponseDTO | ErrorResponse>){
     try {
       const accessToken = req.cookies.accessToken;
        if (!accessToken) {
-      res.status(401).json({success:false, message: "Not authorized, no access token" });
+      res.status(StatusCode.UNAUTHORIZED).json({success:false, message: "Not authorized, no access token" });
       return;
     }
           const userDetails = jwt.verify(
@@ -97,7 +98,7 @@ export class UserVehicleController implements IUserVehicleController {
       if (!user) {
         throw new Error("Failed to Authenticate");
       }
-    const vehicleArray = await this.userVehicleService.getVehicle(user.id);
+    const vehicleArray = await this._userVehicleService.getVehicle(user.id);
     if(!vehicleArray){
       throw new Error('Error fetching the vehicles');
     }
@@ -108,12 +109,12 @@ export class UserVehicleController implements IUserVehicleController {
         }
         const validate = GetVehicleResponseSchema.safeParse(response);
         if(!validate.success) {
-                res.status(400).json({success:false, message: "Response Schema doesnt match." })
+                res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: "Response Schema doesnt match." })
         }
-     res.status(201).json(response);
+     res.status(StatusCode.CREATED).json(response);
 
     } catch (error) {
-      res.status(400).json({success:false,message:'Fetching vehicles failed'});
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false,message:'Fetching vehicles failed'});
     }
   }
 }
