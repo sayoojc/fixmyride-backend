@@ -13,11 +13,13 @@ import {
   ErrorResponse,
 } from "../../dtos/controllers/admin/adminUser.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class AdminUserController implements IAdminUserController {
   constructor(
-    @inject(TYPES.AdminUserService) private readonly _adminUserService: IAdminUserService
+    @inject(TYPES.AdminUserService)
+    private readonly _adminUserService: IAdminUserService
   ) {}
 
   async fetchUsers(
@@ -25,25 +27,33 @@ export class AdminUserController implements IAdminUserController {
     res: Response<FetchUsersResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-       const search = (req.query.search as string) || "";
-    const page = parseInt(req.query.page as string) || 1;
-    const statusFilter = (req.query.statusFilter as string) || "all";
-    const users = await this._adminUserService.fetchUsers(search, page, statusFilter) ?? [];
+      const search = (req.query.search as string) || "";
+      const page = parseInt(req.query.page as string) || 1;
+      const statusFilter = (req.query.statusFilter as string) || "all";
+      const users =
+        (await this._adminUserService.fetchUsers(search, page, statusFilter)) ??
+        [];
 
       const response: FetchUsersResponseDTO = {
         success: true,
-        message: "Users fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Users"),
         users: users,
       };
 
       const validated = FetchUsersResponseSchema.safeParse(response);
       if (!validated.success) {
-        throw new Error("Response DTO validation failed");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
     }
   }
 
@@ -54,30 +64,40 @@ export class AdminUserController implements IAdminUserController {
     try {
       const parsed = ToggleListingRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        throw new Error("Invalid request body");
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
 
       const email = parsed.data.email;
       const updatedUser = await this._adminUserService.toggleListing(email);
       if (!updatedUser) {
-        throw new Error("User not found or could not update listing");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("User"),
+        });
+        return;
       }
       const response: ToggleListingResponseDTO = {
         success: true,
-        message: `User has been ${
-          updatedUser.isListed ? "unblocked" : "blocked"
-        }`,
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("User"),
         user: updatedUser,
       };
       const validated = ToggleListingResponseSchema.safeParse(response);
       if (!validated.success) {
-        console.error("Zod validation error", validated.error);
-        throw new Error("Response DTO validation failed");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
     }
   }
 }

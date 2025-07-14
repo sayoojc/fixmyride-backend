@@ -3,7 +3,6 @@ import { inject, injectable } from "inversify";
 import { IProviderAuthService } from "../../interfaces/services/provider/IproviderAuthService";
 import { IMailService } from "../../interfaces/services/IMailService";
 import { TYPES } from "../../containers/types";
-import { MailService } from "../../services/mail.service";
 import { authenticator } from "otplib";
 import { UnauthorizedError } from "../../errors/unauthorizedError";
 import { IProviderAuthController } from "../../interfaces/controllers/provider/IProviderAuthController";
@@ -19,13 +18,14 @@ import {
   ProviderLoginResponseDTO,
 } from "../../dtos/controllers/provider/providerAuth.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class ProviderAuthController implements IProviderAuthController {
   constructor(
     @inject(TYPES.ProviderAuthService)
-    private _providerAuthService: IProviderAuthService,
-    @inject(TYPES.MailService) private _mailService: IMailService
+    private readonly _providerAuthService: IProviderAuthService,
+    @inject(TYPES.MailService) private readonly _mailService: IMailService
   ) {}
   async providerRegisterTemp(
     req: Request<{}, {}, ProviderRegisterTempDTO>,
@@ -33,7 +33,12 @@ export class ProviderAuthController implements IProviderAuthController {
   ): Promise<void> {
     try {
       const parsed = ProviderRegisterTempSchema.safeParse(req.body);
-      if (!parsed.success) throw new Error("Invalid provider data");
+      if (!parsed.success) {
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
+      }
 
       const data = parsed.data;
       const secret = authenticator.generateSecret();
@@ -43,7 +48,11 @@ export class ProviderAuthController implements IProviderAuthController {
         otp,
       });
       if (!tempUser) {
-        throw new Error("Temporary user creation is failed");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
       await this._mailService.sendWelcomeEmail(
         data.email,
@@ -51,9 +60,14 @@ export class ProviderAuthController implements IProviderAuthController {
         `Welcome to FixMyRide. Your OTP is ${otp}`
       );
 
-      res.status(StatusCode.CREATED).json({ success: true, message: "OTP sent" });
+      res.status(StatusCode.CREATED).json({
+        success: true,
+        message: RESPONSE_MESSAGES.OTP_SEND_SUCCESSFULLY,
+      });
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
     }
   }
 
@@ -64,7 +78,10 @@ export class ProviderAuthController implements IProviderAuthController {
     try {
       const parsed = ProviderRegisterSchema.safeParse(req.body);
       if (!parsed.success) {
-        throw new Error("Invalid provider registration data");
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
 
       const provider = await this._providerAuthService.providerRegister({
@@ -72,14 +89,21 @@ export class ProviderAuthController implements IProviderAuthController {
       });
 
       if (!provider) {
-        throw new Error("User registration failed");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
 
-      res
-        .status(StatusCode.CREATED)
-        .json({ success: true, message: "Provider registered successfully" });
+      res.status(StatusCode.CREATED).json({
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_CREATED("Provider"),
+      });
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: (error as Error).message });
     }
   }
 
@@ -89,7 +113,12 @@ export class ProviderAuthController implements IProviderAuthController {
   ): Promise<void> {
     try {
       const parsed = ProviderLoginSchema.safeParse(req.body);
-      if (!parsed.success) throw new Error("Invalid login credentials");
+      if (!parsed.success) {
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
+      }
 
       const { email, password } = parsed.data;
 
@@ -100,27 +129,25 @@ export class ProviderAuthController implements IProviderAuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 15 * 60 * 1000, // 15 minutes
+        maxAge: 15 * 60 * 1000,
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      res
-        .status(200)
-        .json({ message: "Login successful", user: sanitizedProvider });
+      res.status(StatusCode.OK).json({
+        message: RESPONSE_MESSAGES.LOGIN_SUCCESS("Provider"),
+        user: sanitizedProvider,
+      });
     } catch (error) {
-      if (error instanceof UnauthorizedError) {
-        res.status(StatusCode.UNAUTHORIZED).json({ message: error.message });
-      } else if (error instanceof Error) {
-        res.status(StatusCode.BAD_REQUEST).json({ message: error.message });
-      } else {
-        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
-      }
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   async providerLogout(
@@ -130,10 +157,13 @@ export class ProviderAuthController implements IProviderAuthController {
     try {
       res.clearCookie("accessToken");
       res.clearCookie("refreshToken");
-      res.status(StatusCode.OK).json({ message: "Provider logged out successfully" });
+      res
+        .status(StatusCode.OK)
+        .json({ message: RESPONSE_MESSAGES.LOGOUT_SUCCESS("Provider") });
     } catch (error) {
-      console.error("Provider logout error:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to logout" });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.LOGOUT_FAILED });
     }
   }
 }

@@ -17,6 +17,7 @@ import {
   ErrorResponse,
 } from "../../dtos/controllers/user/userProfile.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 @injectable()
 export class UserProfileController implements IUserProfileController {
   constructor(
@@ -32,7 +33,7 @@ export class UserProfileController implements IUserProfileController {
     if (!accessToken) {
       res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
-        message: "Not authorized, no access token",
+        message: RESPONSE_MESSAGES.UNAUTHORIZED,
       });
       return;
     }
@@ -45,14 +46,22 @@ export class UserProfileController implements IUserProfileController {
       const user = userDetails as JwtPayload;
 
       if (!user || !user.id) {
-        throw new Error("Failed to authenticate");
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
       }
 
       const sanitizedUser = await this._userProfileService.getProfileData(
         user.id
       );
       if (!sanitizedUser) {
-        throw new Error("User profile not found");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
       const transformedUser = {
         id: sanitizedUser.id,
@@ -101,21 +110,14 @@ export class UserProfileController implements IUserProfileController {
 
       const response: GetProfileResponseDTO = {
         success: true,
-        message: "User fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Profile"),
         user: transformedUser,
       };
-
-      // Validate the response
       const validatedResponse = GetProfileResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        console.error(
-          "Response validation error from get profile data:",
-          validatedResponse.error
-        );
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message:
-            "Response validation failed: " + validatedResponse.error.message,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
@@ -124,7 +126,7 @@ export class UserProfileController implements IUserProfileController {
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: (error as Error).message,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
   }
@@ -137,7 +139,7 @@ export class UserProfileController implements IUserProfileController {
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Invalid input " + parsed.error.message,
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -148,29 +150,30 @@ export class UserProfileController implements IUserProfileController {
         userName
       );
       if (!updatedUser) {
-        throw new Error("Failed to update user profile");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
       const response: UpdateProfileResponseDTO = {
         success: true,
-        message: "User updated successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Profile"),
         user: updatedUser,
       };
       const validatedResponse = UpdateProfileResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        console.error("Response validation error:", validatedResponse.error);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message:
-            "Response validation failed: " + validatedResponse.error.message,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Error in updateProfile:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: (error as Error).message,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
   }
@@ -183,7 +186,7 @@ export class UserProfileController implements IUserProfileController {
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Invalid input",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -194,17 +197,20 @@ export class UserProfileController implements IUserProfileController {
         newPassword
       );
       if (!updatedUser) {
-        throw new Error("Failed to change password");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
       res.status(StatusCode.OK).json({
         success: true,
-        message: "password changed successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Password"),
       });
     } catch (error) {
-      console.error("Error in changePassword:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: (error as Error).message,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
   }

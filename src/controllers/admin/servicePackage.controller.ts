@@ -21,6 +21,7 @@ import {
   ToggleBlockStatusResponseSchema,
   UpdateServicePackageResponseSchema,
 } from "../../dtos/controllers/admin/adminServicePackageController.dto";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 @injectable()
 export class AdminServicePackageController
   implements IAdminServicePackageController
@@ -36,10 +37,9 @@ export class AdminServicePackageController
     try {
       const parsed = ServicePackageSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('the request data parsing is failed',parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Invalid input",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -47,16 +47,14 @@ export class AdminServicePackageController
         await this._adminServicePackageService.addServicePackage(parsed.data);
       const response = {
         success: true,
-        message: "Service package added successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_CREATED("Service Package"),
         servicePackage: newServicePackage,
       };
       const validate = AddServicePackageResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the service package controller response dto doesnt match',validate.error.message);
-        
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "response dto doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
@@ -64,7 +62,10 @@ export class AdminServicePackageController
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: (error as Error).message });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
   async getServicePackages(
@@ -88,18 +89,14 @@ export class AdminServicePackageController
         });
       const response = {
         success: true,
-        message: "Service packages fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Service packages"),
         servicePackageResponse: { servicePackages, totalCount },
       };
       const validate = getServicePackagesResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log(
-          "the response dto is not getting validated for hte get Service packages",
-          validate.error
-        );
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response dto doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
@@ -107,63 +104,75 @@ export class AdminServicePackageController
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: (error as Error).message });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
- async updateServicePackage(
-  req: Request<{}, {}, UpdateServicePackageRequestDTO>,
-  res: Response<UpdateServicePackageResponseDTO | ErrorResponse>
-): Promise<void> {
-  try {
-    const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
+  async updateServicePackage(
+    req: Request<{}, {}, UpdateServicePackageRequestDTO>,
+    res: Response<UpdateServicePackageResponseDTO | ErrorResponse>
+  ): Promise<void> {
+    try {
+      const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
 
-    if (!parsed.success) {
-      res.status(StatusCode.BAD_REQUEST).json({
-        success: false,
-        message: "Request DTO doesn't match",
-      });
-      return;
+      if (!parsed.success) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
+        });
+        return;
+      }
+
+      const updatedServicePackage =
+        await this._adminServicePackageService.updateServicePackage(
+          parsed.data
+        );
+
+      if (!updatedServicePackage) {
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
+      }
+
+      const response = {
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Service package"),
+        servicePackage: updatedServicePackage,
+      };
+
+      const validate = UpdateServicePackageResponseSchema.safeParse(response);
+      if (!validate.success) {
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: "Response DTO doesn't match",
+        });
+        return;
+      }
+
+      res.status(StatusCode.OK).json(response);
+    } catch (error) {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
-
-    const updatedServicePackage = await this._adminServicePackageService.updateServicePackage(parsed.data);
-    
-    if (!updatedServicePackage) {
-      throw new Error("The service package update failed");
-    }
-
-    const response = {
-      success: true,
-      message: "The service package update is successful",
-      servicePackage: updatedServicePackage,
-    };
-
-    const validate = UpdateServicePackageResponseSchema.safeParse(response);
-    if (!validate.success) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: "Response DTO doesn't match",
-      });
-      return;
-    }
-
-    res.status(StatusCode.OK).json(response);
-  } catch (error) {
-    res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: (error as any).message });
   }
-}
-
   async toggleBlockStatus(
     req: Request<{}, {}, ToggleBlockStatusRequestDTO>,
     res: Response<ToggleBlockStatusResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log("the toggle block unblock controller function");
       const parsed = ToggleBlockStatusRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log("The parsing was failed");
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "The request dto doesnt match",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -172,22 +181,25 @@ export class AdminServicePackageController
 
       const response = {
         success: true,
-        message: "The toggle block unblock functionality is done successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Service package"),
         servicePackage: updatedServicePackage,
       };
       const validate = ToggleBlockStatusResponseSchema.safeParse(response);
       if (!validate.success) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response dto doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 }

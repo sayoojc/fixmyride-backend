@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import {TYPES} from "../../containers/types";
+import { TYPES } from "../../containers/types";
 import { IUserBrandService } from "../../interfaces/services/user/IUserBrandService";
 import { IUserBrandController } from "../../interfaces/controllers/user/IUserBrandController";
 import {
@@ -9,11 +9,13 @@ import {
   ErrorResponse,
 } from "../../dtos/controllers/user/userBrandController.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class UserBrandController implements IUserBrandController {
   constructor(
-    @inject(TYPES.UserBrandService) private readonly _userBrandService: IUserBrandService
+    @inject(TYPES.UserBrandService)
+    private readonly _userBrandService: IUserBrandService
   ) {}
 
   async getBrands(
@@ -34,31 +36,26 @@ export class UserBrandController implements IUserBrandController {
           status: model.status,
           brandId: model.brandId.toString(),
           fuelTypes: model.fuelTypes,
-         
         })),
       }));
-
       const response: GetBrandsResponseDTO = {
         success: true,
-        message: "Brands fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Brands"),
         brands: transformedBrands,
       };
       const validatedResponse = GetBrandsResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        console.error("Response validation error:", validatedResponse.error);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "Response validation failed: " + validatedResponse.error.message,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
-
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Error in getBrands:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: "Server error: " + (error as Error).message,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
   }

@@ -43,7 +43,7 @@ export const ModelSchema = z.object({
 // ---------------------
 
 export const AddModelResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string(),
   model: ModelSchema,
 });

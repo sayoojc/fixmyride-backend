@@ -16,6 +16,7 @@ import {
   verifyRazorpayPaymentResponseSchema,
 } from "../../dtos/controllers/user/userOrder.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class UserOrderController implements IUserOrderController {
@@ -30,38 +31,39 @@ export class UserOrderController implements IUserOrderController {
     try {
       const parsed = CreateRazorpayOrderRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('The request dto create razorpay order doesnt match',parsed.error.message)
         res
           .status(StatusCode.BAD_REQUEST)
-          .json({ success: false, message: "Request DTO doesnt match" });
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
       if (!parsed.data?.amount) {
-        throw new Error("no request data is not found");
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
       const order = await this._userOrderService.createPaymentOrder(
         parsed.data?.amount
       );
       const response = {
         success: true,
-        message: "create razor pay order is done",
+        message: RESPONSE_MESSAGES.ACTION_SUCCESS,
         order,
       };
       const validate = CreateRazorpayOrderResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('The response of create razorpayorder doesnt match with the dto',validate.error.message)
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response DTO doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
-        return 
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (err) {
-      console.error("Razorpay Order Error:", err);
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "create Razorpay order failed" });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   async verifyRazorpayPayment(
@@ -69,14 +71,11 @@ export class UserOrderController implements IUserOrderController {
     res: Response<verifyRazorpayPaymentResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      console.log('req.body',req.body);
       const parsed = verifyRazorpayPaymentRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-                console.log('The request dto verifyRazorpayPayment doesnt match',parsed.error.message)
-
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Request DTO doesnt match",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -97,10 +96,10 @@ export class UserOrderController implements IUserOrderController {
       );
 
       if (!isValid) {
-        console.log("its not valid");
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({ success: false, message: "Payment verification failed" });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       const paymentStatus = await this._userOrderService.checkPaymentStatus(
@@ -108,8 +107,6 @@ export class UserOrderController implements IUserOrderController {
       );
 
       if (paymentStatus !== "captured") {
-        console.log(`Payment failed with status: ${paymentStatus}`);
-
         await this._userOrderService.handleFailedPayment(
           orderId,
           paymentStatus,
@@ -120,14 +117,13 @@ export class UserOrderController implements IUserOrderController {
           razorpayPaymentId,
           razorpaySignature
         );
-
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: `Payment failed with status: ${paymentStatus}`,
+          message: RESPONSE_MESSAGES.PAYMENT_FAILED(paymentStatus),
         });
         return;
       }
-      const order = await this._userOrderService.handleSuccessfulPayment(
+      await this._userOrderService.handleSuccessfulPayment(
         orderId,
         razorpayPaymentId,
         razorpaySignature,
@@ -138,22 +134,22 @@ export class UserOrderController implements IUserOrderController {
       );
       const response = {
         success: true,
-        message: "Payment verification successfull",
+        message: RESPONSE_MESSAGES.ACTION_SUCCESS,
       };
       const validate = verifyRazorpayPaymentResponseSchema.safeParse(response);
-      if(!validate.success){
-        console.log('The response dto doesnt match on verify razorpay order',validate.error.message)
+      if (!validate.success) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
-          success:false,
-          message:"The response DTO doesnt match"
-        })
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Verification error:", error);
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "Server error during verification" });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 }

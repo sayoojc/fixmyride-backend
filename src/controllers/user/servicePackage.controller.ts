@@ -9,6 +9,7 @@ import {
   GetServicePackagesResponseSchema,
 } from "../../dtos/controllers/user/userServicePackage.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class UserServicePackageController
@@ -25,7 +26,7 @@ export class UserServicePackageController
   ): Promise<void> {
     try {
       const { vehicleId, serviceCategory, fuelType } = req.query;
-      
+
       if (
         typeof vehicleId !== "string" ||
         typeof serviceCategory !== "string" ||
@@ -33,8 +34,7 @@ export class UserServicePackageController
       ) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message:
-            "Missing or invalid query parameters: vehicleId or serviceCategoryId",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
@@ -47,14 +47,14 @@ export class UserServicePackageController
 
       const response = {
         success: true,
-        message: "Service packages fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Service packages"),
         servicePackages,
       };
       const validate = GetServicePackagesResponseSchema.safeParse(response);
       if (!validate.success) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response dto doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
         return;
       }
@@ -62,7 +62,10 @@ export class UserServicePackageController
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: (error as Error).message });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 }

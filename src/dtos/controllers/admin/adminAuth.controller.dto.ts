@@ -22,7 +22,7 @@ export const AdminLoginRequestSchema = z.object({
 
 // Response DTO for successful login
 export const AdminLoginResponseSchema = z.object({
-  message: z.literal("Login successful"),
+  message: z.string(),
   user: z.object({
     _id: z.string(),
     name: z.string(),
@@ -32,10 +32,16 @@ export const AdminLoginResponseSchema = z.object({
 });
 
 export const AdminLogoutResponseSchema = z.object({
-  message: z.literal("admin logged out successfully"),
+  message: z.string(),
 });
 
+export const ErrorResponseSchema = z.object({
+    success:z.boolean(),
+    message:z.string(),
+})
 
+
+export type ErrorResponseDTO = z.infer<typeof ErrorResponseSchema>
 export type AdminLoginRequestDTO = z.infer<typeof AdminLoginRequestSchema>;
 export type AdminLoginResponseDTO = z.infer<typeof AdminLoginResponseSchema>;
 export type AdminLogoutResponseDTO = z.infer<typeof AdminLogoutResponseSchema>;

@@ -32,14 +32,14 @@ export const BrandSchema = z.object({
 });
 
 export const AddBrandResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string(),
   brand: BrandSchema,
 });
 
 export const GetBrandsResponseSchema = z.object({
-  success: z.literal(true),
-  message: z.literal("Brands fetched successfully"),
+  success: z.boolean(),
+  message: z.string(),
   BrandObject:z.object({formattedBrands:z.array(BrandSchema),totalPage:z.number()}) ,
 });
 

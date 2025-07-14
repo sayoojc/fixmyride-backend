@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import {TYPES} from '../../containers/types'
+import { TYPES } from "../../containers/types";
 import { IAdminProviderService } from "../../interfaces/services/admin/IAdminProviderService";
 import { IAdminProviderController } from "../../interfaces/controllers/admin/IAdminProviderController";
 type ErrorResponse = { success: false; message: string };
@@ -21,6 +21,7 @@ import {
   VerifyProviderResponseDTO,
 } from "../../dtos/controllers/admin/AdminProvider.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class AdminProviderController implements IAdminProviderController {
@@ -34,41 +35,54 @@ export class AdminProviderController implements IAdminProviderController {
     res: Response<FetchProvidersResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      const search = req.query.search?.toString() || "";
+      const page = parseInt(req.query.page as string);
+      const statusFilter = req.query.statusFilter?.toString() || "all";
+      const limit = 4;
+      const skip = (page - 1) * limit;
 
-                const search = req.query.search?.toString() || "";
-    const page = parseInt(req.query.page as string) ;
-    const statusFilter = req.query.statusFilter?.toString() || "all";
-    const limit = 4;
-    const skip = (page - 1) * limit;
-      
-  const {sanitizedProviders,totalCount} = (await this._adminProviderService.fetchProviders( { search,
-      skip,
-      limit,
-      statusFilter,}))  ?? { sanitizedProviders: [], totalCount: 0 };
-      const totalPage = Math.max(totalCount/limit)
-    const providers = sanitizedProviders.map((provider) => ({
-      _id: provider._id?.toString() || "",
-      name: provider.name || "",
-      email: provider.email || "",
-      isListed: provider.isListed ?? false,
-      verificationStatus: provider.verificationStatus ?? "pending",
-    }));
+      const { sanitizedProviders, totalCount } =
+        (await this._adminProviderService.fetchProviders({
+          search,
+          skip,
+          limit,
+          statusFilter,
+        })) ?? { sanitizedProviders: [], totalCount: 0 };
+      const totalPage = Math.max(totalCount / limit);
+      const providers = sanitizedProviders.map((provider) => ({
+        _id: provider._id?.toString() || "",
+        name: provider.name || "",
+        email: provider.email || "",
+        isListed: provider.isListed ?? false,
+        verificationStatus: provider.verificationStatus ?? "pending",
+      }));
 
-    const response: FetchProvidersResponseDTO = {
-      success: true,
-      message: "Providers fetched successfully",
-      providerResponse: {sanitizedProviders:providers,totalPage},
-    };
+      const response: FetchProvidersResponseDTO = {
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Providers"),
+        providerResponse: { sanitizedProviders: providers, totalPage },
+      };
 
-    const validated = FetchProvidersResponseSchema.safeParse(response);
-    if (!validated.success) {
-      console.error("Zod validation error:", validated.error);
-      throw new Error("Response DTO does not match schema");
-    }
+      const validated = FetchProvidersResponseSchema.safeParse(response);
+      if (!validated.success) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
 
-    res.status(StatusCode.OK).json(response);
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
+      }
+
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 
@@ -78,20 +92,31 @@ export class AdminProviderController implements IAdminProviderController {
   ): Promise<void> {
     try {
       const id = req.query.id as string;
-      const verificationData = await this._adminProviderService.fetchVerificationData(id);
-      const response:FetchVerificationDataResponseDTO = {
-         success: true,
-        message: "Verification data fetched successfully",
+      const verificationData =
+        await this._adminProviderService.fetchVerificationData(id);
+      const response: FetchVerificationDataResponseDTO = {
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Verification data"),
         verificationData,
-      }
+      };
       const validated = FetchVerificationDataResponseSchema.safeParse(response);
-      if(!validated.success){
-        console.error('Zod validation error',validated.error);
-        throw new Error("Response DTO does not match schema");
+      if (!validated.success) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 
@@ -101,72 +126,110 @@ export class AdminProviderController implements IAdminProviderController {
   ): Promise<void> {
     try {
       const providerId = req.query.id as string;
-      const rawProvider = await this._adminProviderService.fetchProviderById(providerId);
-         if (!rawProvider) {
-      throw new Error("Provider not found");
-    }
-       const sanitizedProvider = {
-      _id: rawProvider._id?.toString() || "",
-      name: rawProvider.name || "",
-      email: rawProvider.email || "",
-      isListed: rawProvider.isListed ?? false,
-      verificationStatus: rawProvider.verificationStatus ?? "pending",
-    };
+      const rawProvider = await this._adminProviderService.fetchProviderById(
+        providerId
+      );
+      if (!rawProvider) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
+      }
+      const sanitizedProvider = {
+        _id: rawProvider._id?.toString() || "",
+        name: rawProvider.name || "",
+        email: rawProvider.email || "",
+        isListed: rawProvider.isListed ?? false,
+        verificationStatus: rawProvider.verificationStatus ?? "pending",
+      };
 
-      const response:FetchProviderResponseDTO = {
+      const response: FetchProviderResponseDTO = {
         success: true,
-        message: "Provider fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Provider"),
         provider: sanitizedProvider,
-      } 
-      
-    const validated = FetchProviderResponseSchema.safeParse(response);
-    if(!validated.success) {
-      console.error("Zod validation error:",validated.error);
-      throw new Error("Response DTO does not match schema");
-    }
+      };
+
+      const validated = FetchProviderResponseSchema.safeParse(response);
+      if (!validated.success) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
+      }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false, message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 
   async verifyProvider(
     req: Request<{}, {}, VerifyProviderRequestDTO>,
-    res: Response<VerifyProviderResponseDTO |ErrorResponse>
+    res: Response<VerifyProviderResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
       const parsed = VerifyProviderRequestSchema.safeParse(req.body);
-      if(!parsed.success){
-        throw  new Error("the request dto doesnt match");
+      if (!parsed.success) {
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
       const { providerId, verificationAction, adminNotes } = parsed.data;
       const rawProvider = await this._adminProviderService.verifyProvider(
-       providerId,
+        providerId,
         verificationAction,
-        adminNotes??""
+        adminNotes ?? ""
       );
-          if (!rawProvider) {
-      throw new Error("Provider not found");
-    }
-          const sanitizedProvider = {
-      _id: rawProvider._id?.toString() || "",
-      name: rawProvider.name || "",
-      email: rawProvider.email || "",
-      isListed: rawProvider.isListed ?? false,
-      verificationStatus: rawProvider.verificationStatus ?? "pending",
-    };
-      const response:VerifyProviderResponseDTO = {
+      if (!rawProvider) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
+      }
+      const sanitizedProvider = {
+        _id: rawProvider._id?.toString() || "",
+        name: rawProvider.name || "",
+        email: rawProvider.email || "",
+        isListed: rawProvider.isListed ?? false,
+        verificationStatus: rawProvider.verificationStatus ?? "pending",
+      };
+      const response: VerifyProviderResponseDTO = {
         success: true,
-        message: "Provider updated successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Provider"),
         provider: sanitizedProvider,
-      } 
+      };
       const validated = VerifyProviderResponseSchema.safeParse(response);
-      if(!validated.success){
-        throw new Error("Response DTO does not match schema");
+      if (!validated.success) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false,message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 
@@ -176,33 +239,55 @@ export class AdminProviderController implements IAdminProviderController {
   ): Promise<void> {
     try {
       const parsed = ToggleListingRequestSchema.safeParse(req.body);
-      if(!parsed.success){
-        throw new Error('The request dto doesnt match');
+      if (!parsed.success) {
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
-      const providerId = parsed.data.providerId
-      const rawProvider = await this._adminProviderService.toggleListing(providerId);
-             if (!rawProvider) {
-      throw new Error("Provider not found");
-    }
-             const sanitizedProvider = {
-      _id: rawProvider._id?.toString() || "",
-      name: rawProvider.name || "",
-      email: rawProvider.email || "",
-      isListed: rawProvider.isListed ?? false,
-      verificationStatus: rawProvider.verificationStatus ?? "pending",
-    };
-      const response:ToggleListingResponseDTO = {
+      const providerId = parsed.data.providerId;
+      const rawProvider = await this._adminProviderService.toggleListing(
+        providerId
+      );
+      if (!rawProvider) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
+      }
+      const sanitizedProvider = {
+        _id: rawProvider._id?.toString() || "",
+        name: rawProvider.name || "",
+        email: rawProvider.email || "",
+        isListed: rawProvider.isListed ?? false,
+        verificationStatus: rawProvider.verificationStatus ?? "pending",
+      };
+      const response: ToggleListingResponseDTO = {
         success: true,
-        message: `User has been ${sanitizedProvider?.isListed ? "unblocked" : "blocked"}`,
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("User"),
         user: sanitizedProvider,
-      }
+      };
       const validated = ToggleListingResponseSchema.safeParse(response);
-      if(!validated.success){
-        throw new Error("Response DTO does not match schema");
+      if (!validated.success) {
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({success:false,message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 }

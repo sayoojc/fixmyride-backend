@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import {TYPES} from '../../containers/types'
+import { TYPES } from "../../containers/types";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { IProviderProfileService } from "../../interfaces/services/provider/IProviderProfileService";
 import { IProviderProfileController } from "../../interfaces/controllers/provider/IProviderProfileController";
@@ -11,13 +11,13 @@ import {
   VerifyProviderRequestSchema,
   VerifyProviderResponseDTO,
   ErrorResponse,
-  SuccessMessageDTO,
   GetProfileDataResponseSchema,
   VerifyProviderRequestDTO,
   VerifyProviderResponseSchema,
   UpdateProfileRequestDTO,
 } from "../../dtos/controllers/provider/providerProfile.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class ProviderProfileController implements IProviderProfileController {
@@ -32,7 +32,9 @@ export class ProviderProfileController implements IProviderProfileController {
   ): Promise<void> {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) {
-      res.status(StatusCode.UNAUTHORIZED).json({ message: "Not authorized, no access token" });
+      res
+        .status(StatusCode.UNAUTHORIZED)
+        .json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
       return;
     }
 
@@ -44,29 +46,40 @@ export class ProviderProfileController implements IProviderProfileController {
       const user = userDetails as JwtPayload;
 
       if (!user) {
-        throw new Error("Failed to Authenticate");
+        res
+          .status(StatusCode.UNAUTHORIZED)
+          .json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
       }
 
       const sanitizedUser = await this._providerProfileService.getProfileData(
         user.id
       );
       if (!sanitizedUser) {
-        res.status(StatusCode.NOT_FOUND).json({ message: "Provider not found" });
+        res
+          .status(StatusCode.NOT_FOUND)
+          .json({ message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("Provider") });
         return;
       }
       const response: GetProfileDataResponseDTO = {
         success: true,
-        message: "User fetched successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Provider profile"),
         provider: sanitizedUser,
       };
       const validated = GetProfileDataResponseSchema.safeParse(response);
       if (!validated.success) {
-        console.error("Zod validation failed", validated.error);
-        throw new Error("Response DTO validation failed");
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: (error as Error).message });
     }
   }
   async verifyProvider(
@@ -76,7 +89,10 @@ export class ProviderProfileController implements IProviderProfileController {
     try {
       const parsed = VerifyProviderRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        throw new Error("The request dto doesnt match");
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
       const { verificationData } = parsed.data;
       const accessToken = req.cookies.accessToken;
@@ -87,7 +103,10 @@ export class ProviderProfileController implements IProviderProfileController {
       const user = userDetails as JwtPayload;
 
       if (!user) {
-        throw new Error("Failed to Authenticate");
+        res
+          .status(StatusCode.UNAUTHORIZED)
+          .json({ success: false, message: RESPONSE_MESSAGES.UNAUTHORIZED });
+        return;
       }
 
       await this._providerProfileService.verifyProvider(
@@ -96,34 +115,42 @@ export class ProviderProfileController implements IProviderProfileController {
       );
       const response: VerifyProviderResponseDTO = {
         success: true,
-        message: "Provider verified successfully.",
+        message: RESPONSE_MESSAGES.PROVIDER_VERIFIED,
       };
       const validated = VerifyProviderResponseSchema.safeParse(response);
 
       if (!validated.success) {
-        console.error("Zod validation error", validated.error);
-        throw new Error("Response DTO does not match schema");
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Verification error:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 
   async updateProfile(
-    req: Request<{},{},UpdateProfileRequestDTO>,
+    req: Request<{}, {}, UpdateProfileRequestDTO>,
     res: Response<UpdateProfileResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-       console.log('req.body',req.body);
-      const parsed = UpdateProfileRequestSchema.safeParse(req.body)
-      console.log('The parsed update profile request schema',parsed);
+      const parsed = UpdateProfileRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('The error in parsing the data ',parsed.error.message);
-        throw new Error("The request dto doesnt match");
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
       }
-     
       const updatedProfile = await this._providerProfileService.updateProfile(
         parsed.data
       );
@@ -131,7 +158,7 @@ export class ProviderProfileController implements IProviderProfileController {
       if (updatedProfile) {
         res.status(StatusCode.OK).json({
           success: true,
-          message: "Profile updated successfully",
+          message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Provider"),
           provider: {
             ...updatedProfile,
             phone: updatedProfile.phone ?? "",
@@ -141,16 +168,22 @@ export class ProviderProfileController implements IProviderProfileController {
               : undefined,
           },
         });
+        return;
       } else {
-        res.status(StatusCode.NOT_FOUND).json({ success: false, message: "Provider not found" });
+        res
+          .status(StatusCode.NOT_FOUND)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("Provider"),
+          });
       }
     } catch (error) {
-      console.error("Error updating provider:", error);
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "Internal server error" });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 }
-
-

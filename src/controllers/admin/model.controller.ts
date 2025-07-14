@@ -1,7 +1,7 @@
-import {TYPES} from '../../containers/types'
+import { TYPES } from "../../containers/types";
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { IAdminModelService } from '../../interfaces/services/admin/IAdminModelService';
+import { IAdminModelService } from "../../interfaces/services/admin/IAdminModelService";
 import { IAdminModelController } from "../../interfaces/controllers/admin/IAdminModelController";
 import {
   AddModelRequestDTO,
@@ -17,16 +17,22 @@ import {
   UpdateModelResponseDTO,
   UpdateModelResponseSchema,
 } from "../../dtos/controllers/admin/AdminModel.controller.dto";
-import { StatusCode } from '../../enums/statusCode.enum';
+import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 type AddModelResponse = AddModelResponseDTO | { message: string; errors?: any };
-type ToggleModelStatusResponse = ToggleModelStatusResponseDTO | { message: string; errors?: any };
-type UpdateModelResponse = UpdateModelResponseDTO | { message: string; errors?: any };
+type ToggleModelStatusResponse =
+  | ToggleModelStatusResponseDTO
+  | { message: string; errors?: any };
+type UpdateModelResponse =
+  | UpdateModelResponseDTO
+  | { message: string; errors?: any };
 
 @injectable()
 export class AdminModelController implements IAdminModelController {
   constructor(
-    @inject(TYPES.AdminModelService) private readonly _adminModelService: IAdminModelService
+    @inject(TYPES.AdminModelService)
+    private readonly _adminModelService: IAdminModelService
   ) {}
 
   async addModel(
@@ -37,7 +43,7 @@ export class AdminModelController implements IAdminModelController {
       const parsed = AddModelRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
-          message: "Invalid input",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
           errors: parsed.error.flatten(),
         });
         return;
@@ -52,7 +58,6 @@ export class AdminModelController implements IAdminModelController {
         brandId,
         fuelTypes
       );
-
       const formattedModel = {
         _id: newModel._id.toString(),
         name: newModel.name,
@@ -64,18 +69,28 @@ export class AdminModelController implements IAdminModelController {
 
       const response: AddModelResponseDTO = {
         success: true,
-        message: `Model ${formattedModel.name} is created`,
+        message: RESPONSE_MESSAGES.RESOURCE_CREATED(
+          `Model ${formattedModel.name}`
+        ),
         model: formattedModel,
       };
 
       const validated = AddModelResponseSchema.safeParse(response);
       if (!validated.success) {
-        throw new Error("Response DTO does not match schema");
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
 
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
     }
   }
 
@@ -87,7 +102,7 @@ export class AdminModelController implements IAdminModelController {
       const parsed = ToggleModelStatusRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
-          message: "Invalid input",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
           errors: parsed.error.flatten(),
         });
         return;
@@ -103,7 +118,7 @@ export class AdminModelController implements IAdminModelController {
       if (!updatedModel) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          message: "Model not found or failed to update status",
+          message: RESPONSE_MESSAGES.RESOURCE_UPDATE_FAILED("Model"),
         });
         return;
       }
@@ -119,18 +134,28 @@ export class AdminModelController implements IAdminModelController {
 
       const response: ToggleModelStatusResponseDTO = {
         success: true,
-        message: `Model ${formattedModel.name} status changed to ${formattedModel.status}`,
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED(
+          `Model ${formattedModel.name}`
+        ),
         model: formattedModel,
       };
 
       const validated = ToggleModelStatusResponseSchema.safeParse(response);
       if (!validated.success) {
-        throw new Error("Response DTO does not match schema");
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: (error as Error).message });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
     }
   }
 
@@ -142,7 +167,7 @@ export class AdminModelController implements IAdminModelController {
       const parsed = UpdateModelRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
-          message: "Invalid input",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
           errors: parsed.error.flatten(),
         });
         return;
@@ -156,7 +181,9 @@ export class AdminModelController implements IAdminModelController {
       );
 
       if (!updatedModel) {
-        res.status(StatusCode.NOT_FOUND).json({ message: "Model not found" });
+        res
+          .status(StatusCode.NOT_FOUND)
+          .json({ message: RESPONSE_MESSAGES.RESOURCE_UPDATE_FAILED("Model") });
         return;
       }
 
@@ -170,19 +197,23 @@ export class AdminModelController implements IAdminModelController {
       };
 
       const response: UpdateModelResponseDTO = {
-        message: "Model updated successfully",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Model"),
         model: formattedModel,
       };
 
       const validated = UpdateModelResponseSchema.safeParse(response);
       if (!validated.success) {
-        throw new Error("Response DTO does not match schema");
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
       }
 
       res.status(StatusCode.NOT_FOUND).json(response);
     } catch (error) {
       console.error("Error updating model:", error);
-      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
     }
   }
 }

@@ -23,6 +23,7 @@ import {
   ErrorResponseDTO,
 } from "../../dtos/controllers/user/userCart.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
+import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
 export class UserCartController implements IUserCartController {
@@ -39,7 +40,7 @@ export class UserCartController implements IUserCartController {
       if (!accessToken) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          message: "Not authorized, no access token",
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
@@ -49,14 +50,19 @@ export class UserCartController implements IUserCartController {
       );
       const user = userDetails as JwtPayload;
       if (!user || !user.id) {
-        throw new Error("Failed to authenticate");
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
       }
-      const parsed = GetCartRequestSchema.safeParse(req.query as { cartId: string });
+      const parsed = GetCartRequestSchema.safeParse(
+        req.query as { cartId: string }
+      );
       if (!parsed.success) {
-        console.log("Request DTO doesnt match",parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Request DTO doesnt match",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -64,33 +70,34 @@ export class UserCartController implements IUserCartController {
         user.id,
         parsed.data.cartId
       );
-      if(!cart){
-        console.log('no cart fetched');
-            res.status(StatusCode.NOT_FOUND).json({
+      if (!cart) {
+        res.status(StatusCode.NOT_FOUND).json({
           success: false,
-          message: "Cart not found",
+          message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("Cart"),
         });
-        return
+        return;
       }
       const response = {
         success: true,
-        message: "Fetching cart successfull",
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("cart"),
         cart,
       };
       const validate = GetCartResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the response dto doesnt match',validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response DTO doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
-        return
+        return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "The cart fetch failed" });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
   async addToCart(
@@ -102,7 +109,7 @@ export class UserCartController implements IUserCartController {
       if (!accessToken) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          message: "Not authorized, no access token",
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
@@ -113,14 +120,17 @@ export class UserCartController implements IUserCartController {
       const user = userDetails as JwtPayload;
 
       if (!user || !user.id) {
-        throw new Error("Failed to authenticate");
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
       }
       const parsed = AddServiceToCartRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log("The request DTO doesnt match", parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "The request DTO doesnt match",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -128,29 +138,36 @@ export class UserCartController implements IUserCartController {
         ...parsed.data,
         userId: user.id,
       });
-      console.log("The updated cart", updatedCart);
       if (!updatedCart) {
-        console.log("No updated cart");
-        throw new Error("The cart updation failed");
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
       }
       const response = {
         success: true,
-        message: "The card updation successfull",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Cart"),
         cart: updatedCart,
       };
       const validate = AddServiceToCartResponseSchema.safeParse(response);
       if (!validate) {
-        console.log("The response DTO doesnt match");
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response DTO doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
+        return;
       }
       res.status(201).json(response);
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "The cart updation failed" });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
   async addVehicleToCart(
@@ -162,7 +179,7 @@ export class UserCartController implements IUserCartController {
       if (!accessToken) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          message: "Not authorized, no access token",
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
@@ -172,13 +189,17 @@ export class UserCartController implements IUserCartController {
       );
       const user = userDetails as JwtPayload;
       if (!user || !user.id) {
-        throw new Error("Failed to authenticate");
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
       }
       const parsed = AddVehicleToCartRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "The request DTO doesnt match",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
@@ -187,26 +208,33 @@ export class UserCartController implements IUserCartController {
         user.id
       );
       if (!updatedCart) {
-        throw new Error("The cart updation failed");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
       }
       const response = {
         success: true,
-        message: "The card updation successfull",
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Cart"),
         cart: updatedCart,
       };
       const validate = AddVehicleToCartResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log("The response dto doesnt match", validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
-          message: "The response DTO doesnt match",
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
+        return;
       }
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "The add vehicle to cart failed" });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
   async removeFromCart(
@@ -218,7 +246,7 @@ export class UserCartController implements IUserCartController {
       if (!accessToken) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          message: "Not authorized, no access token",
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
@@ -228,34 +256,46 @@ export class UserCartController implements IUserCartController {
       );
       const user = userDetails as JwtPayload;
       if (!user || !user.id) {
-        throw new Error("Failed to authenticate");
-      }
-      const parsed = RemoveFromCartRequestSchema.safeParse(req.body);
-      if(!parsed.success){
-          res.status(StatusCode.BAD_REQUEST).json({
+        res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          message: "Request DTO doesnt match",
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      let cart = await this._userCartService.removeFromCart(user.id,parsed.data.cartId,parsed.data.packageId)
-       let response = {
-        success:true,
-        message:"Service removed from cart successfully",
-        cart
-       }
-       const validate = RemoveFromCartResponseSchema.safeParse(response);
-       if(!validate.success){
-          res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+      const parsed = RemoveFromCartRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(StatusCode.BAD_REQUEST).json({
           success: false,
-          message: "Response DTO doesnt match",
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
-       }
-       res.status(StatusCode.OK).json(response);
+        return;
+      }
+      let cart = await this._userCartService.removeFromCart(
+        user.id,
+        parsed.data.cartId,
+        parsed.data.packageId
+      );
+      let response = {
+        success: true,
+        message: RESPONSE_MESSAGES.SERVICE_REMOVED_FROM_CART,
+        cart,
+      };
+      const validate = RemoveFromCartResponseSchema.safeParse(response);
+      if (!validate.success) {
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
+      }
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ success: false, message: "The remove from cart failed" });
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 }
