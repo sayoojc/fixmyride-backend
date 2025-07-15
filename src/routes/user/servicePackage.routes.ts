@@ -1,6 +1,6 @@
 import express from "express";
 import container from "../../containers/container.config";
-import { verifyToken } from "../../middlewares/verify-token";
+import { verifyUser } from "../../middlewares/verify-role";
 import { IUserServicePackageController } from "../../interfaces/controllers/user/IUserServicePackageController";
 import { TYPES } from "../../containers/types";
 const router = express.Router();
@@ -10,7 +10,7 @@ const userServicePackageController =
     TYPES.UserServicePackageController
   );
 
-router.get("/get-service-packages", verifyToken, (req, res) =>
+router.get("/get-service-packages", verifyUser, (req, res) =>
   userServicePackageController.getServicePackages(req, res)
 );
 

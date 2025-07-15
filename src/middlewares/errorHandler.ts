@@ -25,13 +25,11 @@ export const errorHandler = (
     }
   });
 
-  // Determine response status and message
   const status = err.statusCode || 500;
   const message = status === 500 
     ? 'Internal Server Error' 
     : err.message || 'Something went wrong';
 
-  // Send error response
   res.status(status).json({ 
     success: false, 
     message,

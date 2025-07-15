@@ -9,6 +9,7 @@ const messages = {
   LOGOUT_SUCCESS: (role:string) => `${role} logout successful`,
   RESOURCE_UPDATE_FAILED: (resource:string) => `${resource} failed to update`,
   
+  ACCOUNT_IS_BLOCKED:"Your account is blocked. Contact support.",
   OTP_SEND_SUCCESSFULLY: "OTP SEND SUCCESSFULLY",
   LOGOUT_FAILED: "LOGOUT FAILED",
   UNAUTHORIZED: "Unauthorized access",
