@@ -30,14 +30,10 @@ export class AdminProviderService implements IAdminProviderService {
     statusFilter: string;
   }): Promise<{ sanitizedProviders: Partial<IServiceProvider>[],totalCount: number } | undefined> {
     try {
-            const query: any = {};
-
-      // Add search filter
+      const query: any = {};
       if (search) {
-        query.name = { $regex: search, $options: "i" }; // case-insensitive search
+        query.name = { $regex: search, $options: "i" };
       }
-
-      // Add status filter
       if (statusFilter == 'blocked') {
         query.isListed = false;
         
@@ -45,8 +41,6 @@ export class AdminProviderService implements IAdminProviderService {
         query.isListed = true;  
       }
     const totalCount = await this._providerRepository.countDocuments(query);
-
-      // Fetch paginated and filtered brands
       const providers = await this._providerRepository.findWithPagination(
         query,
         skip,

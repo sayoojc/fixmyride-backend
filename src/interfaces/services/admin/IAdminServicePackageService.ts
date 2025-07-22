@@ -1,9 +1,9 @@
 import { IServicePackage } from "../../../models/servicePackage.model";
 import {
   AddServicePackageRequestDTO,
-  UpdateServicePackageRequestDTO,
-  ToggleBlockStatusRequestDTO,
+  ServicePackageDTO
 } from "../../../dtos/controllers/admin/adminServicePackageController.dto";
+import { UpdateServicepackageServiceDTO,ToggleBlockServicePackageServiceDTO } from "../../../dtos/services/admin/servicePackage.service.dto";
 export interface IAdminServicePackageService {
   getServicePackages({
     search,
@@ -22,9 +22,9 @@ export interface IAdminServicePackageService {
     data: AddServicePackageRequestDTO
   ): Promise<AddServicePackageRequestDTO>;
   updateServicePackage(
-    data: UpdateServicePackageRequestDTO
-  ): Promise<IServicePackage>;
+    data: UpdateServicepackageServiceDTO
+  ): Promise<ServicePackageDTO>;
   toggleBlockStatus(
-    data: ToggleBlockStatusRequestDTO
+    data: ToggleBlockServicePackageServiceDTO
   ): Promise<IServicePackage>;
 }

@@ -14,7 +14,7 @@ export class AdminUserService implements IAdminUserService {
 
   async fetchUsers(search: string,
   page: number,
-  statusFilter: string): Promise<UserDTO[] | undefined> {
+  statusFilter: string): Promise<{users:UserDTO[],totalCount:number} | undefined> {
     try {
 return await this._userRepository.fetchUsers(search, page, statusFilter);     
     } catch (error) {

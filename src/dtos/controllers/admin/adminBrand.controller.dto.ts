@@ -10,12 +10,10 @@ export const AddBrandRequestSchema = z.object({
 });
 
 export const ToggleBrandStatusRequestSchema = z.object({
-  brandId: z.string().min(1, "Brand ID is required"),
   newStatus: z.string(),
 });
 
 export const UpdateBrandRequestSchema = z.object({
-  id: z.string().min(1, "ID is required"),
   name: z.string().min(2, "Brand name must be at least 2 characters"),
   imageUrl: z.string().url("Invalid image URL"),
 });

@@ -35,8 +35,10 @@ export class AdminServicePackageController
     res: Response<AddServicePackageResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      console.log('the  add service pacakge ',req.body);
       const parsed = ServicePackageSchema.safeParse(req.body);
       if (!parsed.success) {
+        console.log('the request parsing failed',parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -60,12 +62,10 @@ export class AdminServicePackageController
       }
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   async getServicePackages(
@@ -102,35 +102,37 @@ export class AdminServicePackageController
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   async updateServicePackage(
-    req: Request<{}, {}, UpdateServicePackageRequestDTO>,
+    req: Request<{ id: string }, {}, UpdateServicePackageRequestDTO>,
     res: Response<UpdateServicePackageResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      console.log('the update service paackage controller function ',req.body);
       const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
 
       if (!parsed.success) {
+        console.log('the req parsing of the update service package functon faled',parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
         });
         return;
       }
-
+      const id = req.params.id;
       const updatedServicePackage =
-        await this._adminServicePackageService.updateServicePackage(
-          parsed.data
-        );
+        await this._adminServicePackageService.updateServicePackage({
+          ...parsed.data,
+          id: id,
+        });
 
       if (!updatedServicePackage) {
+        console.log('the updated service package functin failed returned from theservice layer');
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -146,6 +148,7 @@ export class AdminServicePackageController
 
       const validate = UpdateServicePackageResponseSchema.safeParse(response);
       if (!validate.success) {
+        console.log('the updated service package response validateion failed',validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response DTO doesn't match",
@@ -155,16 +158,14 @@ export class AdminServicePackageController
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   async toggleBlockStatus(
-    req: Request<{}, {}, ToggleBlockStatusRequestDTO>,
+    req: Request<{id:string}, {}, ToggleBlockStatusRequestDTO>,
     res: Response<ToggleBlockStatusResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
@@ -176,8 +177,9 @@ export class AdminServicePackageController
         });
         return;
       }
+      const id = req.params.id;
       const updatedServicePackage =
-        await this._adminServicePackageService.toggleBlockStatus(parsed.data);
+        await this._adminServicePackageService.toggleBlockStatus({...parsed.data,id});
 
       const response = {
         success: true,
@@ -194,12 +196,10 @@ export class AdminServicePackageController
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 }

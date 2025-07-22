@@ -13,16 +13,16 @@ export const AddModelRequestSchema = z.object({
 
 export const ToggleModelStatusRequestSchema = z.object({
   brandId: z.string().min(1, "Brand ID is required"),
-  modelId: z.string().min(1, "Model ID is required"),
   newStatus: z.enum(["active", "blocked"], {
     required_error: "Status must be either 'active' or 'inactive'",
   }),
 });
 
 export const UpdateModelRequestSchema = z.object({
-  id: z.string().min(1, "Model ID is required"),
+  brandId: z.string().min(1, "Model ID is required"),
   name: z.string().min(1, "Model name is required"),
   imageUrl: z.string().url("Invalid image URL"),
+  fuelTypes: z.array(z.string().min(1)).nonempty("At least one fuel type is required"),
 });
 
 // ---------------------

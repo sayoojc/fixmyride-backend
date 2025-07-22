@@ -4,8 +4,6 @@ import { TYPES } from "../../containers/types";
 import { IAdminUserService } from "../../interfaces/services/admin/IAdminUserService";
 import { IAdminUserController } from "../../interfaces/controllers/admin/IAdminUserController";
 import {
-  ToggleListingRequestDTO,
-  ToggleListingRequestSchema,
   ToggleListingResponseDTO,
   FetchUsersResponseDTO,
   FetchUsersResponseSchema,
@@ -30,14 +28,15 @@ export class AdminUserController implements IAdminUserController {
       const search = (req.query.search as string) || "";
       const page = parseInt(req.query.page as string) || 1;
       const statusFilter = (req.query.statusFilter as string) || "all";
-      const users =
+      const {users,totalCount} =
         (await this._adminUserService.fetchUsers(search, page, statusFilter)) ??
-        [];
+       { users:[],totalCount:1};
 
       const response: FetchUsersResponseDTO = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Users"),
-        users: users,
+        users,
+        totalCount
       };
 
       const validated = FetchUsersResponseSchema.safeParse(response);
@@ -58,19 +57,17 @@ export class AdminUserController implements IAdminUserController {
   }
 
   async toggleListing(
-    req: Request<{}, {}, ToggleListingRequestDTO>,
+    req: Request<{email:string}, {}>,
     res: Response<ToggleListingResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const parsed = ToggleListingRequestSchema.safeParse(req.body);
-      if (!parsed.success) {
+      const email = req.params.email
+      if (!email) {
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-
-      const email = parsed.data.email;
       const updatedUser = await this._adminUserService.toggleListing(email);
       if (!updatedUser) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({

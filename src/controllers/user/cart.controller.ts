@@ -238,7 +238,7 @@ export class UserCartController implements IUserCartController {
     }
   }
   async removeFromCart(
-    req: Request<{}, {}, RemoveFromCartRequestDTO>,
+    req: Request<{cartId:string,packageId:string}, {}>,
     res: Response<RemoveFromCartResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
@@ -262,8 +262,8 @@ export class UserCartController implements IUserCartController {
         });
         return;
       }
-      const parsed = RemoveFromCartRequestSchema.safeParse(req.body);
-      if (!parsed.success) {
+const{cartId,packageId} = req.params
+      if (!cartId || !packageId) {
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -272,8 +272,8 @@ export class UserCartController implements IUserCartController {
       }
       let cart = await this._userCartService.removeFromCart(
         user.id,
-        parsed.data.cartId,
-        parsed.data.packageId
+        cartId,
+        packageId
       );
       let response = {
         success: true,

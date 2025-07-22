@@ -11,8 +11,6 @@ import {
   FetchProvidersResponseDTO,
   FetchVerificationDataResponseSchema,
   FetchVerificationDataResponseDTO,
-  ToggleListingRequestSchema,
-  ToggleListingRequestDTO,
   ToggleListingResponseSchema,
   ToggleListingResponseDTO,
   VerifyProviderRequestSchema,
@@ -47,8 +45,8 @@ export class AdminProviderController implements IAdminProviderController {
           skip,
           limit,
           statusFilter,
-        })) ?? { sanitizedProviders: [], totalCount: 0 };
-      const totalPage = Math.max(totalCount / limit);
+        })) ?? { sanitizedProviders: [], totalCount: 1 };
+      const totalPage = Math.ceil(totalCount / limit) || 1;
       const providers = sanitizedProviders.map((provider) => ({
         _id: provider._id?.toString() || "",
         name: provider.name || "",
@@ -77,21 +75,19 @@ export class AdminProviderController implements IAdminProviderController {
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
   async fetchVerificationData(
-    req: Request,
+    req: Request<{id:string}>,
     res: Response<FetchVerificationDataResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const id = req.query.id as string;
+      const id = req.params.id;
       const verificationData =
         await this._adminProviderService.fetchVerificationData(id);
       const response: FetchVerificationDataResponseDTO = {
@@ -101,41 +97,35 @@ export class AdminProviderController implements IAdminProviderController {
       };
       const validated = FetchVerificationDataResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
   async fetchProviderById(
-    req: Request,
+    req: Request<{id:string}>,
     res: Response<FetchProviderResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const providerId = req.query.id as string;
+      const providerId = req.params.id;
       const rawProvider = await this._adminProviderService.fetchProviderById(
         providerId
       );
       if (!rawProvider) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       const sanitizedProvider = {
@@ -154,27 +144,23 @@ export class AdminProviderController implements IAdminProviderController {
 
       const validated = FetchProviderResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
   async verifyProvider(
-    req: Request<{}, {}, VerifyProviderRequestDTO>,
+    req: Request<{ id: string }, {}, VerifyProviderRequestDTO>,
     res: Response<VerifyProviderResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
@@ -185,19 +171,25 @@ export class AdminProviderController implements IAdminProviderController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      const { providerId, verificationAction, adminNotes } = parsed.data;
+      const providerId = req.params.id;
+      if (!req.params.id) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
+        });
+        return;
+      }
+      const { verificationAction, adminNotes } = parsed.data;
       const rawProvider = await this._adminProviderService.verifyProvider(
         providerId,
         verificationAction,
         adminNotes ?? ""
       );
       if (!rawProvider) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       const sanitizedProvider = {
@@ -214,48 +206,42 @@ export class AdminProviderController implements IAdminProviderController {
       };
       const validated = VerifyProviderResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 
   async toggleListing(
-    req: Request<{}, {}, ToggleListingRequestDTO>,
+    req: Request<{ id: string }, {}>,
     res: Response<ToggleListingResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const parsed = ToggleListingRequestSchema.safeParse(req.body);
-      if (!parsed.success) {
-        res
-          .status(StatusCode.BAD_REQUEST)
-          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+      const providerId = req.params.id;
+      if (!req.params.id) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
+        });
         return;
       }
-      const providerId = parsed.data.providerId;
       const rawProvider = await this._adminProviderService.toggleListing(
         providerId
       );
       if (!rawProvider) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       const sanitizedProvider = {
@@ -272,22 +258,18 @@ export class AdminProviderController implements IAdminProviderController {
       };
       const validated = ToggleListingResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 }

@@ -3,10 +3,9 @@ import { TYPES } from "../../containers/types";
 import { IAdminServicePackageService } from "../../interfaces/services/admin/IAdminServicePackageService";
 import {
   AddServicePackageRequestDTO,
-  ToggleBlockStatusRequestDTO,
-  UpdateServicePackageRequestDTO,
   ServicePackageDTO
 } from "../../dtos/controllers/admin/adminServicePackageController.dto";
+import { ToggleBlockServicePackageServiceDTO, UpdateServicepackageServiceDTO } from "../../dtos/services/admin/servicePackage.service.dto";
 import { Types } from "mongoose";
 import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
 import { IServicePackage } from "../../models/servicePackage.model";
@@ -20,16 +19,16 @@ export class AdminServicePackageService implements IAdminServicePackageService {
     data: AddServicePackageRequestDTO
   ): Promise<ServicePackageDTO> {
     try {
-      console.log('the add service package service function ');
+      console.log('the add service package service function from the service layer',data);
       const servicePackageData = {
         ...data,
         brandId: new Types.ObjectId(data.brandId),
         modelId: new Types.ObjectId(data.modelId),
       };
-      console.log('service package data from the service layer',servicePackageData);
       const newServicePackage = await this._servicePackageRepository.create(
         servicePackageData
       );
+      console.log('the new service package',newServicePackage)
       const plainObject = newServicePackage.toObject();
      const sanitizedServicePackage: ServicePackageDTO = {
   title: plainObject.title,
@@ -48,7 +47,7 @@ export class AdminServicePackageService implements IAdminServicePackageService {
     total: plainObject.priceBreakup.total,
   },
 };
-
+console.log('the sanitized service package',sanitizedServicePackage)
 return sanitizedServicePackage;
     } catch (error) {
       throw error;
@@ -82,17 +81,16 @@ return sanitizedServicePackage;
       } else if (statusFilter === "active") {
         query.isBlocked = false;
       }
-      const totalCount = await this._servicePackageRepository.countDocuments(
+      let totalCount = await this._servicePackageRepository.countDocuments(
         query
       );
-      console.log("the total count from the service layer", totalCount);
+      totalCount = Math.ceil(totalCount/limit)
       const servicePackages =
         await this._servicePackageRepository.findServicePackagesWithPopulate(
           query,
           skip,
           limit
         );
-      console.log("the service pacckages", servicePackages);
       return { servicePackages, totalCount };
     } catch (error) {
       console.log("The catch block error", error);
@@ -100,8 +98,8 @@ return sanitizedServicePackage;
     }
   }
   async updateServicePackage(
-    data: UpdateServicePackageRequestDTO
-  ): Promise<IServicePackage> {
+    data: UpdateServicepackageServiceDTO
+  ): Promise<ServicePackageDTO> {
     try {
       const refinedData = {
         ...data.data,
@@ -117,13 +115,32 @@ return sanitizedServicePackage;
       if (!updatedServicePackage) {
         throw new Error("The update service package failed");
       }
-      return updatedServicePackage;
+           const plainObject = updatedServicePackage.toObject();
+     const sanitizedServicePackage: ServicePackageDTO = {
+  title: plainObject.title,
+  description: plainObject.description,
+  brandId: plainObject.brandId.toString(),
+  modelId: plainObject.modelId.toString(),
+  fuelType: plainObject.fuelType,
+  servicesIncluded: plainObject.servicesIncluded,
+  servicePackageCategory: plainObject.servicePackageCategory,
+  imageUrl:plainObject.imageUrl,
+  priceBreakup: {
+    parts: plainObject.priceBreakup.parts,
+    laborCharge: plainObject.priceBreakup.laborCharge,
+    discount: plainObject.priceBreakup.discount,
+    tax: plainObject.priceBreakup.tax,
+    total: plainObject.priceBreakup.total,
+  },
+};
+console.log('the sanitized service package',sanitizedServicePackage)
+return sanitizedServicePackage;
     } catch (error) {
       throw error;
     }
   }
   async toggleBlockStatus(
-    data: ToggleBlockStatusRequestDTO
+    data: ToggleBlockServicePackageServiceDTO
   ): Promise<IServicePackage> {
     try {
       const status = data.actionType === "block" ? true : false;

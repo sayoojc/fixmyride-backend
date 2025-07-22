@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-export const ToggleListingRequestSchema = z.object({
-  email: z.string().email("Invalid email format"),
-});
-
-export type ToggleListingRequestDTO = z.infer<typeof ToggleListingRequestSchema>;
 
 export const UserSchema = z.object({
   _id: z.string(),
@@ -21,6 +16,7 @@ export const FetchUsersResponseSchema = z.object({
   success: z.literal(true),
   message: z.string(),
   users: z.array(UserSchema),
+  totalCount:z.number()
 });
 export type FetchUsersResponseDTO = z.infer<typeof FetchUsersResponseSchema>;
 

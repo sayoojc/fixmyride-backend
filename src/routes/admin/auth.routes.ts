@@ -14,7 +14,7 @@ const adminAuthController = container.get<IAdminAuthController>(
  * @desc    Admin login
  * @access  Public
  */
-router.post("/adminlogin", (req, res) =>
+router.post("/login", (req, res) =>
   adminAuthController.adminLogin(req, res)
 );
 

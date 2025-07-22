@@ -9,11 +9,11 @@ const adminUserController = container.get<IAdminUserController>(
   TYPES.AdminUserController
 );
 
-router.get("/get-users", verifyAdmin, (req, res) =>
+router.get("/users", verifyAdmin, (req, res) =>
   adminUserController.fetchUsers(req, res)
 );
 
-router.patch("/toggle-user-listing", verifyAdmin, (req, res) =>
+router.patch("/users/:email", verifyAdmin, (req, res) =>
   adminUserController.toggleListing(req, res)
 );
 

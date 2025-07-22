@@ -38,11 +38,11 @@ router.post("/login", (req, res) => userauthController.userLogin(req, res));
  */
 router.post("/logout", (req, res) => userauthController.logout(req, res));
 
-router.post("/forgotPassword", (req, res) =>
+router.post("/forgot", (req, res) =>
   userauthController.forgotPassword(req, res)
 );
 
-router.post("/reset-password", (req, res) =>
+router.post("/reset", (req, res) =>
   userauthController.resetPassword(req, res)
 );
 

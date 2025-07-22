@@ -10,23 +10,23 @@ const userAddressController = container.get<IUserAddressController>(
   TYPES.UserAddressController
 );
 
-router.get("/get-addresses",verifyUser,(req,res) => 
+router.get("/addresses",verifyUser,(req,res) => 
  userAddressController.getAddresses(req,res)
 )
 
-router.post("/add-address", verifyUser, (req, res) =>
+router.post("/addresses", verifyUser, (req, res) =>
   userAddressController.addAddress(req, res)
 );
 
-router.patch("/set-default-address", verifyUser, (req, res) =>
+router.patch("/addresses/:id/default", verifyUser, (req, res) =>
   userAddressController.setDefaultAddress(req, res)
 );
 
-router.patch("/update-address", verifyUser, (req, res) =>
+router.patch("/address/:id", verifyUser, (req, res) =>
   userAddressController.updateAddress(req, res)
 );
 
-router.delete("/delete-address", verifyUser, (req, res) =>
+router.delete("/addresses/:id", verifyUser, (req, res) =>
   userAddressController.deleteAddress(req, res)
 );
 

@@ -1,4 +1,5 @@
 import { TYPES } from "../../containers/types";
+import { Types } from "mongoose";
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { IAdminModelService } from "../../interfaces/services/admin/IAdminModelService";
@@ -95,7 +96,7 @@ export class AdminModelController implements IAdminModelController {
   }
 
   async toggleModelStatus(
-    req: Request<{}, {}, ToggleModelStatusRequestDTO>,
+    req: Request<{id:string}, {}, ToggleModelStatusRequestDTO>,
     res: Response<ToggleModelStatusResponse>
   ): Promise<void> {
     try {
@@ -107,14 +108,19 @@ export class AdminModelController implements IAdminModelController {
         });
         return;
       }
-
-      const { brandId, modelId, newStatus } = parsed.data;
+      const modelId = req.params.id
+      if(!modelId){
+          res.status(StatusCode.BAD_REQUEST).json({
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
+        });
+        return;
+      }
+      const { brandId, newStatus } = parsed.data;
       const updatedModel = await this._adminModelService.toggleModelStatus(
         brandId,
         modelId,
         newStatus
       );
-
       if (!updatedModel) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
@@ -122,7 +128,6 @@ export class AdminModelController implements IAdminModelController {
         });
         return;
       }
-
       const formattedModel = {
         _id: updatedModel._id.toString(),
         name: updatedModel.name,
@@ -131,7 +136,6 @@ export class AdminModelController implements IAdminModelController {
         brandId: updatedModel.brandId.toString(),
         fuelTypes: updatedModel.fuelTypes,
       };
-
       const response: ToggleModelStatusResponseDTO = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_UPDATED(
@@ -139,7 +143,6 @@ export class AdminModelController implements IAdminModelController {
         ),
         model: formattedModel,
       };
-
       const validated = ToggleModelStatusResponseSchema.safeParse(response);
       if (!validated.success) {
         res
@@ -150,7 +153,6 @@ export class AdminModelController implements IAdminModelController {
           });
         return;
       }
-
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       res
@@ -160,10 +162,12 @@ export class AdminModelController implements IAdminModelController {
   }
 
   async updateModel(
-    req: Request<{}, {}, UpdateModelRequestDTO>,
+    req: Request<{id:string}, {}, UpdateModelRequestDTO>,
     res: Response<UpdateModelResponse>
   ): Promise<void> {
     try {
+      const id = req.params.id;
+      const newId = new Types.ObjectId(id)
       const parsed = UpdateModelRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -172,21 +176,21 @@ export class AdminModelController implements IAdminModelController {
         });
         return;
       }
-
-      const { id, name, imageUrl } = parsed.data;
+      const {name, imageUrl,brandId,fuelTypes } = parsed.data;     
+      const newBrandId = new Types.ObjectId(brandId);
       const updatedModel = await this._adminModelService.updateModel(
-        id,
+        newId,
         name,
-        imageUrl
+        imageUrl,
+        newBrandId,
+        fuelTypes
       );
-
       if (!updatedModel) {
         res
           .status(StatusCode.NOT_FOUND)
           .json({ message: RESPONSE_MESSAGES.RESOURCE_UPDATE_FAILED("Model") });
         return;
       }
-
       const formattedModel = {
         _id: updatedModel._id.toString(),
         name: updatedModel.name,
@@ -195,7 +199,6 @@ export class AdminModelController implements IAdminModelController {
         brandId: updatedModel.brandId.toString(),
         fuelTypes: updatedModel.fuelTypes,
       };
-
       const response: UpdateModelResponseDTO = {
         message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Model"),
         model: formattedModel,
@@ -208,7 +211,7 @@ export class AdminModelController implements IAdminModelController {
           .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
       }
 
-      res.status(StatusCode.NOT_FOUND).json(response);
+      res.status(StatusCode.OK).json(response);
     } catch (error) {
       console.error("Error updating model:", error);
       res

@@ -69,7 +69,6 @@ export const getServicePackagesResponseSchema = z.object({
   }) 
 });
 export const UpdateServicePackageRequestSchema = z.object({
-  id:z.string(),
   data:ServicePackageSchema
 })
 export const UpdateServicePackageResponseSchema = z.object({
@@ -78,7 +77,6 @@ export const UpdateServicePackageResponseSchema = z.object({
   servicePackage:ServicePackageSchema
 })
 export const ToggleBlockStatusRequestSchema = z.object({
-  id:z.string(),
   actionType:z.string()
 })
 export const ToggleBlockStatusResponseSchema = z.object({

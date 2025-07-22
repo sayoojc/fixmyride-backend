@@ -57,20 +57,29 @@ export class UserAddressController implements IUserAddressController {
   }
 
   async setDefaultAddress(
-    req: Request<{}, {}, SetDefaultAddressRequestDTO>,
+    req: Request<{id:string}, {}>,
     res: Response<SuccessResponse | ErrorResponse>
   ): Promise<void> {
     try {
-      const parsed = SetDefaultAddressSchema.safeParse(req.body);
-      if (!parsed.success) {
-        res
-          .status(StatusCode.BAD_REQUEST)
-          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+      const accessToken = req.cookies.accessToken;
+      if(!accessToken) {
+        res.status(StatusCode.BAD_REQUEST).json({success:false,message:RESPONSE_MESSAGES.UNAUTHORIZED});
         return;
       }
-
-      const { addressId, userId } = parsed.data;
-      await this._userAddressService.setDefaultAddress(addressId, userId);
+      const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      )
+      const addressId = req.params.id;
+      const user = userDetails as JwtPayload;
+          if (!user || !user.id) {
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
+      }
+      await this._userAddressService.setDefaultAddress(addressId, user.id);
 
       res.status(StatusCode.OK).json({
         success: true,
@@ -85,24 +94,40 @@ export class UserAddressController implements IUserAddressController {
         });
     }
   }
-
   async updateAddress(
-    req: Request<{}, {}, UpdateAddressRequestDTO>,
+    req: Request<{id:string}, {}, UpdateAddressRequestDTO>,
     res: Response<UpdateAddressResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      const accessToken = req.cookies.accessToken;
+      if(!accessToken) {
+        res.status(StatusCode.BAD_REQUEST).json({success:false,message:RESPONSE_MESSAGES.UNAUTHORIZED});
+        return;
+      }
+      const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      )
+        const user = userDetails as JwtPayload;
+              const id = req.params.id;
+          if (!user || !user.id || id) {
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
+      }
       const parsed = UpdateAddressRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
-      }
-      const { addressForm, _id, userId } = parsed.data;
+      }     
       const updatedAddress = await this._userAddressService.updateAddress(
-        addressForm,
-        _id,
-        userId
+       parsed.data.addressForm,
+        id,
+        user.id
       );
       const response: UpdateAddressResponseDTO = {
         success: true,
@@ -131,22 +156,31 @@ export class UserAddressController implements IUserAddressController {
   }
 
   async deleteAddress(
-    req: Request<{}, {}, DeleteAddressRequestDTO>,
+    req: Request<{id:string}, {}>,
     res: Response<SuccessResponse | ErrorResponse>
   ): Promise<void> {
     try {
-      const parsed = DeleteAddressRequestSchema.safeParse(req.query);
-      if (!parsed.success) {
-        res.status(StatusCode.BAD_REQUEST).json({
+      const addressId = req.params.id;
+       const accessToken = req.cookies.accessToken;
+      if(!accessToken) {
+        res.status(StatusCode.BAD_REQUEST).json({success:false,message:RESPONSE_MESSAGES.UNAUTHORIZED});
+        return;
+      }
+      const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      )
+        const user = userDetails as JwtPayload;
+          if (!user || !user.id || addressId) {
+        res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
-          message: RESPONSE_MESSAGES.INVALID_INPUT,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const { addressId, userId } = parsed.data;
       const response = await this._userAddressService.deleteAddress(
         addressId,
-        userId
+        user.id
       );
 
       if (response.success) {

@@ -9,13 +9,13 @@ const providerProfileController = container.get<IProviderProfileController>(
   TYPES.ProviderProfileController
 );
 
-router.get("/get-profile-data", verifyProvider, (req, res) =>
+router.get("/profile", verifyProvider, (req, res) =>
   providerProfileController.getProfileData(req, res)
 );
-router.post("/verify-provider", verifyProvider, (req, res) =>
+router.post("/profile/verify", verifyProvider, (req, res) =>
   providerProfileController.verifyProvider(req, res)
 );
-router.patch("/update-profile", verifyProvider, (req, res) =>
+router.patch("/profile", verifyProvider, (req, res) =>
   providerProfileController.updateProfile(req, res)
 );
 

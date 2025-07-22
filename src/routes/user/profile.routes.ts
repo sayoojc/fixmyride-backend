@@ -9,13 +9,13 @@ const profileController = container.get<IUserProfileController>(
   TYPES.UserProfileController
 );
 
-router.get("/getProfileData", verifyUser, (req, res) =>
+router.get("/profile", verifyUser, (req, res) =>
   profileController.getProfileData(req, res)
 );
-router.put("/update-profile", verifyUser, (req, res) =>
+router.put("/profile", verifyUser, (req, res) =>
   profileController.updateProfile(req, res)
 );
-router.put("/change-password", verifyUser, (req, res) =>
+router.put("/profile/password", verifyUser, (req, res) =>
   profileController.changePassword(req, res)
 );
 

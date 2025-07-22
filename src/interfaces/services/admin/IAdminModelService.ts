@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { IModel } from "../../../models/model.model";
 
 export interface IAdminModelService {
@@ -9,9 +10,11 @@ export interface IAdminModelService {
   ): Promise<IModel>;
 
   updateModel(
-    id: string,
+    id: Types.ObjectId,
     name: string,
-    imageUrl: string
+    imageUrl: string,
+    brandId:Types.ObjectId,
+    fuelTypes:string[],
   ): Promise<IModel | null>;
 
   toggleModelStatus(

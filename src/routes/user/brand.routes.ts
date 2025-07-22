@@ -5,15 +5,13 @@ import { TYPES } from "../../containers/types";
 import { verifyUser } from "../../middlewares/verify-role";
 const router = express.Router();
 
-const userController = container.get<IUserBrandController>(
+const brandController = container.get<IUserBrandController>(
   TYPES.UserBrandController
 );
 
-router.get("/get-brands", verifyUser, (req, res) =>
-  userController.getBrands(req, res)
+router.get("/brands", verifyUser, (req, res) =>
+  brandController.getBrands(req, res)
 );
-router.get("/get-brand-model-data", verifyUser, (req, res) =>
-  userController.getBrands(req, res)
-);
+
 
 export default router;

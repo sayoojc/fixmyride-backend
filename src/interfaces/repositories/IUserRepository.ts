@@ -13,5 +13,5 @@ export interface IUserRepository extends IBaseRepository<IUser> {
     search: string,
     page: number,
     statusFilter: string
-  ): Promise<UserDTO[]>
+  ): Promise<{users:UserDTO[],totalCount:number}>
 }

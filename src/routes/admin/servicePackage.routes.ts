@@ -9,16 +9,16 @@ const adminservicePackageController =
     TYPES.AdminServicePackageController
   );
 
-router.post("/add-service-package", verifyAdmin, (req, res) =>
+router.post("/service-package", verifyAdmin, (req, res) =>
   adminservicePackageController.addServicePackage(req, res)
 );
-router.get("/get-service-packages", verifyAdmin, (req, res) =>
+router.get("/service-packages", verifyAdmin, (req, res) =>
   adminservicePackageController.getServicePackages(req, res)
 );
-router.patch("/update-service-package", verifyAdmin, (req, res) =>
+router.patch("/service-package/:id", verifyAdmin, (req, res) =>
   adminservicePackageController.updateServicePackage(req, res)
 );
-router.patch("/toggle-block-status", verifyAdmin, (req, res) =>
+router.patch("/service-package/:id/status", verifyAdmin, (req, res) =>
   adminservicePackageController.toggleBlockStatus(req, res)
 );
 

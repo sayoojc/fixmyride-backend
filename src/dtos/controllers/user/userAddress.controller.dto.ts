@@ -46,12 +46,6 @@ export const ResponseAddress = z.object({
 
 export const UpdateAddressRequestSchema = z.object({
   addressForm: AddressSchema,
-  _id: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: "Invalid address ID",
-  }),
-  userId: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: "Invalid user ID",
-  }),
 });
 
 export const SetDefaultAddressSchema = z.object({

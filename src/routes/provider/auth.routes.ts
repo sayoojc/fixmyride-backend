@@ -8,29 +8,19 @@ const providerAuthController = container.get<IProviderAuthController>(
   TYPES.ProviderAuthController
 );
 
-/**
- * @route   POST /login
- * @desc    Provider login
- * @access  Public
- */
-router.post("/provider-login", (req, res) =>
+router.post("/login", (req, res) =>
   providerAuthController.providerLogin(req, res)
 );
 
-/**
- * @route   POST /providerlogout
- * @desc    Provider logout
- * @access  Public
- */
-router.post("/providerlogout", (req, res) =>
+router.post("/logout", (req, res) =>
   providerAuthController.providerLogout(req, res)
 );
 
-router.post("/provider-register-temp", (req, res) =>
+router.post("/register-temp", (req, res) =>
   providerAuthController.providerRegisterTemp(req, res)
 );
 
-router.post("/provider-register", (req, res) =>
+router.post("/register", (req, res) =>
   providerAuthController.providerRegister(req, res)
 );
 

@@ -83,11 +83,9 @@ export class ProviderAuthController implements IProviderAuthController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-
       const provider = await this._providerAuthService.providerRegister({
         ...parsed.data,
       });
-
       if (!provider) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
@@ -95,7 +93,6 @@ export class ProviderAuthController implements IProviderAuthController {
         });
         return;
       }
-
       res.status(StatusCode.CREATED).json({
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_CREATED("Provider"),
@@ -119,9 +116,7 @@ export class ProviderAuthController implements IProviderAuthController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-
       const { email, password } = parsed.data;
-
       const { sanitizedProvider, accessToken, refreshToken } =
         await this._providerAuthService.providerLogin(email, password);
 

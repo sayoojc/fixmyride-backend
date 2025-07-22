@@ -9,15 +9,15 @@ const modelController = container.get<IAdminModelController>(
   TYPES.AdminModelController
 );
 
-router.post("/add-model", verifyAdmin, (req, res) =>
+router.post("/model", verifyAdmin, (req, res) =>
   modelController.addModel(req, res)
 );
 
-router.patch("/toggle-model-status", verifyAdmin, (req, res) =>
+router.patch("/model/:id/status", verifyAdmin, (req, res) =>
   modelController.toggleModelStatus(req, res)
 );
 
-router.patch("/update-model", verifyAdmin, (req, res) =>
+router.patch("/model/:id", verifyAdmin, (req, res) =>
   modelController.updateModel(req, res)
 );
 

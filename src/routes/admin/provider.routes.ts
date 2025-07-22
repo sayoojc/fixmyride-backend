@@ -9,19 +9,19 @@ const adminProviderController = container.get<IAdminProviderController>(
   TYPES.AdminProviderController
 );
 
-router.get("/get-providers", verifyAdmin, (req, res) =>
+router.get("/providers", verifyAdmin, (req, res) =>
   adminProviderController.fetchProviders(req, res)
 );
-router.get("/get-provider", verifyAdmin, (req, res) =>
+router.get("/provider/:id", verifyAdmin, (req, res) =>
   adminProviderController.fetchProviderById(req, res)
 );
-router.get("/get-verification-data", verifyAdmin, (req, res) =>
+router.get("/verification/:id", verifyAdmin, (req, res) =>
   adminProviderController.fetchVerificationData(req, res)
 );
-router.patch("/verify-provider", verifyAdmin, (req, res) =>
+router.patch("/verification/:id", verifyAdmin, (req, res) =>
   adminProviderController.verifyProvider(req, res)
 );
-router.patch("/toggle-provider-listing", verifyAdmin, (req, res) =>
+router.patch("/provider/:id", verifyAdmin, (req, res) =>
   adminProviderController.toggleListing(req, res)
 );
 

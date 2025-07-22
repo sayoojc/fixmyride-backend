@@ -9,10 +9,10 @@ const vehicleController = container.get<IUserVehicleController>(
   TYPES.UserVehicleController
 );
 
-router.post("/add-vehicle", verifyUser, (req, res) =>
+router.post("/vehicles", verifyUser, (req, res) =>
   vehicleController.addVehicle(req, res)
 );
-router.get("/get-vehicles", verifyUser, (req, res) =>
+router.get("/vehicles", verifyUser, (req, res) =>
   vehicleController.getVehicle(req, res)
 );
 

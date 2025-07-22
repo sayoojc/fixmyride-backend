@@ -5,6 +5,7 @@ import { IModel } from "../../models/model.model";
 import mongoose from "mongoose";
 import { IAdminModelService } from "../../interfaces/services/admin/IAdminModelService";
 import { Types } from "mongoose";
+import validateFuelTypes from "../../utils/validateFuelTypes";
 
 injectable();
 export class AdminModelService implements IAdminModelService {
@@ -33,13 +34,21 @@ export class AdminModelService implements IAdminModelService {
   }
 
   async updateModel(
-    id: string,
+    id: Types.ObjectId,
     name: string,
-    imageUrl: string
+    imageUrl: string,
+    brandId:Types.ObjectId,
+    fuelTypes:string[],
   ): Promise<IModel | null> {
+    const validateFuelType = validateFuelTypes(fuelTypes);
+    if(!validateFuelType){
+      return null;
+    }
     return this._modelRepository.updateById(new Types.ObjectId(id), {
       name,
       imageUrl,
+      fuelTypes,
+      brandId,
     });
   }
 

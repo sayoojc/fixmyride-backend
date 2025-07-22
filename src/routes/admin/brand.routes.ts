@@ -9,16 +9,16 @@ const brandController = container.get<IAdminBrandController>(
   TYPES.AdminBrandController
 );
 
-router.post("/add-brand", verifyAdmin, (req, res) =>
+router.post("/brands", verifyAdmin, (req, res) =>
   brandController.addBrand(req, res)
 );
-router.get("/get-brands", verifyAdmin, (req, res) =>
+router.get("/brands", verifyAdmin, (req, res) =>
   brandController.getBrands(req, res)
 );
-router.patch("/toggle-brand-status", verifyAdmin, (req, res) =>
+router.patch("/brands/:id/status", verifyAdmin, (req, res) =>
   brandController.toggleBrandStatus(req, res)
 );
-router.patch("/update-brand", verifyAdmin, (req, res) =>
+router.patch("/brands/:id", verifyAdmin, (req, res) =>
   brandController.updateBrand(req, res)
 );
 

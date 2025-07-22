@@ -10,7 +10,7 @@ const userServicePackageController =
     TYPES.UserServicePackageController
   );
 
-router.get("/get-service-packages", verifyUser, (req, res) =>
+router.get("/service-packages", verifyUser, (req, res) =>
   userServicePackageController.getServicePackages(req, res)
 );
 

@@ -135,6 +135,27 @@ export class UserProfileController implements IUserProfileController {
     res: Response<UpdateProfileResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+    const accessToken = req.cookies.accessToken;
+    if (!accessToken) {
+      res.status(StatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: RESPONSE_MESSAGES.UNAUTHORIZED,
+      });
+      return;
+    }
+         const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      );
+      const user = userDetails as JwtPayload;
+
+      if (!user || !user.id) {
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
+      }
       const parsed = UpdateProfileRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -143,10 +164,10 @@ export class UserProfileController implements IUserProfileController {
         });
         return;
       }
-      const { phone, userId, userName } = parsed.data;
+      const { phone,userName } = parsed.data;
       const updatedUser = await this._userProfileService.updateProfile(
         phone,
-        userId,
+        user.id,
         userName
       );
       if (!updatedUser) {
@@ -182,6 +203,27 @@ export class UserProfileController implements IUserProfileController {
     res: Response<ChangePasswordResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      const accessToken = req.cookies.accessToken;
+    if (!accessToken) {
+      res.status(StatusCode.UNAUTHORIZED).json({
+        success: false,
+        message: RESPONSE_MESSAGES.UNAUTHORIZED,
+      });
+      return;
+    }
+         const userDetails = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET!
+      );
+      const user = userDetails as JwtPayload;
+
+      if (!user || !user.id) {
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+        });
+        return;
+      }
       const parsed = ChangePasswordRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -190,9 +232,9 @@ export class UserProfileController implements IUserProfileController {
         });
         return;
       }
-      const { userId, currentPassword, newPassword } = parsed.data;
+      const {currentPassword, newPassword } = parsed.data;
       const updatedUser = await this._userProfileService.changePassword(
-        userId,
+        user.id,
         currentPassword,
         newPassword
       );

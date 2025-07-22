@@ -82,18 +82,18 @@ export class UserAddressService implements IUserAddressService {
   }
   async updateAddress(
     addressForm: AddAddressRequestDTO,
-    _id: string,
+    id: string,
     userId: string
   ) {
     if (addressForm.isDefault) {
       await this._addressRepository.updateMany(
-        { userId, isDefault: true, _id: { $ne: _id } },
+        { userId, isDefault: true, _id: { $ne: id } },
         { $set: { isDefault: false } }
       );
     }
 
     const updatedAddress = await this._addressRepository.updateById(
-      new Types.ObjectId(_id),
+      new Types.ObjectId(id),
       {
         ...addressForm,
         userId: new mongoose.Types.ObjectId(addressForm.userId),

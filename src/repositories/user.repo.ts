@@ -37,16 +37,14 @@ let existingUser;
   search: string,
   page: number,
   statusFilter: string
-): Promise<UserDTO[]> {
+): Promise<{users:UserDTO[],totalCount:number}> {
   try {
-    const pageSize = 10; // or whatever your default
+    const pageSize =5; 
     const skip = (page - 1) * pageSize;
 
     const query: any = {
       role: { $ne: "admin" },
     };
-
-    // Apply search
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -54,30 +52,31 @@ let existingUser;
         { phone: { $regex: search, $options: "i" } },
       ];
     }
-
-    // Apply status filter (assuming you use isListed as status)
-    if (statusFilter === "listed") {
+    console.log('the status filter',statusFilter);
+    if (statusFilter === "active") {
       query.isListed = true;
-    } else if (statusFilter === "unlisted") {
+    } else if (statusFilter === "blocked") {
       query.isListed = false;
     }
-
+    const count = await this.userModel.countDocuments(query);
+    const totalCount = Math.ceil(count/pageSize) || 1;
     const users = await this.userModel
       .find(query)
       .skip(skip)
       .limit(pageSize);
 
-    return users.map((user) => ({
+    return {users: users.map((user) => ({
       _id: user._id.toString(),
       name: user.name,
       email: user.email,
       phone: user.phone || "",
       role: user.role,
       isListed: user.isListed,
-    }));
+    })),
+    totalCount}
   } catch (error) {
     console.error("Error in repo fetching users:", error);
-    return [];
+    return {users:[],totalCount:0};
   }
 }
 

@@ -128,7 +128,7 @@ export class AdminBrandController implements IAdminBrandController {
           limit,
           statusFilter,
         });
-      const totalPage = Math.max(totalCount / limit);
+      const totalPage = Math.ceil(totalCount / limit) || 1;
       const formattedBrands = brandsWithModels.map((brand) => ({
         _id: brand._id.toString(),
         brandName: brand.brandName,
@@ -160,10 +160,11 @@ export class AdminBrandController implements IAdminBrandController {
   }
 
   async toggleBrandStatus(
-    req: Request<{}, {}, ToggleBrandStatusRequestDTO>,
+    req: Request<{id:string}, {}, ToggleBrandStatusRequestDTO>,
     res: Response<ToggleBrandStatusResponseDTO>
   ): Promise<void> {
     try {
+   
       const parsed = ToggleBrandStatusRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -172,7 +173,8 @@ export class AdminBrandController implements IAdminBrandController {
         } as any);
         return;
       }
-      const { brandId, newStatus } = parsed.data;
+      const brandId = req.params.id;
+      const { newStatus } = parsed.data;
 
       const updatedBrand = await this._adminBrandService.toggleBrandStatus(
         brandId,
@@ -216,7 +218,7 @@ export class AdminBrandController implements IAdminBrandController {
   }
 
   async updateBrand(
-    req: Request<{}, {}, UpdateBrandRequestDTO>,
+    req: Request<{id:string}, {}, UpdateBrandRequestDTO>,
     res: Response<UpdateBrandResponse>
   ): Promise<void> {
     try {
@@ -228,7 +230,9 @@ export class AdminBrandController implements IAdminBrandController {
         });
         return;
       }
-      const { id, name, imageUrl } = parsed.data;
+      
+      const {name, imageUrl } = parsed.data;
+      const id = req.params.id;
       const updatedBrand = await this._adminBrandService.updateBrand(
         id,
         name,

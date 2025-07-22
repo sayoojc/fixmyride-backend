@@ -7,7 +7,6 @@ import { z } from "zod";
 // ---------------------
 
 export const VerifyProviderRequestSchema = z.object({
-  providerId: z.string().min(1, "Provider ID is required"),
   verificationAction: z.enum(["Verified", "Rejected"], {
     required_error: "Verification action must be either 'approve' or 'reject'",
   }),

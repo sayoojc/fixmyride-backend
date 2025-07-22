@@ -9,10 +9,10 @@ const orderController = container.get<IUserOrderController>(
 );
 
 
-router.post("/create-razorpay-order",verifyUser, (req, res) => {
+router.post("/payments/razorpay/order",verifyUser, (req, res) => {
   orderController.createRazorpayOrder(req, res);
 });
-router.post("/verify-payment", verifyUser, (req, res) => {
+router.post("/payments/razorpay/verify", verifyUser, (req, res) => {
   orderController.verifyRazorpayPayment(req, res);
 });
 

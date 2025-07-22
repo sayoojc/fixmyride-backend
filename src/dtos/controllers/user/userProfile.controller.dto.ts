@@ -83,16 +83,10 @@ export const PartialSanitizedUserSchema = z.object({
 // Request DTOs
 export const UpdateProfileRequestSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
-  userId: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: "Invalid user ID",
-  }),
   userName: z.string().min(1, "User name is required"),
 });
 
 export const ChangePasswordRequestSchema = z.object({
-  userId: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-    message: "Invalid user ID",
-  }),
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(6, "New password must be at least 6 characters"),
 });
