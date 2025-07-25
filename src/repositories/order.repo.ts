@@ -7,5 +7,4 @@ export class OrderRepository extends BaseRepository<IOrder> implements IOrderRep
     super(orderModel);
   }
 
-
 }

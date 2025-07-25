@@ -12,7 +12,6 @@ interface ProviderInfo {
 export class SocketService implements ISocketService {
   private io!: Server;
   private providerSocketMap: Map<string, ProviderInfo> = new Map();
-
   public initialize(server: any): void {
     this.io = new Server(server, {
       cors: {
@@ -20,7 +19,6 @@ export class SocketService implements ISocketService {
         methods: ["GET", "POST"],
       },
     });
-
     this.io.on("connection", (socket: Socket) => {
       console.log(`Socket connected: ${socket.id}`);
       socket.on(
@@ -44,9 +42,7 @@ export class SocketService implements ISocketService {
 
           await redis.set(`provider:online:${providerId}`, "true", "EX", 60);
         }
-
       );
-
       socket.on("chat:message", (data) => {
         console.log("Chat message received:", data);
         this.io.emit("chat:message", data);
@@ -65,6 +61,33 @@ export class SocketService implements ISocketService {
           }
         }
       });
+      socket.on(
+        "provider:location:update",
+        async (data: {
+          providerId: string;
+          location: { lat: number; lng: number };
+          clientId?: string;
+        }) => {
+          const { providerId, location, clientId } = data;
+          console.log(`📍 Location update from ${providerId}:`, location);
+          await redis.geoadd(
+            "providers:locations",
+            location.lng,
+            location.lat,
+            providerId
+          );
+          await redis.set(`provider:online:${providerId}`, "true", "EX", 60);
+          if (clientId) {
+            const clientSocketId = await redis.get(`client:socket:${clientId}`);
+            if (clientSocketId) {
+              this.io.to(clientSocketId).emit("provider:location:live", {
+                providerId,
+                location,
+              });
+            }
+          }
+        }
+      );
     });
   }
 
@@ -90,13 +113,13 @@ export class SocketService implements ISocketService {
     data: any
   ): Promise<void> {
     try {
-      const providerIds= await redis.georadius(
+      const providerIds = (await redis.georadius(
         "providers:locations",
         customerLng,
         customerLat,
         20,
         "km"
-      ) as string[] 
+      )) as string[];
 
       if (!providerIds.length) {
         console.log("No nearby providers found within 20km.");
@@ -105,10 +128,10 @@ export class SocketService implements ISocketService {
       const pipeline = redis.pipeline();
       providerIds.forEach((id) => pipeline.get(`provider:socket:${id}`));
       const results = await pipeline.exec();
-       if (!results) {
-      console.error("Redis pipeline returned null.");
-      return;
-    }
+      if (!results) {
+        console.error("Redis pipeline returned null.");
+        return;
+      }
       results.forEach(([err, socketId], index) => {
         const providerId = providerIds[index];
         if (err) {

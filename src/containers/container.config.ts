@@ -21,6 +21,8 @@ import { bindAdminUserModule } from "./modules/admin/user.module";
 // === Provider Modules ===
 import { bindProviderAuthModule } from "./modules/provider/auth.module";
 import { bindProviderProfileModule } from "./modules/provider/profile.module";
+import { bindProviderOrderModule } from "./modules/provider/order.module";
+
 
 // === common services modules ===
 import { bindCommonServiceModule } from "./modules/bindCommonServices.module";
@@ -54,6 +56,7 @@ bindAdminUserModule(container);
 // Provider
 bindProviderAuthModule(container);
 bindProviderProfileModule(container);
+bindProviderOrderModule(container);
 
 //common services
 bindCommonServiceModule(container);

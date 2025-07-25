@@ -38,6 +38,7 @@ export const TYPES = {
   // Provider services
   ProviderAuthService: Symbol.for("ProviderAuthService"),
   ProviderProfileService: Symbol.for("ProviderProfileService"),
+  ProviderOrderService: Symbol.for("ProviderOrderService"),
 
   //Socket service
   SocketService: Symbol.for("SocketService"),
@@ -64,5 +65,7 @@ export const TYPES = {
 
   // Provider controllers
   ProviderAuthController: Symbol.for("ProviderAuthController"),
-  ProviderProfileController: Symbol.for("ProviderProfileController")
+  ProviderProfileController: Symbol.for("ProviderProfileController"),
+  ProviderOrderController: Symbol.for("ProviderOrderController"),
+
 };

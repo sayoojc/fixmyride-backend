@@ -56,7 +56,6 @@ export interface IOrder extends Document<Types.ObjectId> {
     coordinates: [number, number];
   };
 };
-
 }
 
 const OrderSchema = new Schema<IOrder>(

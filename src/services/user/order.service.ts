@@ -19,6 +19,7 @@ import { INotificationRepository } from "../../interfaces/repositories/INotifica
 import { IServiceRequestRepository } from "../../interfaces/repositories/IServiceRequestRepository";
 import redis from "../../config/redisConfig";
 import { INearbyProvider } from "../../models/serviceRequest.model";
+import { error } from "console";
 
 @injectable()
 export class UserOrderService implements IUserOrderService {
@@ -45,6 +46,10 @@ export class UserOrderService implements IUserOrderService {
   async createPaymentOrder(
     amountInRupees: number
   ): Promise<RazorpayOrderResponse> {
+    const existingEmergencyServices = await this._orderRepository.find({"services.servicePackageCategory" : "emergency","user.id":""});
+    if(existingEmergencyServices.length >= 2){
+      throw error();
+    }
     const amountInPaise = amountInRupees * 100;
     const order = await this.razorpayInstance.orders.create({
       amount: amountInPaise,
@@ -183,11 +188,12 @@ export class UserOrderService implements IUserOrderService {
         const newOrder = await this._orderRepository.create(orderData);
         const nearbyProviderIds = (await redis.georadius(
           "providers:locations",
-          addressSnapshot.location.coordinates[1],
-          addressSnapshot.location.coordinates[0], 
+          addressSnapshot.location.coordinates[0],
+          addressSnapshot.location.coordinates[1], 
           20,
           "km"
         )) as string[];
+        console.log('the near by provider ids fetched from redis',nearbyProviderIds);
         const pipeline = redis.pipeline();
 
         for (const providerId of nearbyProviderIds) {
@@ -272,7 +278,6 @@ export class UserOrderService implements IUserOrderService {
         return newOrder;
       } catch (error) {
         await session.abortTransaction();
-
         throw error;
       } finally {
         session.endSession();
