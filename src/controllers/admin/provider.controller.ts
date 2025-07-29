@@ -52,7 +52,7 @@ export class AdminProviderController implements IAdminProviderController {
         name: provider.name || "",
         email: provider.email || "",
         isListed: provider.isListed ?? false,
-        verificationStatus: provider.verificationStatus ?? "pending",
+        verificationStatus: provider.verificationStatus,
       }));
 
       const response: FetchProvidersResponseDTO = {
@@ -60,12 +60,10 @@ export class AdminProviderController implements IAdminProviderController {
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Providers"),
         providerResponse: { sanitizedProviders: providers, totalPage },
       };
-
       const validated = FetchProvidersResponseSchema.safeParse(response);
       if (!validated.success) {
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
-
           .json({
             success: false,
             message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -81,9 +79,8 @@ export class AdminProviderController implements IAdminProviderController {
       });
     }
   }
-
   async fetchVerificationData(
-    req: Request<{id:string}>,
+    req: Request<{ id: string }>,
     res: Response<FetchVerificationDataResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
@@ -113,7 +110,7 @@ export class AdminProviderController implements IAdminProviderController {
   }
 
   async fetchProviderById(
-    req: Request<{id:string}>,
+    req: Request<{ id: string }>,
     res: Response<FetchProviderResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
@@ -186,6 +183,7 @@ export class AdminProviderController implements IAdminProviderController {
         adminNotes ?? ""
       );
       if (!rawProvider) {
+        console.log('there is no raw provider got in the verify function ')
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -199,6 +197,7 @@ export class AdminProviderController implements IAdminProviderController {
         isListed: rawProvider.isListed ?? false,
         verificationStatus: rawProvider.verificationStatus ?? "pending",
       };
+      console.log('the sanitized provider',sanitizedProvider);
       const response: VerifyProviderResponseDTO = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Provider"),
@@ -206,6 +205,7 @@ export class AdminProviderController implements IAdminProviderController {
       };
       const validated = VerifyProviderResponseSchema.safeParse(response);
       if (!validated.success) {
+        console.log('the response validation failed in the verify provider function ',validated.error.message)
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

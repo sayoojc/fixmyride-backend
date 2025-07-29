@@ -28,19 +28,21 @@ export class AdminProviderService implements IAdminProviderService {
     skip: number;
     limit: number;
     statusFilter: string;
-  }): Promise<{ sanitizedProviders: Partial<IServiceProvider>[],totalCount: number } | undefined> {
+  }): Promise<
+    | { sanitizedProviders: Partial<IServiceProvider>[]; totalCount: number }
+    | undefined
+  > {
     try {
       const query: any = {};
       if (search) {
         query.name = { $regex: search, $options: "i" };
       }
-      if (statusFilter == 'blocked') {
+      if (statusFilter == "blocked") {
         query.isListed = false;
-        
-      } else{
-        query.isListed = true;  
+      } else {
+        query.isListed = true;
       }
-    const totalCount = await this._providerRepository.countDocuments(query);
+      const totalCount = await this._providerRepository.countDocuments(query);
       const providers = await this._providerRepository.findWithPagination(
         query,
         skip,
@@ -53,7 +55,8 @@ export class AdminProviderService implements IAdminProviderService {
           return rest;
         }
       );
-      return {sanitizedProviders,totalCount};
+      console.log("the sanitized providers", sanitizedProviders);
+      return { sanitizedProviders, totalCount };
     } catch (error) {
       throw error;
     }
@@ -107,12 +110,18 @@ export class AdminProviderService implements IAdminProviderService {
         };
         provider.startedYear = parseInt(verificationData.startedYear);
         provider.description = verificationData.description;
-
-        // Step 4: Save provider
-        await provider.save();
-        await this._verificationRepository.deleteById(
+        const updated = await provider.save();
+        if(!updated){
+          console.log("failed to update provider");
+          throw new Error("Failed to update provider")
+        }
+      const deletedDoc =  await this._verificationRepository.deleteById(
           verificationData.id.toString()
         );
+        if(!deletedDoc) {
+          console.log('failed to delete the verification document');
+          throw new Error("Failed to delete the verification document");
+        }
         const subject = "Your Provider Account is Verified!";
         const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -129,10 +138,13 @@ export class AdminProviderService implements IAdminProviderService {
         const { password, ...sanitized } = provider.toObject();
         return sanitized;
       } else {
-        await this._providerRepository.findOneAndUpdate(
+      const updatedProvider = await this._providerRepository.findOneAndUpdate(
           { _id: providerId },
           { verificationStatus: "rejected" }
         );
+        if(!updatedProvider){
+          throw new Error("Updating the provider failed");
+        }
         const html = `
   <p>Dear ${provider.name},</p>
   <p>Unfortunately, your verification request has been <strong>rejected</strong>. Please review your documents and try again.</p>
@@ -140,17 +152,23 @@ export class AdminProviderService implements IAdminProviderService {
   <p>${adminNotes}</p>
   <p>Feel free to contact our support team for assistance.</p>
 `;
-        await this._verificationRepository.findOneAndUpdate(
+        const updated = await this._verificationRepository.findOneAndUpdate(
           { providerId },
           { adminNotes }
         );
+        if(!updated){
+          throw new Error("Provider updation failed");
+        }
+        const {password,...sanitized} = updatedProvider.toObject();
         await this._mailService.sendWelcomeEmail(
           provider.email,
           "Verification Failed",
           html
         );
+        return sanitized
       }
     } catch (error) {
+      console.log("internal server error ", (error as any).message);
       console.error("Error verifying provider:", error);
       throw error;
     }

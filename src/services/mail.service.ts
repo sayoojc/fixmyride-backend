@@ -9,7 +9,6 @@ export class MailService {
   ) {}
 
   async sendWelcomeEmail(email: string, subject: string,html:string): Promise<void> {
-   
 
     const mailOptions: MailOptions = {
       to: email,

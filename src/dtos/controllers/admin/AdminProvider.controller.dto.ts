@@ -26,7 +26,7 @@ export const ProviderSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   isListed: z.boolean(),
-  verificationStatus: z.enum(["pending", "approved", "rejected"]),
+  verificationStatus: z.enum(["pending", "approved", "rejected"]).optional(),
   // add more fields if needed like phone, address, etc.
 }).strict()
 

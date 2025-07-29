@@ -38,7 +38,6 @@ export class ProviderRepository extends BaseRepository<IServiceProvider> impleme
         return this.providerModel.find(query).skip(skip).limit(limit);
       }
     
-      // Optional: override find if not already in BaseRepository
       async findWithQuery(query: any): Promise<IServiceProvider[]> {
         return this.providerModel.find(query);
       }

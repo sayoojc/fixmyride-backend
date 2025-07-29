@@ -32,7 +32,9 @@ export class ProviderProfileService implements IProviderProfileService {
       description,
       profileImage,
       verificationStatus,
-      location
+      location,
+      coverPhoto,
+      profilePicture
     } = user.toObject();
           const sanitizedUser: SanitizedProvider = {
       _id: _id.toString(),
@@ -46,7 +48,9 @@ export class ProviderProfileService implements IProviderProfileService {
       description,
       profileImage,
       verificationStatus,
-      location
+      location,
+      coverPhoto,
+      profilePicture
     };
       return sanitizedUser;
     } catch (error) {
@@ -57,16 +61,6 @@ export class ProviderProfileService implements IProviderProfileService {
 
 
   async verifyProvider(data: VerificationFormData, providerId: string) {
-    const requiredFields: (keyof VerificationFormData)[] = [
-      "licenseImage",
-      "idProofImage",
-      "accountHolderName",
-      "bankName",
-      "ifscCode",
-      "accountNumber",
-      "startedYear",
-      "description",
-    ];
    await this._providerRepository.updateById(
       new mongoose.Types.ObjectId(providerId),
       { verificationStatus: "pending" }

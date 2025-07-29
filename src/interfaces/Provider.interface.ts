@@ -40,6 +40,8 @@ export interface SanitizedProvider {
   profileImage: string;
   verificationStatus: string;
   isListed: boolean;
+  coverPhoto:string;
+  profilePicture:string
   location:{
     type:string,
     coordinates:[number,number]

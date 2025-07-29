@@ -51,7 +51,8 @@ export const UpdateProfileRequestSchema = z.object({
   description: z.string().optional(),
   isListed: z.boolean().optional(),
   verificationStatus: z.enum(["pending", "approved", "rejected"]).optional(),
-  profileImage: z.string().url("Invalid URL").optional(),
+  profilePicture: z.string().url("Invalid URL").optional(),
+  coverPhoto:z.string().url("Invalid URL").optional(),
   startedYear: z.number().optional(),
 })
 

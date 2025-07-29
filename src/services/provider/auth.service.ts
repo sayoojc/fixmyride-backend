@@ -140,6 +140,8 @@ const sanitizedProvider: SanitizedProvider = {
   description: provider.description!,
   profileImage: provider.profilePicture!,
   verificationStatus: provider.verificationStatus!,
+  coverPhoto:provider.coverPhoto!,
+  profilePicture:provider.profilePicture!
 };
 
     const accessToken = generateAccessToken(
