@@ -30,6 +30,7 @@ import { bindCommonServiceModule } from "./modules/bindCommonServices.module";
 // === repositories module === 
 
 import { bindRepositoriesModule } from "./modules/repositories.module";
+import { bindProviderNotificationModule } from "./modules/provider/notification.module";
 
 // === Container Init ===
 const container = new Container();
@@ -57,6 +58,7 @@ bindAdminUserModule(container);
 bindProviderAuthModule(container);
 bindProviderProfileModule(container);
 bindProviderOrderModule(container);
+bindProviderNotificationModule(container);
 
 //common services
 bindCommonServiceModule(container);

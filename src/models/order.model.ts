@@ -46,11 +46,11 @@ export interface IOrder extends Document<Types.ObjectId> {
   statusReason?: string;
   address:{
   _id?: Types.ObjectId;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
   location: {
     type: "Point";
     coordinates: [number, number];
@@ -128,11 +128,11 @@ const OrderSchema = new Schema<IOrder>(
     statusReason: { type: String },
     address: {
       _id: { type: Schema.Types.ObjectId },
-      addressLine1: { type: String, required: true },
+      addressLine1: { type: String},
       addressLine2: { type: String },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      zipCode: { type: String, required: true },
+      city: { type: String},
+      state: { type: String},
+      zipCode: { type: String},
       location: {
         type: {
           type: String,

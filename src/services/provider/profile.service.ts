@@ -61,7 +61,8 @@ export class ProviderProfileService implements IProviderProfileService {
 
 
   async verifyProvider(data: VerificationFormData, providerId: string) {
-   await this._providerRepository.updateById(
+    try {
+         await this._providerRepository.updateById(
       new mongoose.Types.ObjectId(providerId),
       { verificationStatus: "pending" }
     );
@@ -73,8 +74,10 @@ export class ProviderProfileService implements IProviderProfileService {
         submittedAt: new Date(),
       }
     );
-
     return result;
+    } catch (error) {
+      return undefined
+    }
   }
 
   async updateProfile(

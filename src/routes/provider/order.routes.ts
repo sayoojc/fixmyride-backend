@@ -9,7 +9,8 @@ const providerOrderController = container.get<IProviderOrderController>(
   TYPES.ProviderOrderController
 );
 
-router.get("/order/:id",verifyProvider,(req,res) => providerOrderController.getOrderData(req,res))
-
+router.get("/order/:id", verifyProvider, (req, res) =>
+  providerOrderController.getOrderData(req, res)
+);
 
 export default router;
