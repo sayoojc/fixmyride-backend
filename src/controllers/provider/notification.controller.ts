@@ -32,7 +32,6 @@ export class ProviderNotificationController
     res: Response<GetNotificationsResponse>
   ): Promise<void> {
     try {
-      console.log("the get notifications controller function");
       const token = req.cookies?.accessToken;
       const decoded = jwt.verify(
         token,
@@ -71,7 +70,7 @@ export class ProviderNotificationController
         unreadCount
       };
       const validate = getNotificationsSuccessSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
         console.log(
           "tje response validateion of the notification fetch is failed"
         );
@@ -94,7 +93,6 @@ export class ProviderNotificationController
   ): Promise<void> {
     try {
       const id = req.params.id;
-      console.log("the getOrder data controller function", id);
       if (!mongoose.Types.ObjectId.isValid(id)) {
         console.log("the order id provided is not valid");
         res
@@ -115,7 +113,7 @@ export class ProviderNotificationController
         message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Notification"),
       };
       const validate = markNotificationAsReadResponseSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -157,7 +155,7 @@ export class ProviderNotificationController
       };
       const validate =
         markNotificationAsUnreadResponseSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -198,7 +196,7 @@ export class ProviderNotificationController
         message: RESPONSE_MESSAGES.RESOURCE_DELETED("notification"),
       };
       const validate = deleteNotificationResponseSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -258,7 +256,7 @@ export class ProviderNotificationController
         message: RESPONSE_MESSAGES.ACTION_SUCCESS,
       };
       const validate = markAllAsReadResponseSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({

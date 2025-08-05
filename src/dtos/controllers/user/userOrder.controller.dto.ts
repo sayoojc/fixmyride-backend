@@ -51,37 +51,148 @@ export const CreateRazorpayOrderResponseSchema = z.object({
   }),
 });
 export const verifyRazorpayPaymentRequestSchema = z.object({
-       orderId:z.string(),
-        razorpayPaymentId:z.string(),
-        razorpaySignature:z.string(),
-        cartId:z.string(),
-       selectedAddressId: z.union([z.string(), AddressSchema]),
-        selectedDate:z.object({
-            date:z.string(),
-            available:z.boolean(),
-            timeSlots:z.array(z.object({
-                id:z.string(),
-                time:z.string(),
-                available:z.boolean(),
-            }))
-        }),
-        selectedSlot:z.object({
-            id:z.string(),
-            time:z.string(),
-            available:z.boolean()
-        }),
-})
+  orderId: z.string(),
+  razorpayPaymentId: z.string(),
+  razorpaySignature: z.string(),
+  cartId: z.string(),
+  selectedAddressId: z.union([z.string(), AddressSchema]),
+  selectedDate: z.object({
+    date: z.string(),
+    available: z.boolean(),
+    timeSlots: z.array(
+      z.object({
+        id: z.string(),
+        time: z.string(),
+        available: z.boolean(),
+      })
+    ),
+  }),
+  selectedSlot: z.object({
+    id: z.string(),
+    time: z.string(),
+    available: z.boolean(),
+  }),
+});
 export const verifyRazorpayPaymentResponseSchema = z.object({
-    success:z.boolean(),
-    message:z.string(),
-})
+  success: z.boolean(),
+  message: z.string(),
+  orderId:z.string(),
+});
 export const ErrorResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
 });
+// Address Schema
+const AddressOrderSchema = z.object({
+  _id: z.string().optional(),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  location: z.object({
+    type: z.literal("Point"),
+    coordinates: z.tuple([z.number(), z.number()]),
+  }),
+});
+// User Schema (embedded in Order)
+const OrderUserSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  phone: z.string().optional(),
+});
 
-export type verifyRazorpayPaymentResponseDTO = z.infer<typeof verifyRazorpayPaymentRequestSchema>
-export type verifyRazorpayPaymentRequestDTO  = z.infer<typeof verifyRazorpayPaymentRequestSchema>
+// Vehicle Schema
+const OrderVehicleSchema = z.object({
+  _id: z.string(),
+  brandId: z.string(),
+  modelId: z.string(),
+  brandName: z.string(),
+  modelName: z.string(),
+  year: z.number().optional(),
+  fuel: z.string(),
+});
+
+// Price Breakup
+const PriceBreakupSchema = z.object({
+  parts: z.array(
+    z.object({
+      name: z.string(),
+      price: z.number(),
+      quantity: z.number(),
+    })
+  ),
+  laborCharge: z.number(),
+  discount: z.number().default(0),
+  tax: z.number().default(0),
+  total: z.number(),
+});
+
+// Service Package inside Order
+const OrderServiceSchema = z.object({
+  _id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  fuelType: z.string(),
+  servicePackageCategory: z.string(),
+  priceBreakup: PriceBreakupSchema,
+});
+
+// Coupon Schema
+const CouponSchema = z
+  .object({
+    code: z.string().optional(),
+    discountType: z.enum(["percentage", "flat"]).optional(),
+    discountValue: z.number(),
+    discountAmount: z.number(),
+    applied: z.boolean(),
+  })
+  .optional();
+
+// Full Order Schema
+export const OrderResponseSchema = z.object({
+  _id: z.string(),
+  user: OrderUserSchema,
+  vehicle: OrderVehicleSchema,
+  services: z.array(OrderServiceSchema),
+  coupon: CouponSchema,
+  totalAmount: z.number(),
+  finalAmount: z.number(),
+  paymentMethod: z.enum(["cash", "online"]),
+  paymentStatus: z.string(),
+  razorpayOrderId: z.string().optional(),
+  razorpayPaymentId: z.string().optional(),
+  razorpaySignature: z.string().optional(),
+  serviceDate: z.string().optional(),
+  selectedSlot: z.string().optional(),
+  orderStatus: z.enum([
+    "placed",
+    "confirmed",
+    "in-progress",
+    "completed",
+    "cancelled",
+    "failed",
+  ]),
+  statusReason: z.string().optional(),
+  address: AddressOrderSchema,
+});
+
+export const getOrderDetailsResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  order: OrderResponseSchema,
+});
+export type OrderDTO = z.infer<typeof OrderResponseSchema>
+export type GetOrderDetailsResponseDTO = z.infer<
+  typeof getOrderDetailsResponseSchema
+>;
+export type verifyRazorpayPaymentResponseDTO = z.infer<
+  typeof verifyRazorpayPaymentRequestSchema
+>;
+export type verifyRazorpayPaymentRequestDTO = z.infer<
+  typeof verifyRazorpayPaymentRequestSchema
+>;
 export type ErrorResponseDTO = z.infer<typeof ErrorResponseSchema>;
 export type CreateRazorpayOrderResponseDTO = z.infer<
   typeof CreateRazorpayOrderRequestSchema

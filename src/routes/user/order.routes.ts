@@ -15,5 +15,7 @@ router.post("/payments/razorpay/order",verifyUser, (req, res) => {
 router.post("/payments/razorpay/verify", verifyUser, (req, res) => {
   orderController.verifyRazorpayPayment(req, res);
 });
-
+router.get("/orders/:id",verifyUser,(req,res) =>{
+ orderController.getOrderDetails(req,res)
+});
 export default router;

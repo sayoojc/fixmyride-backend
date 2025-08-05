@@ -14,7 +14,10 @@ import {
   CreateRazorpayOrderResponseSchema,
   verifyRazorpayPaymentRequestSchema,
   verifyRazorpayPaymentResponseSchema,
+  getOrderDetailsResponseSchema,
+  GetOrderDetailsResponseDTO,
 } from "../../dtos/controllers/user/userOrder.controller.dto";
+import mongoose from "mongoose";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
@@ -28,7 +31,7 @@ export class UserOrderController implements IUserOrderController {
     req: Request<{}, {}, CreateRazorpayOrderRequestDTO>,
     res: Response<CreateRazorpayOrderResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
-    try {      
+    try {
       const parsed = CreateRazorpayOrderRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res
@@ -123,7 +126,7 @@ export class UserOrderController implements IUserOrderController {
         });
         return;
       }
-      await this._userOrderService.handleSuccessfulPayment(
+      const orderResponse = await this._userOrderService.handleSuccessfulPayment(
         orderId,
         razorpayPaymentId,
         razorpaySignature,
@@ -135,6 +138,7 @@ export class UserOrderController implements IUserOrderController {
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.ACTION_SUCCESS,
+        orderId:orderResponse._id.toString()
       };
       const validate = verifyRazorpayPaymentResponseSchema.safeParse(response);
       if (!validate.success) {
@@ -151,5 +155,48 @@ export class UserOrderController implements IUserOrderController {
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
+  }
+  async getOrderDetails(
+    req: Request,
+    res: Response<GetOrderDetailsResponseDTO | ErrorResponseDTO>
+  ): Promise<void> {
+    try {
+      const orderId = req.params.id;
+      console.log('the get order details controller function hits',orderId);
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
+      }
+      const order = await this._userOrderService.getOrderDetails(orderId);
+      if (!order) {
+        console.log('no order found  from the service file');
+        res
+          .status(StatusCode.NOT_FOUND)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
+          });
+        return;
+      }
+      const response = {
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("order"),
+        order,
+      };
+      const validate = getOrderDetailsResponseSchema.safeParse(response);
+      if (!validate.success) {
+        console.log('the response validation of the get order detail controller function failed',validate.error.message);
+        res
+          .status(StatusCode.INTERNAL_SERVER_ERROR)
+          .json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
+        return;
+      }
+      res.status(StatusCode.OK).json(response);
+    } catch (error) {}
   }
 }

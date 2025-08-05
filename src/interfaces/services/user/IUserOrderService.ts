@@ -3,7 +3,7 @@ import { RazorpayOrderResponse } from "../../checkout.interface";
 import { TimeSlot } from "../../checkout.interface";
 import { AvailableDate } from "../../checkout.interface";
 import { RazorpayPaymentStatus } from "../../checkout.interface";
-
+import { OrderDTO } from "../../../dtos/controllers/user/userOrder.controller.dto";
 export interface IUserOrderService {
   /**
    * Creates a Razorpay order with the given amount in INR.
@@ -60,5 +60,6 @@ export interface IUserOrderService {
     selectedSlot: TimeSlot,
     razorpayPaymentId: string,
     razorpaySignature: string
-  ): Promise<void>;
+  ): Promise<string | undefined>;
+  getOrderDetails(id:string):Promise<OrderDTO | null> 
 }
