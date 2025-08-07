@@ -62,28 +62,18 @@ export class AdminBrandService implements IAdminBrandService {
   }> {
     try {
       const query: any = {};
-
-      // Add search filter
       if (search) {
-        query.brandName = { $regex: search, $options: "i" }; // case-insensitive search
+        query.brandName = { $regex: search, $options: "i" };
       }
-
-      // Add status filter
       if (statusFilter !== "all") {
         query.status = statusFilter;
       }
-
-      // Get total count before pagination
       const totalCount = await this._brandRepository.countDocuments(query);
-
-      // Fetch paginated and filtered brands
       const brands = await this._brandRepository.findWithPagination(
         query,
         skip,
         limit
       );
-
-      // For each brand, fetch related models
       const brandsWithModels = await Promise.all(
         brands.map(async (brand) => {
           const models = await this._modelRepository.find({
@@ -107,6 +97,7 @@ export class AdminBrandService implements IAdminBrandService {
     newStatus: string
   ): Promise<IBrand | null> {
     try {
+      await this._modelRepository.updateMany({brandId},{status:newStatus});
       return await this._brandRepository.updateById(
         new Types.ObjectId(brandId),
         {

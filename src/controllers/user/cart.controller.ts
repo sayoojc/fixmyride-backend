@@ -105,6 +105,7 @@ export class UserCartController implements IUserCartController {
     res: Response<AddToCartResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
+      
       const accessToken = req.cookies.accessToken;
       if (!accessToken) {
         res.status(StatusCode.UNAUTHORIZED).json({
@@ -139,6 +140,7 @@ export class UserCartController implements IUserCartController {
         userId: user.id,
       });
       if (!updatedCart) {
+        console.log('the parsed cart is not returned from the service layer');
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({
@@ -154,6 +156,7 @@ export class UserCartController implements IUserCartController {
       };
       const validate = AddServiceToCartResponseSchema.safeParse(response);
       if (!validate) {
+        console.log('addd to cart response validation failed');
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -162,6 +165,7 @@ export class UserCartController implements IUserCartController {
       }
       res.status(201).json(response);
     } catch (error) {
+      console.log('the catch block fo the add to cart controller function ');
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({
