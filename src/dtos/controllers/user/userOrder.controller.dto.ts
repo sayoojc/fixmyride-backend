@@ -110,7 +110,6 @@ const OrderVehicleSchema = z.object({
   modelId: z.string(),
   brandName: z.string(),
   modelName: z.string(),
-  year: z.number().optional(),
   fuel: z.string(),
 });
 

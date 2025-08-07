@@ -59,11 +59,29 @@ export const AddVehicleResponseSchema = z.object({
   vehicle: VehicleSchema,
 });
 
+export const DeleteVehicleResponseSchema = z.object({
+  success:z.boolean(),
+  message:z.string(),
+});
 export const GetVehicleResponseSchema = z.object({
   success:z.boolean(),
   message:z.string(),
   vehicles:z.array(VehicleSchema)
 })
+export const EditVehicleRequestSchema = z.object({
+    brandId:z.string(),
+    modelId:z.string(),
+    fuel:z.string(),
+    isDefault:z.boolean(),
+});
+export const EditVehicleResponseSchema = z.object({
+  success:z.boolean(),
+  message:z.string(),
+  vehicle:VehicleSchema
+})
+export type EditVehicleResponseDTO = z.infer<typeof EditVehicleResponseSchema>;
+export type EditVehicleRequestDTO = z.infer<typeof EditVehicleRequestSchema>;
+export type DeleteVehicleResponseDTO = z.infer<typeof DeleteVehicleResponseSchema>;
 export type VehicleDTO = z.infer<typeof VehicleSchema>;
 export type AddVehicleRequestDTO = z.infer<typeof AddVehicleRequestSchema>;
 export type AddVehicleResponseDTO = z.infer<typeof AddVehicleResponseSchema>;

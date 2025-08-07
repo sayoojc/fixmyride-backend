@@ -4,6 +4,9 @@ import {
   AddVehicleResponseDTO,
   ErrorResponse,
   GetVehicleResponseDTO,
+  DeleteVehicleResponseDTO,
+  EditVehicleRequestDTO,
+  EditVehicleResponseDTO,
 } from "../../../dtos/controllers/user/userVehicle.controller.dto";
 
 export interface IUserVehicleController {
@@ -14,5 +17,13 @@ export interface IUserVehicleController {
   getVehicle(
     req: Request,
     res: Response<GetVehicleResponseDTO | ErrorResponse>
+  ): Promise<void>;
+  deleteVehicle(
+    req: Request,
+    res: Response<DeleteVehicleResponseDTO | ErrorResponse>
+  ): Promise<void>;
+  editVehicle(
+    req: Request<{}, {}, EditVehicleRequestDTO>,
+    res: Response<EditVehicleResponseDTO>
   ): Promise<void>;
 }

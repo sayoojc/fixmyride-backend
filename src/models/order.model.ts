@@ -7,7 +7,7 @@ export interface IOrder extends Document<Types.ObjectId> {
   user: Pick<IUser, "_id" | "name" | "email" | "phone">;
   vehicle: Pick<
     IVehicle,
-    "_id" | "brandId" | "modelId" | "year" | "fuel"
+    "_id" | "brandId" | "modelId" | "fuel"
   > & {brandName:string,modelName:string};
   services: Array<
     Pick<
@@ -72,7 +72,6 @@ const OrderSchema = new Schema<IOrder>(
       brandName:{type:String,required:true},
       modelName:{type:String,required:true},
       modelId: { type: Schema.Types.ObjectId, required: true },
-      year: { type: Number },
       fuel: { type: String, required: true },
     },
     services: [

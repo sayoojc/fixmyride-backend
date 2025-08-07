@@ -162,7 +162,6 @@ export class UserOrderController implements IUserOrderController {
   ): Promise<void> {
     try {
       const orderId = req.params.id;
-      console.log('the get order details controller function hits',orderId);
       if (!mongoose.Types.ObjectId.isValid(orderId)) {
         res
           .status(StatusCode.BAD_REQUEST)

@@ -15,5 +15,12 @@ return this.vehicleModel
     .populate("modelId")
     .lean<IVehiclePopulated[]>()
     .exec();  }
+      async findVehicleDataPopulatedById(id:string) : Promise<IVehiclePopulated | null> {
+return this.vehicleModel
+    .findOne({ _id:id })
+    .populate("brandId")
+    .populate("modelId")
+    .lean<IVehiclePopulated>()
+    .exec();  }
  
 }

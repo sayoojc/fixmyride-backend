@@ -101,9 +101,7 @@ export class UserProfileController implements IUserProfileController {
             brandId: vehicle.modelId.brandId.toString(),
             fuelTypes: vehicle.modelId.fuelTypes,
           },
-          year: vehicle.year,
           isDefault: vehicle.isDefault,
-          registrationNumber: vehicle.registrationNumber,
           fuel: vehicle.fuel,
         })),
       };

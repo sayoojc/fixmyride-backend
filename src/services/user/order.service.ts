@@ -460,7 +460,6 @@ export class UserOrderService implements IUserOrderService {
         brandName: order.vehicle.brandName,
         modelName: order.vehicle.modelName,
         fuel: order.vehicle.fuel,
-        year: order.vehicle.year,
       },
       services: order.services.map((service: any) => ({
         _id: service._id.toString(),

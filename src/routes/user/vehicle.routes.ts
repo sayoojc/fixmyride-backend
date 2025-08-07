@@ -15,5 +15,11 @@ router.post("/vehicles", verifyUser, (req, res) =>
 router.get("/vehicles", verifyUser, (req, res) =>
   vehicleController.getVehicle(req, res)
 );
+router.delete("/vehicles/:id", verifyUser, (req, res) =>
+  vehicleController.deleteVehicle(req, res)
+);
+router.patch("/vehicles/:id",verifyUser, (req, res) =>
+  vehicleController.editVehicle(req, res)
+);
 
 export default router;
