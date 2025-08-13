@@ -29,32 +29,24 @@ export class UserProfileController implements IUserProfileController {
     req: Request,
     res: Response<GetProfileResponseDTO | ErrorResponse>
   ): Promise<void> {
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
+    const userId = req.userData?.id;
+    if (!userId) {
       res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
         message: RESPONSE_MESSAGES.UNAUTHORIZED,
       });
       return;
     }
-
     try {
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-
       const sanitizedUser = await this._userProfileService.getProfileData(
-        user.id
+        userId
       );
       if (!sanitizedUser) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
@@ -105,7 +97,6 @@ export class UserProfileController implements IUserProfileController {
           fuel: vehicle.fuel,
         })),
       };
-
       const response: GetProfileResponseDTO = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Profile"),
@@ -119,7 +110,6 @@ export class UserProfileController implements IUserProfileController {
         });
         return;
       }
-
       res.status(StatusCode.OK).json(response);
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
@@ -133,21 +123,15 @@ export class UserProfileController implements IUserProfileController {
     res: Response<UpdateProfileResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
+    const userId = req.userData?.id;
+    if (!userId) {
       res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
         message: RESPONSE_MESSAGES.UNAUTHORIZED,
       });
       return;
     }
-         const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -165,7 +149,7 @@ export class UserProfileController implements IUserProfileController {
       const { phone,userName } = parsed.data;
       const updatedUser = await this._userProfileService.updateProfile(
         phone,
-        user.id,
+        userId,
         userName
       );
       if (!updatedUser) {
@@ -201,21 +185,15 @@ export class UserProfileController implements IUserProfileController {
     res: Response<ChangePasswordResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
+      const userId = req.userData?.id;
+    if (!userId) {
       res.status(StatusCode.UNAUTHORIZED).json({
         success: false,
         message: RESPONSE_MESSAGES.UNAUTHORIZED,
       });
       return;
     }
-         const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -232,7 +210,7 @@ export class UserProfileController implements IUserProfileController {
       }
       const {currentPassword, newPassword } = parsed.data;
       const updatedUser = await this._userProfileService.changePassword(
-        user.id,
+        userId,
         currentPassword,
         newPassword
       );

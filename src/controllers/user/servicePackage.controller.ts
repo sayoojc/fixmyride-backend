@@ -26,7 +26,6 @@ export class UserServicePackageController
   ): Promise<void> {
     try {
       const { vehicleId, serviceCategory, fuelType } = req.query;
-
       if (
         typeof vehicleId !== "string" ||
         typeof serviceCategory !== "string" ||

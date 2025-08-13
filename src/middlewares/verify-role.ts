@@ -9,7 +9,7 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
     res.status(403).json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
      return
   }
-  req.user = user;
+  req.userData = user as CustomJwtPayload
   next();
 };
 
@@ -20,7 +20,7 @@ export const verifyProvider = async (req: Request, res: Response, next: NextFunc
   res.status(403).json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
     return 
   }
-  req.user = user;
+  req.userData = user as CustomJwtPayload
   next();
 };
 
@@ -31,6 +31,6 @@ export const verifyAdmin = async (req: Request, res: Response, next: NextFunctio
    res.status(403).json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
     return 
   }
-  req.user = user;
+  req.userData = user as CustomJwtPayload
   next();
 };

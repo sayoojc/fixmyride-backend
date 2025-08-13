@@ -32,11 +32,13 @@ export class ProviderNotificationController
     res: Response<GetNotificationsResponse>
   ): Promise<void> {
     try {
-      const token = req.cookies?.accessToken;
-      const decoded = jwt.verify(
-        token,
-        process.env.ACCESS_TOKEN_SECRET!
-      ) as JwtPayload;
+      const providerId = req.userData?.id;
+      if (!providerId) {
+        res
+          .status(StatusCode.UNAUTHORIZED)
+          .json({ success: false, message: RESPONSE_MESSAGES.UNAUTHORIZED });
+        return;
+      }
       const search =
         typeof req.query.search === "string" ? req.query.search : "";
       const page =
@@ -51,9 +53,7 @@ export class ProviderNotificationController
         typeof req.query.unreadOnly === "string"
           ? req.query.unreadOnly === "true"
           : false;
-      const providerId = decoded.id;
-      console.log("the decoded id", providerId);
-      const { refinedNotifications, totalPages,unreadCount } =
+      const { refinedNotifications, totalPages, unreadCount } =
         await this._providerNotificationService.getNotifications(
           providerId,
           search,
@@ -67,13 +67,10 @@ export class ProviderNotificationController
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Notifications"),
         notifications: refinedNotifications,
         totalPages,
-        unreadCount
+        unreadCount,
       };
       const validate = getNotificationsSuccessSchema.safeParse(response);
       if (!validate.success) {
-        console.log(
-          "tje response validateion of the notification fetch is failed"
-        );
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -132,10 +129,8 @@ export class ProviderNotificationController
     res: Response<MarkNotificationAsUnreadResponseDTO>
   ): Promise<void> {
     try {
-      console.log("the mark notification as unread controller function");
       const id = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        console.log("the order id provided is not valid");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
@@ -176,13 +171,11 @@ export class ProviderNotificationController
     try {
       const id = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        console.log("the order id provided is not valid");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      console.log("the notification id", id);
       const success =
         await this._providerNotificationService.deleteNotification(id);
       if (!success) {
@@ -243,12 +236,10 @@ export class ProviderNotificationController
       }
       const result = this._providerNotificationService.markAllAsRead(user.id);
       if (!result) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       const response = {
@@ -257,22 +248,18 @@ export class ProviderNotificationController
       };
       const validate = markAllAsReadResponseSchema.safeParse(response);
       if (!validate.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
       return;
     }
   }

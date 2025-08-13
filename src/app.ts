@@ -23,10 +23,11 @@ import userAuthRoutes from './routes/user/auth.routes'
 import providerAuthRoutes from './routes/provider/auth.routes'
 import providerProfileRoutes from './routes/provider/profile.routes'
 import providerNotificationRoutes from './routes/provider/notification.routes'
-import cookieParser from 'cookie-parser';
-import { errorHandler } from "./middlewares/errorHandler";
-import { StatusCode } from "./enums/statusCode.enum";
-import passport from 'passport';
+import providerSlotRoutes from './routes/provider/slot.routes'
+import cookieParser from 'cookie-parser'
+import { errorHandler } from "./middlewares/errorHandler"
+import { StatusCode } from "./enums/statusCode.enum"
+import passport from 'passport'
 import './config/passport'
 import { authenticateGoogle } from "./services/googleServices";
 import { googleCallback,googleController } from "./services/googleServices";
@@ -79,7 +80,8 @@ app.use("/api/user",orderRoutes);
 app.use("/api/provider",providerAuthRoutes);
 app.use("/api/provider",providerProfileRoutes);
 app.use("/api/provider",providerOrderRoutes);
-app.use("/api/provider",providerNotificationRoutes)
+app.use("/api/provider",providerNotificationRoutes);
+app.use("/api/provider",providerSlotRoutes);
 
 
 

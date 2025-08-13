@@ -45,12 +45,8 @@ export class UserOrderService implements IUserOrderService {
   });
 
   async createPaymentOrder(
-    amountInRupees: number
-  ): Promise<RazorpayOrderResponse> {
-    const existingEmergencyServices = await this._orderRepository.find({"services.servicePackageCategory" : "emergency","user.id":""});
-    if(existingEmergencyServices.length >= 2){
-      throw error();
-    }
+    amountInRupees: number,
+  ): Promise<RazorpayOrderResponse> {   
     const amountInPaise = amountInRupees * 100;
     const order = await this.razorpayInstance.orders.create({
       amount: amountInPaise,

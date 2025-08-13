@@ -61,25 +61,17 @@ export class UserAddressController implements IUserAddressController {
     res: Response<SuccessResponse | ErrorResponse>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-      if(!accessToken) {
-        res.status(StatusCode.BAD_REQUEST).json({success:false,message:RESPONSE_MESSAGES.UNAUTHORIZED});
-        return;
-      }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      )
+
       const addressId = req.params.id;
-      const user = userDetails as JwtPayload;
-          if (!user || !user.id) {
+      const userId = req.userData?.id;
+          if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      await this._userAddressService.setDefaultAddress(addressId, user.id);
+      await this._userAddressService.setDefaultAddress(addressId, userId);
 
       res.status(StatusCode.OK).json({
         success: true,
@@ -99,18 +91,14 @@ export class UserAddressController implements IUserAddressController {
     res: Response<UpdateAddressResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-      if(!accessToken) {
+      const userId = req.userData?.id;
+      if(!userId) {
         res.status(StatusCode.BAD_REQUEST).json({success:false,message:RESPONSE_MESSAGES.UNAUTHORIZED});
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      )
-        const user = userDetails as JwtPayload;
+  
               const id = req.params.id;
-          if (!user || !user.id || id) {
+          if (!userId || id) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -127,7 +115,7 @@ export class UserAddressController implements IUserAddressController {
       const updatedAddress = await this._userAddressService.updateAddress(
        parsed.data.addressForm,
         id,
-        user.id
+        userId
       );
       const response: UpdateAddressResponseDTO = {
         success: true,
@@ -161,17 +149,12 @@ export class UserAddressController implements IUserAddressController {
   ): Promise<void> {
     try {
       const addressId = req.params.id;
-       const accessToken = req.cookies.accessToken;
-      if(!accessToken) {
+       const userId = req.userData?.id;
+      if(!userId) {
         res.status(StatusCode.BAD_REQUEST).json({success:false,message:RESPONSE_MESSAGES.UNAUTHORIZED});
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      )
-        const user = userDetails as JwtPayload;
-          if (!user || !user.id || addressId) {
+          if (!userId || addressId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -180,7 +163,7 @@ export class UserAddressController implements IUserAddressController {
       }
       const response = await this._userAddressService.deleteAddress(
         addressId,
-        user.id
+        userId
       );
 
       if (response.success) {
@@ -206,27 +189,22 @@ export class UserAddressController implements IUserAddressController {
     res: Response<GetAddressesResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-      if (!accessToken) {
+      const userId = req.userData?.id;
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const addresses = await this._userAddressService.getAddresses(user.id);
+      const addresses = await this._userAddressService.getAddresses(userId);
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Addresses"),

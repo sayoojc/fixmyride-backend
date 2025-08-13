@@ -45,7 +45,7 @@ export class UserOrderController implements IUserOrderController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      const order = await this._userOrderService.createPaymentOrder(
+      const order = await this._userOrderService.createPaymentOrder(      
         parsed.data?.amount
       );
       const response = {
@@ -186,7 +186,6 @@ export class UserOrderController implements IUserOrderController {
       };
       const validate = getOrderDetailsResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the response validation of the get order detail controller function failed',validate.error.message);
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({

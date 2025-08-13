@@ -1,5 +1,5 @@
 import { BaseRepository } from "./base/base.repo";
-import { IServiceProvider } from "../models/provider.model"; // Your Provider interface
+import { IServiceProvider } from "../models/provider.model";
 import { Model } from "mongoose";
 import { IProviderRepository } from "../interfaces/repositories/IProviderRepository";
 

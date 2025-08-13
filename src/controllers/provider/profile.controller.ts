@@ -30,31 +30,19 @@ export class ProviderProfileController implements IProviderProfileController {
     req: Request,
     res: Response<GetProfileDataResponseDTO | ErrorResponse>
   ): Promise<void> {
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
-      res
-        .status(StatusCode.UNAUTHORIZED)
-        .json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
-      return;
-    }
 
     try {
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user) {
+     const userId = req.userData?.id;
+      if (!userId) {
         res
           .status(StatusCode.UNAUTHORIZED)
           .json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
+          return
       }
 
       const sanitizedUser = await this._providerProfileService.getProfileData(
-        user.id
+        userId
       );
-      console.log('the sanitized provider',sanitizedUser);
       if (!sanitizedUser) {
         res
           .status(StatusCode.NOT_FOUND)
@@ -145,7 +133,6 @@ export class ProviderProfileController implements IProviderProfileController {
     res: Response<UpdateProfileResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log('the udpate profile request body',req.body);
       const parsed = UpdateProfileRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res

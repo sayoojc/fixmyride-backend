@@ -36,20 +36,15 @@ export class UserCartController implements IUserCartController {
     res: Response<GetCartResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-      if (!accessToken) {
+      const userId = req.userData?.id;
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -67,7 +62,7 @@ export class UserCartController implements IUserCartController {
         return;
       }
       const cart = await this._userCartService.getCart(
-        user.id,
+        userId,
         parsed.data.cartId
       );
       if (!cart) {
@@ -106,21 +101,15 @@ export class UserCartController implements IUserCartController {
   ): Promise<void> {
     try {
       
-      const accessToken = req.cookies.accessToken;
-      if (!accessToken) {
+      const userId = req.userData?.id;
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -137,10 +126,9 @@ export class UserCartController implements IUserCartController {
       }
       const updatedCart = await this._userCartService.addToCart({
         ...parsed.data,
-        userId: user.id,
+        userId
       });
       if (!updatedCart) {
-        console.log('the parsed cart is not returned from the service layer');
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({
@@ -156,7 +144,6 @@ export class UserCartController implements IUserCartController {
       };
       const validate = AddServiceToCartResponseSchema.safeParse(response);
       if (!validate) {
-        console.log('addd to cart response validation failed');
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -165,7 +152,6 @@ export class UserCartController implements IUserCartController {
       }
       res.status(201).json(response);
     } catch (error) {
-      console.log('the catch block fo the add to cart controller function ');
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({
@@ -179,20 +165,15 @@ export class UserCartController implements IUserCartController {
     res: Response<AddVehicleToCartResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-      if (!accessToken) {
+      const userId = req.cookies.accessToken;
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -209,7 +190,7 @@ export class UserCartController implements IUserCartController {
       }
       const updatedCart = await this._userCartService.addVehicleToCart(
         parsed.data.vehicleId,
-        user.id
+        userId
       );
       if (!updatedCart) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
@@ -246,20 +227,15 @@ export class UserCartController implements IUserCartController {
     res: Response<RemoveFromCartResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      const accessToken = req.cookies.accessToken;
-      if (!accessToken) {
+      const userId = req.userData?.id;
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
         });
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-      if (!user || !user.id) {
+      if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -275,7 +251,7 @@ const{cartId,packageId} = req.params
         return;
       }
       let cart = await this._userCartService.removeFromCart(
-        user.id,
+        userId,
         cartId,
         packageId
       );

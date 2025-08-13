@@ -4,8 +4,6 @@ import { TYPES } from "../../containers/types";
 import { IUserAuthService } from "../../interfaces/services/user/IUserAuthService";
 import { IMailService } from "../../interfaces/services/IMailService";
 import { authenticator } from "otplib";
-import { NotFoundError } from "../../errors/notFoundError";
-import { UnauthorizedError } from "../../errors/unauthorizedError";
 import {
   RegisterTempRequestSchema,
   RegisterRequestSchema,

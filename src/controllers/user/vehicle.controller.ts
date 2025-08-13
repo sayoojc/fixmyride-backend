@@ -34,8 +34,8 @@ export class UserVehicleController implements IUserVehicleController {
     req: Request<{}, {}, AddVehicleRequestDTO>,
     res: Response<AddVehicleResponseDTO | ErrorResponse>
   ): Promise<void> {
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) {
+    const userId = req.userData?.id;
+    if (!userId) {
       res
         .status(StatusCode.UNAUTHORIZED)
         .json({ success: false, message: "Not authorized, no access token" });
@@ -51,22 +51,8 @@ export class UserVehicleController implements IUserVehicleController {
     }
     const { brandId, brandName, modelId, modelName, fuelType } = parsed.data;
     try {
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user) {
-        res.status(StatusCode.UNAUTHORIZED).json({
-          success: false,
-          message: RESPONSE_MESSAGES.UNAUTHORIZED,
-        });
-        return;
-      }
-
       const newVehicle = await this._userVehicleService.addVehicle(
-        user.id,
+        userId,
         brandId,
         brandName,
         modelId,
@@ -106,26 +92,14 @@ export class UserVehicleController implements IUserVehicleController {
     res: Response<GetVehicleResponseDTO | ErrorResponse>
   ) {
     try {
-      const accessToken = req.cookies.accessToken;
-      if (!accessToken) {
+      const userId = req.cookies.accessToken;
+      if (!userId) {
         res
           .status(StatusCode.UNAUTHORIZED)
           .json({ success: false, message: RESPONSE_MESSAGES.UNAUTHORIZED });
         return;
       }
-      const userDetails = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      );
-      const user = userDetails as JwtPayload;
-
-      if (!user) {
-        res
-          .status(StatusCode.UNAUTHORIZED)
-          .json({ success: false, message: RESPONSE_MESSAGES.UNAUTHORIZED });
-        return;
-      }
-      const vehicleArray = await this._userVehicleService.getVehicle(user.id);
+      const vehicleArray = await this._userVehicleService.getVehicle(userId);
       if (!vehicleArray) {
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
@@ -204,13 +178,9 @@ export class UserVehicleController implements IUserVehicleController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      console.log('the vehicleId',id);
-      console.log('the request body0',req.body);
-      const { brandId, fuel, modelId, isDefault } = req.body;
-    
+      const { brandId, fuel, modelId, isDefault } = req.body;  
       const validateRequest = EditVehicleRequestSchema.safeParse(req.body);
       if(!validateRequest.success) {
-        console.log('the edit vehicle request validation is failed',validateRequest.error.message)
           res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
@@ -224,7 +194,6 @@ export class UserVehicleController implements IUserVehicleController {
         isDefault ?? false
       );
       if (!updatedVehicle) {
-        console.log('no update vehicle is found');
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({
@@ -240,7 +209,6 @@ export class UserVehicleController implements IUserVehicleController {
       }
       const validate = EditVehicleResponseSchema.safeParse(response);
       if(!validate.success){
-        console.log('the response validation of the edit vehicle is failed',validate.error.message);
            res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({

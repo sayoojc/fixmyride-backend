@@ -16,6 +16,7 @@ import { IOrderRepository } from "../../interfaces/repositories/IOrderRepository
 import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
 import { ISocketService } from "../../sockets/ISocketService";
 import { IServiceRequestRepository } from "../../interfaces/repositories/IServiceRequestRepository";
+import { ISlotRepository } from "../../interfaces/repositories/ISlotRepository";
 
 
 // Models
@@ -31,6 +32,7 @@ import verificationModel from "../../models/verification.model";
 import orderModel from "../../models/order.model";
 import notificationModel from "../../models/notification.model"
 import serviceRequestModel from "../../models/serviceRequest.model"
+import slotModel from "../../models/slot.model";
 // Repositories
 import { UserRepository } from "../../repositories/user.repo";
 import { AddressRepository } from "../../repositories/address.repo";
@@ -46,6 +48,7 @@ import { OrderRepository } from "../../repositories/order.repo";
 import { SocketService } from "../../sockets/socketService";
 import { NotificationRepository } from "../../repositories/notification.repository";
 import { ServiceRequestRepository } from "../../repositories/serviceRequest.repository";
+import { SlotRepository } from "../../repositories/slot.repo";
 
 export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.UserRepository)) {
@@ -124,5 +127,9 @@ export const bindRepositoriesModule = (container: Container) => {
   if(!container.isBound(TYPES.ServiceRequestRepository)){
     container.bind<IServiceRequestRepository>(TYPES.ServiceRequestRepository)
     .toDynamicValue(() => new ServiceRequestRepository(serviceRequestModel))
+  }
+  if(!container.isBound(TYPES.SlotRepository)){
+    container.bind<ISlotRepository>(TYPES.SlotRepository)
+    .toDynamicValue(() => new SlotRepository(slotModel))
   }
 };

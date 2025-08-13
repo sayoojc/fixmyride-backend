@@ -1,3 +1,4 @@
+
 export const TYPES = {
   // ========== REPOSITORIES ==========
   MailRepository: Symbol.for("MailRepository"),
@@ -13,6 +14,7 @@ export const TYPES = {
   OrderRepository:Symbol.for("OrderRepository"),
   NotificationRepository:Symbol.for("NotificationRepository"),
   ServiceRequestRepository:Symbol.for("ServiceRequestRepository"),
+  SlotRepository:Symbol.for("SlotRepository"),
 
   // ========== SERVICES ==========
   MailService: Symbol.for("MailService"),
@@ -40,6 +42,7 @@ export const TYPES = {
   ProviderProfileService: Symbol.for("ProviderProfileService"),
   ProviderOrderService: Symbol.for("ProviderOrderService"),
   ProviderNotificationService: Symbol.for("ProviderNotificationService"),
+  ProviderSlotService:Symbol.for("ProviderSlotService"),
 
   //Socket service
   SocketService: Symbol.for("SocketService"),
@@ -69,5 +72,6 @@ export const TYPES = {
   ProviderProfileController: Symbol.for("ProviderProfileController"),
   ProviderOrderController: Symbol.for("ProviderOrderController"),
   ProviderNotificationController:Symbol.for("ProviderNotificationController"),
+  ProviderSlotController:Symbol.for("ProviderSlotController"),
 
 };

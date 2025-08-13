@@ -92,8 +92,6 @@ passport.use(new GoogleStrategy(
   }
 ));
 
-
-// serialize/deserialize (only if you use sessions)
 passport.serializeUser((user: any, done) => done(null, user._id));
 passport.deserializeUser(async (id: string, done) => {
   const user = await userRepository.findOne({_id:id});

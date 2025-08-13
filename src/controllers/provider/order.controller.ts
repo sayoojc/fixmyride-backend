@@ -25,9 +25,7 @@ export class ProviderOrderController implements IProviderOrderController {
   ): Promise<void> {
     try {
       const id = req.params.id;
-      console.log("the getOrder data controller function", id);
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        console.log("the order id provided is not valid");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
@@ -35,7 +33,6 @@ export class ProviderOrderController implements IProviderOrderController {
       }
       const order = await this._providerOrderService.getOrderData(id);
       if (!order) {
-        console.log("the order fetching from the service layer is failed");
         res
           .status(StatusCode.NOT_FOUND)
           .json({
@@ -51,7 +48,6 @@ export class ProviderOrderController implements IProviderOrderController {
       };
       const validate = GetOrderResponseSchema.safeParse(response);
       if (!validate) {
-        console.log("the response validation is failed");
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({

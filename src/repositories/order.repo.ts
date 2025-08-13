@@ -6,5 +6,4 @@ export class OrderRepository extends BaseRepository<IOrder> implements IOrderRep
   constructor(orderModel: MongooseModel<IOrder>) {
     super(orderModel);
   }
-
 }

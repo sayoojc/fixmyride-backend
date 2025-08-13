@@ -22,6 +22,7 @@ import { bindAdminUserModule } from "./modules/admin/user.module";
 import { bindProviderAuthModule } from "./modules/provider/auth.module";
 import { bindProviderProfileModule } from "./modules/provider/profile.module";
 import { bindProviderOrderModule } from "./modules/provider/order.module";
+import { bindProviderSlotModule } from "./modules/provider/slot.module";
 
 
 // === common services modules ===
@@ -59,6 +60,7 @@ bindProviderAuthModule(container);
 bindProviderProfileModule(container);
 bindProviderOrderModule(container);
 bindProviderNotificationModule(container);
+bindProviderSlotModule(container);
 
 //common services
 bindCommonServiceModule(container);
