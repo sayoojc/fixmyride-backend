@@ -165,7 +165,7 @@ export class UserCartController implements IUserCartController {
     res: Response<AddVehicleToCartResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      const userId = req.cookies.accessToken;
+      const userId = req.userData?.id;
       if (!userId) {
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,

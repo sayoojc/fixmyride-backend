@@ -29,16 +29,16 @@ export class UserAuthService implements IUserAuthService {
     if (!name || !email || !phone || !password || !otp) {
       throw new Error("Missing required user data fields");
     }
-
     const redisKey = `tempuser:${email}`;
-
     const existing = await redis.get(redisKey);
     if (existing) {
       throw new Error("User already exists");
     }
-
+    const existingPhone = await this._userRepository.findOne({phone});
+    if(existingPhone){
+      throw new Error("Phone number already existing")
+    }
     const hashedPassword = await hashPassword(password);
-
     const tempUser: TempUser = {
       name,
       email,
@@ -72,7 +72,7 @@ export class UserAuthService implements IUserAuthService {
     const tempUserData = await redis.get(redisKey);
 
     if (!tempUserData) {
-      throw new Error("Temp user not found. Please retry.");
+      throw new Error("User credentials not found. Please retry from the beginning.");
     }
 
     const tempUser: TempUser = JSON.parse(tempUserData);

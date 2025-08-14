@@ -148,7 +148,7 @@ export class UserAuthController {
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        message: error  instanceof Error ? error.message : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
   }

@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../containers/types";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { IUserVehicleService } from "../../interfaces/services/user/IUserVehicleService";
 import { IUserVehicleController } from "../../interfaces/controllers/user/IUserVehicleController";
 import {
@@ -92,7 +91,7 @@ export class UserVehicleController implements IUserVehicleController {
     res: Response<GetVehicleResponseDTO | ErrorResponse>
   ) {
     try {
-      const userId = req.cookies.accessToken;
+      const userId = req.userData?.id;
       if (!userId) {
         res
           .status(StatusCode.UNAUTHORIZED)

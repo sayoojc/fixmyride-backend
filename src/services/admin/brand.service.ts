@@ -18,8 +18,12 @@ export class AdminBrandService implements IAdminBrandService {
 
   async addBrand(brandName: string, imageUrl: string): Promise<IBrand> {
     try {
+      console.log('the add brand service function ',brandName,imageUrl);
       const existingBrand = await this._brandRepository.findOne({ brandName });
-      if (existingBrand) throw new Error("Brand already exists");
+      if (existingBrand){
+        console.log('the brand u are trying to insert is already existing');
+        throw new Error("Brand already exists");
+      } 
       return await this._brandRepository.create({ brandName, imageUrl });
     } catch (err) {
       throw new Error(`Failed to add brand: ${(err as Error).message}`);

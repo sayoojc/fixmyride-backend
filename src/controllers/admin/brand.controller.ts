@@ -68,19 +68,22 @@ export class AdminBrandController implements IAdminBrandController {
       };
       const validated = AddBrandResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
+        .json({
+          message:
+            error instanceof Error
+              ? error.message
+              : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
     }
   }
 
@@ -108,12 +111,10 @@ export class AdminBrandController implements IAdminBrandController {
         };
         const validated = GetBrandsResponseSchema.safeParse(response);
         if (!validated.success) {
-          res
-            .status(StatusCode.INTERNAL_SERVER_ERROR)
-            .json({
-              success: false,
-              message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-            });
+          res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          });
           return;
         }
         res.status(StatusCode.OK).json(response);
@@ -143,12 +144,10 @@ export class AdminBrandController implements IAdminBrandController {
       };
       const validated = GetBrandsResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
@@ -160,11 +159,10 @@ export class AdminBrandController implements IAdminBrandController {
   }
 
   async toggleBrandStatus(
-    req: Request<{id:string}, {}, ToggleBrandStatusRequestDTO>,
+    req: Request<{ id: string }, {}, ToggleBrandStatusRequestDTO>,
     res: Response<ToggleBrandStatusResponseDTO>
   ): Promise<void> {
     try {
-   
       const parsed = ToggleBrandStatusRequestSchema.safeParse(req.body);
       if (!parsed.success) {
         res.status(StatusCode.BAD_REQUEST).json({
@@ -195,17 +193,15 @@ export class AdminBrandController implements IAdminBrandController {
           _id: updatedBrand._id.toString(),
           brandName: updatedBrand.brandName,
           imageUrl: updatedBrand.imageUrl,
-          status: updatedBrand.status.toString(), // Ensure status is string (in case it's an enum or boolean)
+          status: updatedBrand.status.toString(),
         },
       };
       const validated = ToggleBrandStatusResponseSchema.safeParse(response);
       if (!validated.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
@@ -218,7 +214,7 @@ export class AdminBrandController implements IAdminBrandController {
   }
 
   async updateBrand(
-    req: Request<{id:string}, {}, UpdateBrandRequestDTO>,
+    req: Request<{ id: string }, {}, UpdateBrandRequestDTO>,
     res: Response<UpdateBrandResponse>
   ): Promise<void> {
     try {
@@ -230,8 +226,8 @@ export class AdminBrandController implements IAdminBrandController {
         });
         return;
       }
-      
-      const {name, imageUrl } = parsed.data;
+
+      const { name, imageUrl } = parsed.data;
       const id = req.params.id;
       const updatedBrand = await this._adminBrandService.updateBrand(
         id,

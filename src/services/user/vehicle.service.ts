@@ -90,7 +90,7 @@ export class UserVehicleService implements IUserVehicleService {
     try {
       const vehicles =
         await this._vehicleRepository.findVehicleDataPopulatedByUserId(id);
-
+       console.log('the vehicles fetched from the service layer',vehicles);
       if (!vehicles) {
         throw new Error("vehicle fetching failed");
       }
@@ -147,16 +147,12 @@ export class UserVehicleService implements IUserVehicleService {
         isDefault,
         fuel,
       });
-      console.log('the updated vehicle updated by the update method',vehicle);
       if(!vehicle){
-        console.log('no vehicle is found in the serivce layer');
 return undefined;
 
       } 
       const updatedVehicle = await this._vehicleRepository.findVehicleDataPopulatedById(vehicle._id.toString()); 
-     console.log('the updatedVehicle',updatedVehicle);
       if(!updatedVehicle){
-        console.log('no update vehicle is found');
  return undefined  
       }  
       return {
