@@ -16,4 +16,12 @@ export class ProviderOrderService implements IProviderOrderService {
             return null
         }
     }
+    async getOrders(providerId: string): Promise<IOrder[]> {
+        try {
+            const orders = await this._orderRepository.find({ "provider._id": providerId });
+            return orders;
+        } catch (error) {
+            return [];
+        }
+    }
 }
