@@ -45,8 +45,8 @@ export class UserOrderService implements IUserOrderService {
   });
 
   async createPaymentOrder(
-    amountInRupees: number,
-  ): Promise<RazorpayOrderResponse> {   
+    amountInRupees: number
+  ): Promise<RazorpayOrderResponse> {
     const amountInPaise = amountInRupees * 100;
     const order = await this.razorpayInstance.orders.create({
       amount: amountInPaise,
@@ -186,11 +186,14 @@ export class UserOrderService implements IUserOrderService {
         const nearbyProviderIds = (await redis.georadius(
           "providers:locations",
           addressSnapshot.location.coordinates[0],
-          addressSnapshot.location.coordinates[1], 
+          addressSnapshot.location.coordinates[1],
           20,
           "km"
         )) as string[];
-        console.log('the near by provider ids fetched from redis',nearbyProviderIds);
+        console.log(
+          "the near by provider ids fetched from redis",
+          nearbyProviderIds
+        );
         const pipeline = redis.pipeline();
 
         for (const providerId of nearbyProviderIds) {
@@ -222,7 +225,7 @@ export class UserOrderService implements IUserOrderService {
             nearbyProviders: nearbyProviders,
           });
         });
-        console.log('the nearby providers',nearbyProviderIds);
+        console.log("the nearby providers", nearbyProviderIds);
         const notifications = nearbyProviderIds.map((providerId) => ({
           recipientId: new Types.ObjectId(providerId),
           recipientType: "provider" as "provider",
@@ -232,9 +235,11 @@ export class UserOrderService implements IUserOrderService {
           isRead: false,
           createdAt: new Date(),
         }));
-        console.log('the notifications',notifications);
-        const insertManyResult = await this._notificationRepository.insertMany(notifications);
-        console.log('the notification insertMany result',insertManyResult);
+        console.log("the notifications", notifications);
+        const insertManyResult = await this._notificationRepository.insertMany(
+          notifications
+        );
+        console.log("the notification insertMany result", insertManyResult);
         if (!newOrder) {
           console.log("The new order is not getting");
           throw new Error("Order creation failed");
@@ -431,90 +436,142 @@ export class UserOrderService implements IUserOrderService {
       } finally {
         session.endSession();
       }
-      
     } catch (error) {
       console.error("Error handling failed payment:", error);
     }
   }
-  async getOrderDetails(id:string):Promise<OrderDTO | null> {
-      try {
-        const order = await this._orderRepository.findOne({_id:id});
-       if (!order) return null;
+  async getOrderDetails(id: string): Promise<OrderDTO | null> {
+    try {
+      const order = await this._orderRepository.findOne({ _id: id });
+      if (!order) return null;
 
-    const mappedOrder: OrderDTO = {
+      const mappedOrder: OrderDTO = {
+        _id: order._id.toString(),
+        user: {
+          _id: order.user._id.toString(),
+          name: order.user.name,
+          email: order.user.email,
+          phone: order.user.phone,
+        },
+        vehicle: {
+          _id: order.vehicle._id.toString(),
+          brandId: order.vehicle.brandId.toString(),
+          modelId: order.vehicle.modelId.toString(),
+          brandName: order.vehicle.brandName,
+          modelName: order.vehicle.modelName,
+          fuel: order.vehicle.fuel,
+        },
+        services: order.services.map((service: any) => ({
+          _id: service._id.toString(),
+          title: service.title,
+          description: service.description,
+          fuelType: service.fuelType,
+          servicePackageCategory: service.servicePackageCategory,
+          priceBreakup: {
+            parts: service.priceBreakup.parts.map((part: any) => ({
+              name: part.name,
+              price: part.price,
+              quantity: part.quantity,
+            })),
+            laborCharge: service.priceBreakup.laborCharge,
+            discount: service.priceBreakup.discount,
+            tax: service.priceBreakup.tax,
+            total: service.priceBreakup.total,
+          },
+        })),
+        coupon: order.coupon
+          ? {
+              code: order.coupon.code,
+              discountType: order.coupon.discountType,
+              discountValue: order.coupon.discountValue,
+              discountAmount: order.coupon.discountAmount,
+              applied: order.coupon.applied,
+            }
+          : undefined,
+        totalAmount: order.totalAmount,
+        finalAmount: order.finalAmount,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        razorpayOrderId: order.razorpayOrderId,
+        razorpayPaymentId: order.razorpayPaymentId,
+        razorpaySignature: order.razorpaySignature,
+        serviceDate: order.serviceDate?.toString(),
+        selectedSlot: order.selectedSlot,
+        orderStatus: order.orderStatus,
+        statusReason: order.statusReason,
+        address: {
+          _id: order.address?._id?.toString(),
+          addressLine1: order.address.addressLine1,
+          addressLine2: order.address.addressLine2,
+          city: order.address.city,
+          state: order.address.state,
+          zipCode: order.address.zipCode,
+          location: {
+            type: order.address.location.type,
+            coordinates: [
+              order.address.location.coordinates[0],
+              order.address.location.coordinates[1],
+            ],
+          },
+        },
+      };
+
+      return mappedOrder;
+    } catch (error) {
+      throw error;
+    }
+  }
+async getOrderHistory(
+  id: string,
+  page: number,
+  limit: number,
+  
+): Promise<{
+  orders: OrderDTO[];
+  pagination: {
+    totalOrders: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    currentPage: number;
+  };
+}> {
+  try {
+    const userId = new mongoose.Types.ObjectId(id);
+
+    const {
+      orders,
+      pagination,
+    } = await this._orderRepository.fetchOrders(userId, limit, page);
+
+    console.log("the order history");
+
+    const sanitizedOrders: OrderDTO[] = orders.map((order) => ({
+      ...order.toObject(),
       _id: order._id.toString(),
       user: {
+        ...order.user,
         _id: order.user._id.toString(),
-        name: order.user.name,
-        email: order.user.email,
-        phone: order.user.phone,
       },
       vehicle: {
+        ...order.vehicle,
         _id: order.vehicle._id.toString(),
         brandId: order.vehicle.brandId.toString(),
         modelId: order.vehicle.modelId.toString(),
-        brandName: order.vehicle.brandName,
-        modelName: order.vehicle.modelName,
-        fuel: order.vehicle.fuel,
       },
-      services: order.services.map((service: any) => ({
-        _id: service._id.toString(),
-        title: service.title,
-        description: service.description,
-        fuelType: service.fuelType,
-        servicePackageCategory: service.servicePackageCategory,
-        priceBreakup: {
-          parts: service.priceBreakup.parts.map((part: any) => ({
-            name: part.name,
-            price: part.price,
-            quantity: part.quantity,
-          })),
-          laborCharge: service.priceBreakup.laborCharge,
-          discount: service.priceBreakup.discount,
-          tax: service.priceBreakup.tax,
-          total: service.priceBreakup.total,
-        },
-      })),
-      coupon: order.coupon
-        ? {
-            code: order.coupon.code,
-            discountType: order.coupon.discountType,
-            discountValue: order.coupon.discountValue,
-            discountAmount: order.coupon.discountAmount,
-            applied: order.coupon.applied,
-          }
-        : undefined,
-      totalAmount: order.totalAmount,
-      finalAmount: order.finalAmount,
-      paymentMethod: order.paymentMethod,
-      paymentStatus: order.paymentStatus,
-      razorpayOrderId: order.razorpayOrderId,
-      razorpayPaymentId: order.razorpayPaymentId,
-      razorpaySignature: order.razorpaySignature,
-      serviceDate: order.serviceDate?.toString(),
-      selectedSlot: order.selectedSlot,
-      orderStatus: order.orderStatus,
-      statusReason: order.statusReason,
-      address: {
-        _id: order.address?._id?.toString(),
-        addressLine1: order.address.addressLine1,
-        addressLine2: order.address.addressLine2,
-        city: order.address.city,
-        state: order.address.state,
-        zipCode: order.address.zipCode,
-        location: {
-          type: order.address.location.type,
-          coordinates: [
-            order.address.location.coordinates[0],
-            order.address.location.coordinates[1],
-          ],
-        },
-      },
-    };
+    }));
 
-    return mappedOrder;
-      } catch (error) {
-        return null
-      }
+    return {
+      orders: sanitizedOrders,
+      pagination,
+    };
+  } catch (error) {
+    console.log(
+      "internal server error in the order service function",
+      error
+    );
+    throw error;
   }
+}
+
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { orderSchema } from "../provider/providerOrder.controller.dto";
 export interface RazorpayOrderResponse {
   id: string;
   entity: string;
@@ -182,6 +183,17 @@ export const getOrderDetailsResponseSchema = z.object({
   message: z.string(),
   order: OrderResponseSchema,
 });
+export const getOrderHistoryResponseSchema = z.object({
+  success:z.boolean(),
+  message:z.string(),
+  orders:z.array(OrderResponseSchema),
+  pagination:z.object(  {totalOrders: z.number(),
+    totalPages:  z.number(),
+    hasNextPage: z.boolean(),
+    hasPrevPage: z.boolean(),
+    currentPage:  z.number()})
+})
+export type GetOrderHistoryResponseDTO = z.infer<typeof getOrderHistoryResponseSchema>
 export type OrderDTO = z.infer<typeof OrderResponseSchema>
 export type GetOrderDetailsResponseDTO = z.infer<
   typeof getOrderDetailsResponseSchema

@@ -62,4 +62,19 @@ export interface IUserOrderService {
     razorpaySignature: string
   ): Promise<string | undefined>;
   getOrderDetails(id:string):Promise<OrderDTO | null> 
+ getOrderHistory(
+  id: string,
+  limit: number,
+  page: number
+): Promise<{
+  orders: OrderDTO[];
+  pagination: {
+    totalOrders: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    currentPage: number;
+  };
+}>;
+
 }
