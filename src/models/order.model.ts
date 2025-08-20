@@ -61,7 +61,10 @@ export interface IOrder extends Document<Types.ObjectId> {
     type: "Point";
     coordinates: [number, number];
   };
+ 
 };
+ createdAt: Date;
+  updatedAt: Date;
 }
 
 const OrderSchema = new Schema<IOrder>(

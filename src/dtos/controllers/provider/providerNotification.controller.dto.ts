@@ -3,7 +3,7 @@ import { z } from "zod";
 export const notificationSchema = z.object({
   _id:z.string(),
   recipientId: z.string(),
-  recipientType: z.enum(["user", "provider"]),
+  recipientType: z.enum(["user", "provider","admin"]),
   type: z.enum(["service_request", "order", "info", "admin_announcement"]),
   message: z.string(),
   link: z.string().optional(),

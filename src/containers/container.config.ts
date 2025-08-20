@@ -17,6 +17,8 @@ import { bindAdminModelModule } from "./modules/admin/model.module";
 import { bindAdminProviderModule } from "./modules/admin/provider.module";
 import { bindAdminServicePackageModule } from "./modules/admin/servicePackage.module";
 import { bindAdminUserModule } from "./modules/admin/user.module";
+import { bindAdminOrderModule } from "./modules/admin/order.module";
+import { bindAdminNotificationModule } from "./modules/admin/notification.module";
 
 // === Provider Modules ===
 import { bindProviderAuthModule } from "./modules/provider/auth.module";
@@ -54,6 +56,8 @@ bindAdminModelModule(container);
 bindAdminProviderModule(container);
 bindAdminServicePackageModule(container);
 bindAdminUserModule(container);
+bindAdminOrderModule(container);
+bindAdminNotificationModule(container);
 
 // Provider
 bindProviderAuthModule(container);

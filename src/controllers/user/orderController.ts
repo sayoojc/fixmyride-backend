@@ -204,8 +204,6 @@ export class UserOrderController implements IUserOrderController {
       const id = req.userData?.id;
       const page = req.query.page;
       const limit = req.query.limit;
-      console.log('page',page);
-      console.log('limit',limit);
       const pageNum = Number(page);
       const limitNum = Number(limit);
 
@@ -215,7 +213,6 @@ export class UserOrderController implements IUserOrderController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      console.log("the get order history", id);
       if (!id) {
         console.log("no id");
         res

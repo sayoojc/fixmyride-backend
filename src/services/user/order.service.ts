@@ -19,8 +19,6 @@ import { INotificationRepository } from "../../interfaces/repositories/INotifica
 import { IServiceRequestRepository } from "../../interfaces/repositories/IServiceRequestRepository";
 import redis from "../../config/redisConfig";
 import { INearbyProvider } from "../../models/serviceRequest.model";
-import { error } from "console";
-import { IOrder } from "../../models/order.model";
 import { OrderDTO } from "../../dtos/controllers/user/userOrder.controller.dto";
 @injectable()
 export class UserOrderService implements IUserOrderService {

@@ -1,3 +1,4 @@
+import { Admin } from "mongodb";
 
 export const TYPES = {
   // ========== REPOSITORIES ==========
@@ -36,6 +37,8 @@ export const TYPES = {
   AdminUserService: Symbol.for("AdminUserService"),
   AdminProviderService: Symbol.for("AdminProviderService"),
   AdminServicePackageService: Symbol.for("AdminServicePackageService"),
+  AdminOrderService:Symbol.for("AdminOrderService"),
+  AdminNotificationService: Symbol.for("AdminNotificationService"),
 
   // Provider services
   ProviderAuthService: Symbol.for("ProviderAuthService"),
@@ -56,6 +59,8 @@ export const TYPES = {
   AdminUserController: Symbol.for("AdminUserController"),
   AdminProviderController: Symbol.for("AdminProviderController"),
   AdminServicePackageController: Symbol.for("AdminServicePackageController"),
+  AdminOrderController: Symbol.for("AdminOrderController"),
+  AdminNotificationController: Symbol.for("AdminNotificationController"),
 
   // User controllers
   UserAuthController: Symbol.for("UserAuthController"),

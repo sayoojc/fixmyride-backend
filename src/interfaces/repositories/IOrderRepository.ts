@@ -16,4 +16,14 @@ fetchOrders(
     currentPage: number;
   };
 }>;
+fetchAllOrders(
+ search: string,
+  skip: number,
+  limit: number,
+  statusFilter: string,
+  dateFilter: string,
+  startDate?: string | undefined,
+  endDate?: string | undefined
+): Promise<{ orders: IOrder[]; totalCount: number,totalPages: number }>;
+fetchOrderById(orderId: Types.ObjectId): Promise<IOrder | null>;
 }
