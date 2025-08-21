@@ -80,6 +80,7 @@ const ServiceProviderSchema: Schema = new Schema<IServiceProvider>(
     timestamps: true,
   }
 );
+ServiceProviderSchema.index({ location: "2dsphere" });
 
 export default mongoose.model<IServiceProvider>('ServiceCenter', ServiceProviderSchema);
 

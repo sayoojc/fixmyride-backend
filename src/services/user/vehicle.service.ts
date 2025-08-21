@@ -4,8 +4,6 @@ import { IVehicleRepository } from "../../interfaces/repositories/IVehicleReposi
 import mongoose from "mongoose";
 import { IUserVehicleService } from "../../interfaces/services/user/IUserVehicleService";
 import { VehicleDTO } from "../../dtos/controllers/user/userProfile.controller.dto";
-import { EditVehicleRequestDTO } from "../../dtos/controllers/user/userVehicle.controller.dto";
-import { IVehicle } from "../../models/vehicle.model";
 
 @injectable()
 export class UserVehicleService implements IUserVehicleService {
