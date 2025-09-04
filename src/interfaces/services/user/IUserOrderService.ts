@@ -76,5 +76,22 @@ export interface IUserOrderService {
     currentPage: number;
   };
 }>;
+ placeCashOrder(
+  cartId: string,
+  paymentMethod:string,
+  selectedAddressId:
+    | string
+    | {
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        latitude: number;
+        longitude: number;
+        state: string;
+        zipCode: string;
+      },    
+  selectedDate: AvailableDate,
+  selectedSlot: TimeSlot,
+): Promise<string | undefined>
 
 }

@@ -10,6 +10,8 @@ import {
   GetOrderResponseDTO,
   ErrorResponseDTO,
   GetOrderResponseSchema,
+  UpdateOrderResponseSchema,
+  UpdateOrderResponseDTO,
 } from "../../dtos/controllers/provider/providerOrder.controller.dto";
 
 @injectable()
@@ -32,12 +34,10 @@ export class ProviderOrderController implements IProviderOrderController {
       }
       const order = await this._providerOrderService.getOrderData(id);
       if (!order) {
-        res
-          .status(StatusCode.NOT_FOUND)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
-          });
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
+        });
         return;
       }
       const response = {
@@ -47,12 +47,10 @@ export class ProviderOrderController implements IProviderOrderController {
       };
       const validate = GetOrderResponseSchema.safeParse(response);
       if (!validate) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
@@ -63,34 +61,98 @@ export class ProviderOrderController implements IProviderOrderController {
       });
     }
   }
-  async getOrders(
+async getOrders(
+  req: Request,
+  res: Response<GetOrderResponseDTO[] | ErrorResponseDTO>
+): Promise<void> {
+  try {
+    let { search, page, limit, status, dateFilter, startDate, endDate } = req.query;
+    console.log('the get orders controller function ',{search, page, limit, status, dateFilter, startDate, endDate})
+
+    const providerId = req.userData?.id;
+    if (!providerId || !mongoose.Types.ObjectId.isValid(providerId)) {
+      res
+        .status(StatusCode.BAD_REQUEST)
+        .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+      return;
+    }
+    search = (search as string) || "";
+    status = (status as string) || "";
+    dateFilter = (dateFilter as string) || "";
+    startDate = (startDate as string) || "";
+    endDate = (endDate as string) || "";
+    const pageNum = page ? parseInt(page as string, 10) : 1;
+    const limitNum = limit ? parseInt(limit as string, 10) : 10;
+    const {orders,totalOrders,totalPages} = await this._providerOrderService.getOrders(
+      providerId,
+      search,
+      pageNum,
+      limitNum,
+      status,
+      dateFilter,
+      startDate,
+      endDate
+    );
+    console.log('the data fetched from the backend',{orders,totalOrders,totalPages})
+    if (!orders || orders.length === 0) {
+      res.status(StatusCode.NOT_FOUND).json({
+        success: false,
+        message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("orders"),
+      });
+      return;
+    }
+    const response = {
+      success: true,
+      message: RESPONSE_MESSAGES.RESOURCE_FETCHED("orders"),
+      orders,
+      totalOrders,
+      totalPages
+    };
+    res.status(StatusCode.OK).json(response);
+  } catch (error) {
+    res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+    });
+  }
+}
+
+  async updateOrderStatus(
     req: Request,
-    res: Response<GetOrderResponseDTO[] | ErrorResponseDTO>
+    res: Response<UpdateOrderResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      const providerId = req.userData?.id;
-      if (!providerId || !mongoose.Types.ObjectId.isValid(providerId)) {  
+      const orderId = req.params.id;
+      const userId = req.userData?.id;
+      const { name, email, phone } = req.body;
+      if (
+        !userId ||
+        !mongoose.Types.ObjectId.isValid(userId) ||
+        !orderId ||
+        !mongoose.Types.ObjectId.isValid(orderId)
+      ) {
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      const orders = await this._providerOrderService.getOrders(providerId);
-      if (!orders || orders.length === 0) {
-        res
-          .status(StatusCode.NOT_FOUND)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("orders"),
-          });
+      const updated = await this._providerOrderService.updateOrderStatus(
+        orderId,
+        userId,
+        name,
+        email,
+        phone
+      );
+      if (!updated) {
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
+        });
         return;
       }
-      const response = {
-        success: true,
-        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("orders"),
-        orders,
-      };
-      res.status(StatusCode.OK).json(response);
+      res
+        .status(StatusCode.OK)
+        .json({ success: true, message: RESPONSE_MESSAGES.ORDER_COMMITTED });
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,

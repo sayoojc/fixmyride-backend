@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-// Base Notification Schema
+
 export const NotificationSchema = z.object({
-  _id: z.string(), // MongoDB ObjectId as string
+  _id: z.string(),
   recipientId: z.string(),
-  recipientType: z.enum(["user", "provider"]),
+  recipientType: z.enum(["user", "provider","admin"]),
   type: z.enum(["service_request", "order", "info", "admin_announcement"]),
   message: z.string(),
   link: z.string().optional(),
@@ -26,7 +26,13 @@ export const ErrorResponseSchema = z.object({
   message: z.string(),
 });
 
+export const MarkNotificationAsReadSchema = z.object({
+  success:z.boolean(),
+  message:z.string(),
+  notification:NotificationSchema
+});
 
+export type MarkNotificationAsReadDTO = z.infer<typeof MarkNotificationAsReadSchema>
 export type NotificationDTO = z.infer<typeof NotificationSchema>;
 export type FetchNotificationsResponseDTO = z.infer<typeof FetchNotificationsResponseSchema>;
 export type ErrorResponseDTO = z.infer<typeof ErrorResponseSchema>;

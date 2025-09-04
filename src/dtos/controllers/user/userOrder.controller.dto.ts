@@ -191,7 +191,29 @@ export const getOrderHistoryResponseSchema = z.object({
     hasNextPage: z.boolean(),
     hasPrevPage: z.boolean(),
     currentPage:  z.number()})
-})
+});
+export const placeCashOrderRequestSchema = z.object({
+  cartId: z.string(),
+  paymentMethod:z.string(),
+  selectedAddressId: z.union([z.string(), AddressSchema]),
+  selectedDate: z.object({
+    date: z.string(),
+    available: z.boolean(),
+    timeSlots: z.array(
+      z.object({
+        id: z.string(),
+        time: z.string(),
+        available: z.boolean(),
+      })
+    ),
+  }),
+  selectedSlot: z.object({
+    id: z.string(),
+    time: z.string(),
+    available: z.boolean(),
+  }),
+});
+export type PlaceCashOrderRequestDTO = z.infer<typeof placeCashOrderRequestSchema> 
 export type GetOrderHistoryResponseDTO = z.infer<typeof getOrderHistoryResponseSchema>
 export type OrderDTO = z.infer<typeof OrderResponseSchema>
 export type GetOrderDetailsResponseDTO = z.infer<

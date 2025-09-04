@@ -275,6 +275,7 @@ export class UserOrderService implements IUserOrderService {
           console.log("the socket event emitting failed");
           throw new Error("Unable to emit event: Invalid address coordinates");
         }
+        console.log("the new order after payment", newOrder);
         return newOrder;
       } catch (error) {
         await session.abortTransaction();
@@ -519,57 +520,193 @@ export class UserOrderService implements IUserOrderService {
       throw error;
     }
   }
-async getOrderHistory(
-  id: string,
-  page: number,
-  limit: number,
-  
-): Promise<{
-  orders: OrderDTO[];
-  pagination: {
-    totalOrders: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
-    currentPage: number;
-  };
-}> {
-  try {
-    const userId = new mongoose.Types.ObjectId(id);
-
-    const {
-      orders,
-      pagination,
-    } = await this._orderRepository.fetchOrders(userId, limit, page);
-
-    console.log("the order history");
-
-    const sanitizedOrders: OrderDTO[] = orders.map((order) => ({
-      ...order.toObject(),
-      _id: order._id.toString(),
-      user: {
-        ...order.user,
-        _id: order.user._id.toString(),
-      },
-      vehicle: {
-        ...order.vehicle,
-        _id: order.vehicle._id.toString(),
-        brandId: order.vehicle.brandId.toString(),
-        modelId: order.vehicle.modelId.toString(),
-      },
-    }));
-
-    return {
-      orders: sanitizedOrders,
-      pagination,
+  async getOrderHistory(
+    id: string,
+    page: number,
+    limit: number
+  ): Promise<{
+    orders: OrderDTO[];
+    pagination: {
+      totalOrders: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+      currentPage: number;
     };
-  } catch (error) {
-    console.log(
-      "internal server error in the order service function",
-      error
-    );
-    throw error;
-  }
-}
+  }> {
+    try {
+      const userId = new mongoose.Types.ObjectId(id);
 
+      const { orders, pagination } = await this._orderRepository.fetchOrders(
+        userId,
+        limit,
+        page
+      );
+
+      console.log("the order history");
+
+      const sanitizedOrders: OrderDTO[] = orders.map((order) => ({
+        ...order.toObject(),
+        _id: order._id.toString(),
+        user: {
+          ...order.user,
+          _id: order.user._id.toString(),
+        },
+        vehicle: {
+          ...order.vehicle,
+          _id: order.vehicle._id.toString(),
+          brandId: order.vehicle.brandId.toString(),
+          modelId: order.vehicle.modelId.toString(),
+        },
+      }));
+
+      return {
+        orders: sanitizedOrders,
+        pagination,
+      };
+    } catch (error) {
+      console.log("internal server error in the order service function", error);
+      throw error;
+    }
+  }
+  async placeCashOrder(
+    cartId: string,
+    paymentMethod: string,
+    selectedAddressId:
+      | string
+      | {
+          addressLine1: string;
+          addressLine2?: string;
+          city: string;
+          latitude: number;
+          longitude: number;
+          state: string;
+          zipCode: string;
+        },
+    selectedDate: AvailableDate,
+    selectedSlot: TimeSlot
+  ): Promise<string | undefined> {
+    try {
+      if (paymentMethod !== "cash") {
+        throw new Error("Invalid payment method");
+      }
+      const cartObjectId = new Types.ObjectId(cartId);
+      const cart = await this._cartRepository.findPopulatedCartById(
+        cartObjectId
+      );
+
+      console.log("cart", cart);
+      if (!cart) {
+        throw new Error("Cart not found");
+      }
+      const userSnapshot = {
+        _id: new Types.ObjectId(cart.userId._id),
+        name: cart.userId.name,
+        email: cart.userId.email,
+        phone: cart.userId.phone,
+      };
+
+      const vehicleSnapshot = {
+        _id: new Types.ObjectId(cart.vehicleId._id),
+        brandId: new Types.ObjectId(cart.vehicleId.brandId._id),
+        modelId: new Types.ObjectId(cart.vehicleId.modelId._id),
+        fuel: cart.vehicleId.fuel,
+        brandName: cart.vehicleId.brandId.brandName,
+        modelName: cart.vehicleId.modelId.name,
+      };
+
+      const servicesSnapshot = (cart.services ?? []).map((service) => ({
+        _id: new Types.ObjectId(service._id),
+        title: service.title,
+        description: service.description,
+        fuelType: service.fuelType,
+        servicePackageCategory: service.servicePackageCategory,
+        priceBreakup: service.priceBreakup,
+      }));
+
+      let addressSnapshot: AddressSnapshot;
+
+      if (typeof selectedAddressId === "string") {
+        const addressDoc = await this._addressRepository.findOne({
+          _id: new Types.ObjectId(selectedAddressId),
+        });
+
+        if (!addressDoc) throw new Error("Address not found");
+
+        addressSnapshot = {
+          _id: new Types.ObjectId(addressDoc._id),
+          addressLine1: addressDoc.addressLine1,
+          addressLine2: addressDoc.addressLine2 ?? "",
+          city: addressDoc.city,
+          state: addressDoc.state,
+          zipCode: addressDoc.zipCode,
+          location: addressDoc.location,
+        };
+      } else {
+        addressSnapshot = {
+          _id: new Types.ObjectId(),
+          addressLine1: selectedAddressId.addressLine1,
+          addressLine2: selectedAddressId.addressLine2 || "",
+          city: selectedAddressId.city,
+          state: selectedAddressId.state,
+          zipCode: selectedAddressId.zipCode,
+          location: {
+            type: "Point",
+            coordinates: [
+              selectedAddressId.latitude,
+              selectedAddressId.longitude,
+            ],
+          },
+        };
+      }
+
+      const orderData = {
+        user: userSnapshot,
+        vehicle: vehicleSnapshot,
+        services: servicesSnapshot,
+        coupon: cart.coupon,
+        totalAmount: cart.totalAmount,
+        finalAmount: cart.finalAmount ?? 0,
+        paymentMethod: "cash" as const,
+        paymentStatus: "pending" as const,
+        orderStatus: "placed" as const,
+        serviceDate: selectedDate.date.toString(),
+        selectedSlot: selectedSlot.time.toString(),
+        address: addressSnapshot,
+        orderedAt: new Date(),
+      };
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+
+      try {
+        const newOrder = await this._orderRepository.create(orderData);
+
+        if (!newOrder) {
+          console.log("The new order is not getting");
+          throw new Error("Order creation failed");
+        }
+
+        const deleteResult = await this._cartRepository.deleteById(
+          cartObjectId
+        );
+
+        if (!deleteResult) {
+          console.log("The cart deletion is failed");
+          throw new Error("Cart deletion failed");
+        }
+
+        await session.commitTransaction();
+        return newOrder._id.toString();
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        session.endSession();
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      throw error;
+    }
+  }
 }

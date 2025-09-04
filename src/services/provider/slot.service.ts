@@ -3,8 +3,10 @@ import { TYPES } from "../../containers/types";
 import { IProviderSlotService } from "../../interfaces/services/provider/IproviderSlotService";
 import { ISlotRepository } from "../../interfaces/repositories/ISlotRepository";
 import { ISlot } from "../../models/slot.model";
-import { WeekySlotDTO } from "../../dtos/controllers/provider/providerSlot.controller.dto";
+import { WeeklySlotDTO } from "../../dtos/controllers/provider/providerSlot.controller.dto";
 import { TIME_SLOTS } from "../../constants/timeSlot";
+import { IHourStatus } from "../../models/slot.model";
+import { UpdateQuery } from "mongoose";
 import mongoose from "mongoose";
 
 @injectable()
@@ -33,45 +35,45 @@ export class ProviderSlotService implements IProviderSlotService {
       throw error;
     }
   }
-  async updateSlots(id: string, weeklySlots: WeekySlotDTO[]): Promise<ISlot[]> {
-    try {
-      const providerId = new mongoose.Types.ObjectId(id);
-      console.log('the weekly slots form the updateslots service function ',weeklySlots);
-      for (const weeklySlot of weeklySlots) {
-        const slotDate = new Date(weeklySlot.date);
-        const timeSlots = Object.entries(weeklySlot.slots).map(
-          ([slotId, slotData]) => {
-            const slotMeta = TIME_SLOTS.find((s) => s.id === slotId);
-            if (!slotMeta) throw new Error(`Invalid slotId: ${slotId}`);
+async updateSlots(
+  id: string,
+  weeklySlots: WeeklySlotDTO[]
+): Promise<ISlot[]> {
+  try {
+    console.log('the weekly slots in the service',weeklySlots);
+    const providerId = new mongoose.Types.ObjectId(id);
+    const updatedSlots: ISlot[] = [];
 
-            return {
-              startTime: slotMeta.startTime,
-              endTime: slotMeta.endTime,
-              status: slotData.status,
-            };
-          }
-        );
-        await this._slotRepository.updateSlotForDay(
-          providerId,
-          slotDate,
-          timeSlots
-        );
+    for (const slot of weeklySlots) {
+      const formattedHours: Record<number, IHourStatus> = {};
+
+      for (const [hour, status] of Object.entries(slot.hours)) {
+        formattedHours[parseInt(hour)] = status as IHourStatus;
       }
-      const startOfWeek = new Date();
-      startOfWeek.setHours(0, 0, 0, 0);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-      const slots = await this._slotRepository.find({
-        providerId: providerId,
-        date: {
-          $gte: startOfWeek,
-          $lte: endOfWeek,
+      const updateData: UpdateQuery<ISlot> = {
+        $set: {
+          dayName: slot.dayName,
+          employees: slot.employees,
+          hours: formattedHours,
         },
-      });
-      return slots
-    } catch (error) {
-      throw error;
+      };
+
+      const updated = await this._slotRepository.findOneAndUpdate(
+        { providerId, date: new Date(slot.date) },
+        updateData,
+        { new: true, upsert: true }
+      );
+
+      if (updated) {
+        updatedSlots.push(updated);
+      }
     }
+
+    return updatedSlots;
+  } catch (error) {
+    throw error;
   }
+}
+
 }

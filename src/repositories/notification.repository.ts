@@ -12,7 +12,6 @@ export class NotificationRepository extends BaseRepository<INotification> implem
   async insertMany(notifications: INotification[]): Promise<INotification[]> {
     try {
       const result = await this.model.insertMany(notifications, { ordered: true });
-      console.log("MongoDB insertMany result:", result);
       return result;
     } catch (err) {
       console.error("Failed to insert notifications into MongoDB:", err);

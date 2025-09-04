@@ -9,6 +9,7 @@ const messages = {
   LOGOUT_SUCCESS: (role:string) => `${role} logout successful`,
   RESOURCE_UPDATE_FAILED: (resource:string) => `${resource} failed to update`,
   
+  ORDER_COMMITTED:"Order committed successfully",
   ACCOUNT_IS_BLOCKED:"Your account is blocked. Contact support.",
   OTP_SEND_SUCCESSFULLY: "OTP SEND SUCCESSFULLY",
   LOGOUT_FAILED: "LOGOUT FAILED",
@@ -30,6 +31,7 @@ const messages = {
   EMAIL_ALREADY_EXISTS: "Email already exists",
   USER_ALREADY_EXISTS: "User already exists",
   PASSWORD_INCORRECT: "Incorrect password",
+  NOTIFICATIONS_MARKED_AS_READ: "Notifications marked as read",
 
 };
 

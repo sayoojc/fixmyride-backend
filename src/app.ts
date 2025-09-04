@@ -101,6 +101,7 @@ socketService.initialize(server);
 
 connectdb().then(() => {
     console.log("Database connected successfully");
+    
       logger.info('Database connected successfully', { 
         dbName: process.env.DB_NAME, 
         dbHost: process.env.DB_HOST 

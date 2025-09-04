@@ -3,6 +3,8 @@ import {
   GetOrderDetailsResponseDTO,
   ErrorResponseDTO,
   GetOrderHistoryResponseDTO,
+  PlaceCashOrderRequestDTO,
+
 } from "../../../dtos/controllers/user/userOrder.controller.dto";
 
 export interface IUserOrderController {
@@ -16,4 +18,9 @@ export interface IUserOrderController {
     req: Request,
     res: Response<GetOrderHistoryResponseDTO | ErrorResponseDTO>
   ): Promise<void>;
+  placeCashOrder(
+    req: Request<{},{},PlaceCashOrderRequestDTO>,
+    res: Response
+  ): Promise<void>
+ 
 }

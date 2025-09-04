@@ -26,4 +26,12 @@ fetchAllOrders(
   endDate?: string | undefined
 ): Promise<{ orders: IOrder[]; totalCount: number,totalPages: number }>;
 fetchOrderById(orderId: Types.ObjectId): Promise<IOrder | null>;
+ fetchOrdersByProvider(  providerId: string,
+  search: string,
+  page: number,
+  limit: number,
+  status: string,
+  dateFilter: string,
+  startDate: string,
+  endDate: string):Promise<{orders:IOrder[],totalPages:number,totalOrders:number}>
 }

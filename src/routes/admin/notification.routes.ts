@@ -12,6 +12,18 @@ const adminNotificationController = container.get<IAdminNotificationController>(
 router.get("/notifications", verifyAdmin, (req, res) =>
   adminNotificationController.fetchNotifications(req, res)
 );
-
+router.patch("/notifications/:id", verifyAdmin, (req, res) =>
+  adminNotificationController.markNotificationAsRead(req, res)
+);
+router.patch("/notifications/:id/unread", verifyAdmin, (req, res) =>
+  adminNotificationController.markNotificationAsUnread(req, res)
+);
+router.delete("/notifications/:id", verifyAdmin, (req, res) =>
+  adminNotificationController.deleteNotification(req, res)
+);
+router.patch("/notifications",verifyAdmin,(req,res) => 
+adminNotificationController.markAllAsRead(req,res)
+)
 
 export default router;
+
