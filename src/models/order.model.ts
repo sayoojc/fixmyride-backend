@@ -5,6 +5,12 @@ import { IServicePackage } from "./servicePackage.model";
 
 export interface IOrder extends Document<Types.ObjectId> {
   user: Pick<IUser, "_id" | "name" | "email" | "phone">;
+  provider?:{
+    _id: Types.ObjectId;
+    name?: string;
+    email?: string;
+    phone?: string;
+  }
   vehicle: Pick<
     IVehicle,
     "_id" | "brandId" | "modelId" | "fuel"
@@ -55,7 +61,10 @@ export interface IOrder extends Document<Types.ObjectId> {
     type: "Point";
     coordinates: [number, number];
   };
+ 
 };
+ createdAt: Date;
+  updatedAt: Date;
 }
 
 const OrderSchema = new Schema<IOrder>(
@@ -64,6 +73,12 @@ const OrderSchema = new Schema<IOrder>(
       _id: { type: Schema.Types.ObjectId, required: true },
       name: { type: String, required: true },
       email: { type: String, required: true },
+      phone: { type: String },
+    },
+     provider: {
+      _id: { type: Schema.Types.ObjectId, ref: "Provider" },
+      name: { type: String },
+      email: { type: String },
       phone: { type: String },
     },
     vehicle: {

@@ -67,7 +67,10 @@ export class AdminAuthController implements IAdminAuthController {
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({
           success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+          message:
+            error && typeof error === "object" && "message" in error
+              ? (error as { message: string }).message
+              : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
     }
   }

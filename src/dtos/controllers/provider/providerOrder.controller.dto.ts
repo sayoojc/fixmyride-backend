@@ -73,5 +73,11 @@ export const ErrorResponseSchema = z.object({
   message:z.string()
 })
 
+export const UpdateOrderResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+
+export type UpdateOrderResponseDTO = z.infer<typeof UpdateOrderResponseSchema>;
 export type GetOrderResponseDTO = z.infer<typeof GetOrderResponseSchema>;
 export type ErrorResponseDTO = z.infer<typeof ErrorResponseSchema>

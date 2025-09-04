@@ -3,7 +3,7 @@ import { INotification } from "../models/notification.model";
 import { Model as MongooseModel } from "mongoose";
 import { INotificationRepository } from "../interfaces/repositories/INotificationRepository";
 import { NotificationQuery } from "../interfaces/notification.interface";
-
+import { FilterQuery } from "mongoose";
 export class NotificationRepository extends BaseRepository<INotification> implements INotificationRepository {
   constructor(notificationModel: MongooseModel<INotification>) {
     super(notificationModel);
@@ -12,7 +12,6 @@ export class NotificationRepository extends BaseRepository<INotification> implem
   async insertMany(notifications: INotification[]): Promise<INotification[]> {
     try {
       const result = await this.model.insertMany(notifications, { ordered: true });
-      console.log("MongoDB insertMany result:", result);
       return result;
     } catch (err) {
       console.error("Failed to insert notifications into MongoDB:", err);
@@ -20,7 +19,7 @@ export class NotificationRepository extends BaseRepository<INotification> implem
     }
   }
   async findWithPaginationAndSearch(
-  query: any,
+  query: FilterQuery<INotification>,
   page: number,
   itemsPerPage: number
 ): Promise<INotification[]> {

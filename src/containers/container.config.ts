@@ -9,7 +9,7 @@ import { bindUserProfileModule } from "./modules/user/profile.module";
 import { bindUserServicePackageModule } from "./modules/user/servicePackage.module";
 import { bindUserVehicleModule } from "./modules/user/vehicle.module";
 import { bindUserOrderModule } from "./modules/user/order.module";
-
+import { bindUserProviderModule } from "./modules/user/provider.module";
 // === Admin Modules ===
 import { bindAdminAuthModule } from "./modules/admin/auth.module";
 import { bindAdminBrandModule } from "./modules/admin/brand.module";
@@ -17,6 +17,8 @@ import { bindAdminModelModule } from "./modules/admin/model.module";
 import { bindAdminProviderModule } from "./modules/admin/provider.module";
 import { bindAdminServicePackageModule } from "./modules/admin/servicePackage.module";
 import { bindAdminUserModule } from "./modules/admin/user.module";
+import { bindAdminOrderModule } from "./modules/admin/order.module";
+import { bindAdminNotificationModule } from "./modules/admin/notification.module";
 
 // === Provider Modules ===
 import { bindProviderAuthModule } from "./modules/provider/auth.module";
@@ -46,6 +48,7 @@ bindUserProfileModule(container);
 bindUserServicePackageModule(container);
 bindUserVehicleModule(container);
 bindUserOrderModule(container);
+bindUserProviderModule(container);
 
 // Admin
 bindAdminAuthModule(container);
@@ -54,6 +57,8 @@ bindAdminModelModule(container);
 bindAdminProviderModule(container);
 bindAdminServicePackageModule(container);
 bindAdminUserModule(container);
+bindAdminOrderModule(container);
+bindAdminNotificationModule(container);
 
 // Provider
 bindProviderAuthModule(container);

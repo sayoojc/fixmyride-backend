@@ -16,6 +16,10 @@ import {
   verifyRazorpayPaymentResponseSchema,
   getOrderDetailsResponseSchema,
   GetOrderDetailsResponseDTO,
+  GetOrderHistoryResponseDTO,
+  getOrderHistoryResponseSchema,
+  PlaceCashOrderRequestDTO,
+  placeCashOrderRequestSchema,
 } from "../../dtos/controllers/user/userOrder.controller.dto";
 import mongoose from "mongoose";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -45,7 +49,7 @@ export class UserOrderController implements IUserOrderController {
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
       }
-      const order = await this._userOrderService.createPaymentOrder(      
+      const order = await this._userOrderService.createPaymentOrder(
         parsed.data?.amount
       );
       const response = {
@@ -74,8 +78,10 @@ export class UserOrderController implements IUserOrderController {
     res: Response<verifyRazorpayPaymentResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
+      console.log('the verify payment controller called',req.body)
       const parsed = verifyRazorpayPaymentRequestSchema.safeParse(req.body);
       if (!parsed.success) {
+        console.log('the parsing failed in the controller in the verify payment',parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -126,19 +132,20 @@ export class UserOrderController implements IUserOrderController {
         });
         return;
       }
-      const orderResponse = await this._userOrderService.handleSuccessfulPayment(
-        orderId,
-        razorpayPaymentId,
-        razorpaySignature,
-        cartId,
-        selectedAddressId,
-        selectedDate,
-        selectedSlot
-      );
+      const orderResponse =
+        await this._userOrderService.handleSuccessfulPayment(
+          orderId,
+          razorpayPaymentId,
+          razorpaySignature,
+          cartId,
+          selectedAddressId,
+          selectedDate,
+          selectedSlot
+        );
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.ACTION_SUCCESS,
-        orderId:orderResponse._id.toString()
+        orderId: orderResponse._id.toString(),
       };
       const validate = verifyRazorpayPaymentResponseSchema.safeParse(response);
       if (!validate.success) {
@@ -150,6 +157,7 @@ export class UserOrderController implements IUserOrderController {
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
+      console.log("the catch block inthe order controller");
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -163,6 +171,7 @@ export class UserOrderController implements IUserOrderController {
     try {
       const orderId = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        console.log("invalid order id from the get order details");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
@@ -170,13 +179,11 @@ export class UserOrderController implements IUserOrderController {
       }
       const order = await this._userOrderService.getOrderDetails(orderId);
       if (!order) {
-        console.log('no order found  from the service file');
-        res
-          .status(StatusCode.NOT_FOUND)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
-          });
+        console.log("no order found  from the service file");
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
+        });
         return;
       }
       const response = {
@@ -186,15 +193,104 @@ export class UserOrderController implements IUserOrderController {
       };
       const validate = getOrderDetailsResponseSchema.safeParse(response);
       if (!validate.success) {
-        res
-          .status(StatusCode.INTERNAL_SERVER_ERROR)
-          .json({
-            success: false,
-            message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-          });
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
         return;
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {}
+  }
+  async getOrderHistory(
+    req: Request,
+    res: Response<GetOrderHistoryResponseDTO | ErrorResponseDTO>
+  ): Promise<void> {
+    try {
+      const id = req.userData?.id;
+      const page = req.query.page;
+      const limit = req.query.limit;
+      const pageNum = Number(page);
+      const limitNum = Number(limit);
+
+      if (!pageNum || !limitNum || isNaN(pageNum) || isNaN(limitNum)) {
+        res
+          .status(400)
+          .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
+        return;
+      }
+      if (!id) {
+        console.log("no id");
+        res
+          .status(StatusCode.BAD_REQUEST)
+          .json({ success: false, message: RESPONSE_MESSAGES.FORBIDDEN });
+        return;
+      }
+      const { orders, pagination } =
+        await this._userOrderService.getOrderHistory(id, pageNum, limitNum);
+      const response = {
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("order history"),
+        orders,
+        pagination,
+      };
+      const validate = getOrderHistoryResponseSchema.safeParse(response);
+      if (!validate) {
+        console.log("response validation failed");
+        res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
+      }
+      res.status(StatusCode.OK).json(response);
+    } catch (error) {
+      console.log("the catch block inteh controller");
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+  async placeCashOrder(
+    req: Request<{}, {}, PlaceCashOrderRequestDTO>,
+    res: Response
+  ): Promise<void> {
+    try {
+      const parsed = placeCashOrderRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        console.log('the request parsing is failed',parsed.error.message)
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INVALID_INPUT,
+        });
+        return;
+      }
+      const {
+        cartId,
+        paymentMethod,
+        selectedAddressId,
+        selectedDate,
+        selectedSlot,
+      } = parsed.data;
+      const orderId = await this._userOrderService.placeCashOrder(
+        cartId,
+        paymentMethod,
+        selectedAddressId,
+        selectedDate,
+        selectedSlot
+      );
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: RESPONSE_MESSAGES.ACTION_SUCCESS,
+        orderId: orderId,
+      });
+    } catch (error) {
+      console.log("the catch block inteh controller");
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
+    }
   }
 }

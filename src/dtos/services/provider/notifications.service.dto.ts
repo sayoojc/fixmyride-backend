@@ -1,7 +1,7 @@
 export interface INotificationResponse {
   _id: string;
   recipientId: string;
-  recipientType: "user" | "provider";
+  recipientType: "user" | "provider"| "admin";
   type: "service_request" | "order" | "info" | "admin_announcement";
   message: string;
   link?: string;

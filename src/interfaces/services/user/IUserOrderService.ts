@@ -62,4 +62,36 @@ export interface IUserOrderService {
     razorpaySignature: string
   ): Promise<string | undefined>;
   getOrderDetails(id:string):Promise<OrderDTO | null> 
+ getOrderHistory(
+  id: string,
+  limit: number,
+  page: number
+): Promise<{
+  orders: OrderDTO[];
+  pagination: {
+    totalOrders: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    currentPage: number;
+  };
+}>;
+ placeCashOrder(
+  cartId: string,
+  paymentMethod:string,
+  selectedAddressId:
+    | string
+    | {
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        latitude: number;
+        longitude: number;
+        state: string;
+        zipCode: string;
+      },    
+  selectedDate: AvailableDate,
+  selectedSlot: TimeSlot,
+): Promise<string | undefined>
+
 }

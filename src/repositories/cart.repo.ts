@@ -15,7 +15,7 @@ export class CartRepository
     super(cartModel);
   }
   async upsertCart(data: AddToCartDataDTO): Promise<IPopulatedCart> {
-    const { userId, serviceId, vehicleId } = data;
+    const { userId, serviceId,vehicleId} = data;
    const service = await mongoose.model<IServicePackage>("ServicePackage").findById(serviceId);
     if (!service) {
       throw new Error("Service not found");
@@ -23,7 +23,7 @@ export class CartRepository
 
     const servicePrice = service.priceBreakup.total || 0;
 const updatedCart = await this.model.findOneAndUpdate(
-  {
+  { vehicleId,
     userId,
     isCheckedOut: false,
     services: { $ne: serviceId },
@@ -73,6 +73,7 @@ const updatedCart = await this.model.findOneAndUpdate(
       .lean<IPopulatedCart>();
 
     if (existingCart) {
+      console.log('the existing cart',existingCart);
       return existingCart;
     }
     const newCart = new this.model({
@@ -99,6 +100,7 @@ const updatedCart = await this.model.findOneAndUpdate(
     if (!populatedCart) {
       throw new Error("Failed to populate cart after creation");
     }
+    console.log('the new cart',newCart);
 
     return populatedCart;
   }
@@ -181,7 +183,7 @@ const updatedCart = await this.model.findOneAndUpdate(
         select: "_id name email phone"
       })
       .populate({
-        path: "services", // Optional: select only needed fields
+        path: "services",
         select: "_id title description fuelType servicePackageCategory priceBreakup"
       })
       .lean<IPopulatedCart>();

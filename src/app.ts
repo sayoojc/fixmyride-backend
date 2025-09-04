@@ -24,6 +24,9 @@ import providerAuthRoutes from './routes/provider/auth.routes'
 import providerProfileRoutes from './routes/provider/profile.routes'
 import providerNotificationRoutes from './routes/provider/notification.routes'
 import providerSlotRoutes from './routes/provider/slot.routes'
+import adminOrderRoutes from './routes/admin/order.routes'
+import adminNotificationRoutes from './routes/admin/notification.routes'
+import userProviderRoutes from './routes/user/provider.routes'
 import cookieParser from 'cookie-parser'
 import { errorHandler } from "./middlewares/errorHandler"
 import { StatusCode } from "./enums/statusCode.enum"
@@ -65,7 +68,9 @@ app.use("/api/admin",adminUserRoutes);
 app.use("/api/admin",adminBrandRoutes); 
 app.use("/api/admin",adminModelRoutes); 
 app.use("/api/admin",adminProviderRoutes);
-app.use("/api/admin",adminServicePackageRoutes)
+app.use("/api/admin",adminServicePackageRoutes);
+app.use("/api/admin",adminOrderRoutes);
+app.use("/api/admin",adminNotificationRoutes);
 
 ///user routes
 app.use("/api/user",userAuthRoutes);
@@ -76,6 +81,7 @@ app.use("/api/user",userVehicleRoutes);
 app.use("/api/user",userServicePackageRoutes);
 app.use("/api/user",cartRoutes);
 app.use("/api/user",orderRoutes);
+app.use("/api/user",userProviderRoutes);
 //provider routes
 app.use("/api/provider",providerAuthRoutes);
 app.use("/api/provider",providerProfileRoutes);
@@ -95,6 +101,7 @@ socketService.initialize(server);
 
 connectdb().then(() => {
     console.log("Database connected successfully");
+    
       logger.info('Database connected successfully', { 
         dbName: process.env.DB_NAME, 
         dbHost: process.env.DB_HOST 

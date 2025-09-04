@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { IUserCartService } from "../../interfaces/services/user/IUserCartService";
 import { AddToCartDataDTO } from "../../dtos/services/user/cart.service.dto";
 import { SerializedCart } from "../../interfaces/Cart.interface";
+import { ConflictError } from "../../errors/conflict-error";
 
 injectable();
 export class UserCartService implements IUserCartService {
@@ -13,12 +14,18 @@ export class UserCartService implements IUserCartService {
     @inject(TYPES.CartRepository)
     private readonly _cartRepository: ICartRepository
   ) {}
-  async getCart(userId:string,cartId:string):Promise<SerializedCart | undefined> {
+  async getCart(
+    userId: string,
+    cartId: string
+  ): Promise<SerializedCart | undefined> {
     try {
       const idCart = new Types.ObjectId(cartId);
       const idUser = new Types.ObjectId(userId);
-      const cart = await this._cartRepository.fetchCartPopulated(idCart,idUser)
-       const parsedCart = {
+      const cart = await this._cartRepository.fetchCartPopulated(
+        idCart,
+        idUser
+      );
+      const parsedCart = {
         _id: cart._id.toString(),
         userId: cart.userId.toString(),
         vehicleId: {
@@ -46,7 +53,7 @@ export class UserCartService implements IUserCartService {
             updatedAt: cart.vehicleId.modelId.updatedAt,
           },
         },
-       services: Array.isArray(cart.services)
+        services: Array.isArray(cart.services)
           ? cart.services.map((service) => ({
               serviceId: {
                 _id: service._id.toString(),
@@ -63,7 +70,7 @@ export class UserCartService implements IUserCartService {
                   tax: service.priceBreakup.tax,
                   total: service.priceBreakup.total,
                 },
-                servicePackageCategory:service.servicePackageCategory,
+                servicePackageCategory: service.servicePackageCategory,
                 isBlocked: service.isBlocked,
                 createdAt: service.createdAt,
                 updatedAt: service.updatedAt,
@@ -76,20 +83,34 @@ export class UserCartService implements IUserCartService {
         isCheckedOut: cart.isCheckedOut ?? false,
         createdAt: cart.createdAt,
         updatedAt: cart.updatedAt,
-
       };
-      return parsedCart
+      return parsedCart;
     } catch (error) {
-console.log("The get cart function failed", error);
+      console.log("The get cart function failed", error);
       throw error;
     }
   }
   async addToCart(data: AddToCartDataDTO): Promise<SerializedCart | undefined> {
     try {
+      console.log('the add to cart data',data);
+      const serviceObjectId = new mongoose.Types.ObjectId(data.serviceId);
+      const isServiceExists = await this._cartRepository.findOne({
+        userId: data.userId,
+        vehicleId: data.vehicleId,
+        services: { $in: [serviceObjectId] },
+        isCheckedOut: false,
+      });
+      if (isServiceExists) {
+        console.log('the service already exists')
+        throw new ConflictError("Service already exists in cart");
+      }
       const cart = await this._cartRepository.upsertCart(data);
-      if (!cart) return undefined;
+      console.log('cart',cart);
+      if (!cart) {
+        console.log('no cart found after updation');
+        return undefined;}
 
-       const parsedCart = {
+      const parsedCart = {
         _id: cart._id.toString(),
         userId: cart.userId.toString(),
         vehicleId: {
@@ -149,7 +170,8 @@ console.log("The get cart function failed", error);
       };
 
       return parsedCart;
-    } catch (error) {
+    } catch (error:any) {
+      console.log('the catch block of the cart service',error.message);
       throw error;
     }
   }
@@ -159,6 +181,8 @@ console.log("The get cart function failed", error);
     userId: string
   ): Promise<SerializedCart> {
     try {
+      console.log('the vehicle id',vehicleId);
+      console.log('the userId',userId);
       const idVehicle = new mongoose.Types.ObjectId(vehicleId);
       const idUser = new mongoose.Types.ObjectId(userId);
       const cart = await this._cartRepository.addVehicleToCart(
@@ -234,17 +258,25 @@ console.log("The get cart function failed", error);
       throw error;
     }
   }
-  async removeFromCart(userId: string, cartId: string, packageId: string): Promise<SerializedCart> {
+  async removeFromCart(
+    userId: string,
+    cartId: string,
+    packageId: string
+  ): Promise<SerializedCart> {
     try {
       const userObjectId = new Types.ObjectId(userId);
       const cartObjectId = new Types.ObjectId(cartId);
       const packageObjectId = new Types.ObjectId(packageId);
-      const cart = await this._cartRepository.removePackageFromCart(userObjectId,cartObjectId,packageObjectId);
-         if (!cart) {
+      const cart = await this._cartRepository.removePackageFromCart(
+        userObjectId,
+        cartObjectId,
+        packageObjectId
+      );
+      if (!cart) {
         console.log("error block");
         throw new Error("cart is not found");
       }
-       const parsedCart = {
+      const parsedCart = {
         _id: cart._id.toString(),
         userId: cart.userId.toString(),
         vehicleId: {
@@ -305,7 +337,7 @@ console.log("The get cart function failed", error);
 
       return parsedCart;
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 }

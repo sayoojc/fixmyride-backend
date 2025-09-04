@@ -1,3 +1,4 @@
+import { Admin } from "mongodb";
 
 export const TYPES = {
   // ========== REPOSITORIES ==========
@@ -28,6 +29,7 @@ export const TYPES = {
   UserServicePackageService: Symbol.for("UserServicePackageService"),
   UserCartService: Symbol.for("UserCartService"),
   UserOrderService:Symbol.for("UserOrderService"),
+  UserProviderService: Symbol.for("UserProviderService"),
 
   // Admin services
   AdminAuthService: Symbol.for("AdminAuthService"),
@@ -36,6 +38,8 @@ export const TYPES = {
   AdminUserService: Symbol.for("AdminUserService"),
   AdminProviderService: Symbol.for("AdminProviderService"),
   AdminServicePackageService: Symbol.for("AdminServicePackageService"),
+  AdminOrderService:Symbol.for("AdminOrderService"),
+  AdminNotificationService: Symbol.for("AdminNotificationService"),
 
   // Provider services
   ProviderAuthService: Symbol.for("ProviderAuthService"),
@@ -56,6 +60,8 @@ export const TYPES = {
   AdminUserController: Symbol.for("AdminUserController"),
   AdminProviderController: Symbol.for("AdminProviderController"),
   AdminServicePackageController: Symbol.for("AdminServicePackageController"),
+  AdminOrderController: Symbol.for("AdminOrderController"),
+  AdminNotificationController: Symbol.for("AdminNotificationController"),
 
   // User controllers
   UserAuthController: Symbol.for("UserAuthController"),
@@ -66,6 +72,7 @@ export const TYPES = {
   UserServicePackageController: Symbol.for("UserServicePackageController"),
   UserCartController: Symbol.for("UserCartController"),
   UserOrderController:Symbol.for("UserOrderController"),
+  UserProviderController: Symbol.for("UserProviderController"),
 
   // Provider controllers
   ProviderAuthController: Symbol.for("ProviderAuthController"),

@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../containers/types";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { IProviderSlotController } from "../../interfaces/controllers/provider/IProviderSlotController";
 import { IProviderSlotService } from "../../interfaces/services/provider/IproviderSlotService";
 import { StatusCode } from "../../enums/statusCode.enum";
@@ -25,8 +24,9 @@ export class ProviderSlotController implements IProviderSlotController {
     res: Response<GetSlotsResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      if(!req.userData) {
-return;
+      console.log('the get slots controller called');
+      if (!req.userData) {
+        return;
       }
       const id = req.userData.id;
       if (!id) {
@@ -37,7 +37,7 @@ return;
         return;
       }
       const slots = await this._providerSlotService.getSlots(id);
-      console.log('the slots from the controller',slots);
+      console.log("the slots from the controller", slots);
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Slots"),
@@ -59,32 +59,30 @@ return;
     res: Response
   ): Promise<void> {
     try {
-      if(!req.userData) {
-        return 
+      if (!req.userData) {
+        return;
       }
-      console.log('the update slot req.body',req.body);
-     const id = req.userData.id;
-      const reqValidate = updateSlotsRequestSchema.safeParse(
-        req.body
-      );
+      console.log("the update slot");
+      const id = req.userData.id;
+      const reqValidate = updateSlotsRequestSchema.safeParse(req.body);
       if (!reqValidate.success) {
-        console.log('the slot validation failed',reqValidate.error.message);
+        console.log("the slot validation failed", reqValidate.error.message);
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
-          return 
+        return;
       }
+      console.log('the request body ',req.body);
+      
       const updatedSlots = await this._providerSlotService.updateSlots(
         id,
         reqValidate.data?.weeklySlots
       );
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Slots"),
-          slots:updatedSlots
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_UPDATED("Slots"),
+        slots: updatedSlots,
+      });
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,

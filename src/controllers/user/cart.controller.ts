@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../containers/types";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { AppError } from "../../errors/app-error";
 import { IUserCartService } from "../../interfaces/services/user/IUserCartService";
 import { IUserCartController } from "../../interfaces/controllers/user/IUserCartController";
 import {
@@ -103,13 +103,7 @@ export class UserCartController implements IUserCartController {
       
       const userId = req.userData?.id;
       if (!userId) {
-        res.status(StatusCode.UNAUTHORIZED).json({
-          success: false,
-          message: RESPONSE_MESSAGES.UNAUTHORIZED,
-        });
-        return;
-      }
-      if (!userId) {
+        console.log('no user id');
         res.status(StatusCode.UNAUTHORIZED).json({
           success: false,
           message: RESPONSE_MESSAGES.UNAUTHORIZED,
@@ -124,11 +118,13 @@ export class UserCartController implements IUserCartController {
         });
         return;
       }
+      console.log('the data in the add to cart',parsed.data);
       const updatedCart = await this._userCartService.addToCart({
         ...parsed.data,
         userId
       });
       if (!updatedCart) {
+        console.log('no updated cart');
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({
@@ -143,7 +139,8 @@ export class UserCartController implements IUserCartController {
         cart: updatedCart,
       };
       const validate = AddServiceToCartResponseSchema.safeParse(response);
-      if (!validate) {
+      if (!validate.success) {
+        console.log('response validation failed',validate.error.message)
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -152,12 +149,19 @@ export class UserCartController implements IUserCartController {
       }
       res.status(201).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      if (error instanceof AppError) {
+    res.status(error.statusCode).json({
+      success: false,
+      message: error.message,
+    });
+    return;
+  }
+
+  // fallback for unexpected errors
+  res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+    success: false,
+    message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+  });
     }
   }
   async addVehicleToCart(
