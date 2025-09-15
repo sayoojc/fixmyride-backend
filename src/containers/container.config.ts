@@ -10,6 +10,7 @@ import { bindUserServicePackageModule } from "./modules/user/servicePackage.modu
 import { bindUserVehicleModule } from "./modules/user/vehicle.module";
 import { bindUserOrderModule } from "./modules/user/order.module";
 import { bindUserProviderModule } from "./modules/user/provider.module";
+import { bindUserNotificationModule } from "./modules/user/notification.module";
 // === Admin Modules ===
 import { bindAdminAuthModule } from "./modules/admin/auth.module";
 import { bindAdminBrandModule } from "./modules/admin/brand.module";
@@ -49,6 +50,7 @@ bindUserServicePackageModule(container);
 bindUserVehicleModule(container);
 bindUserOrderModule(container);
 bindUserProviderModule(container);
+bindUserNotificationModule(container);
 
 // Admin
 bindAdminAuthModule(container);

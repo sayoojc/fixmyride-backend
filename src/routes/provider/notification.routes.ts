@@ -25,5 +25,8 @@ router.delete("/notifications/:id", verifyProvider, (req, res) =>
 router.patch("/notifications", verifyProvider, (req, res) =>
   providerNotificationController.markAllAsRead(req, res)
 );
+router.get("/notifications/count",verifyProvider,(req,res) => 
+  providerNotificationController.getUnreadCount(req,res)
+)
 export default router;
 

@@ -17,12 +17,16 @@ interface IPriceBreakup {
 export interface IServicePackage extends Document {
   title: string;
   description: string;
-  brandId: mongoose.Types.ObjectId;
-  modelId: mongoose.Types.ObjectId;
-  fuelType: "petrol" | "diesel" | "lpg" | "cng";
+  brandId?: mongoose.Types.ObjectId;
+  modelId?: mongoose.Types.ObjectId;
+  fuelType?: "petrol" | "diesel" | "lpg" | "cng";
   servicesIncluded: string[];
-  imageUrl:string,
-  priceBreakup: IPriceBreakup;
+  imageUrl: string;
+  workHours?: number;
+  numberOfEmployees?: number;
+  priceBreakup?: IPriceBreakup;
+  isEmergency: boolean;
+  emergencyServiceFee?:number;
   isBlocked: boolean;
   createdAt: Date;
   servicePackageCategory: string;
@@ -36,54 +40,56 @@ const ServicePackageSchema = new Schema<IServicePackage>(
     brandId: {
       type: Schema.Types.ObjectId,
       ref: "Brand",
-      required: true,
+      required: function () {
+        return !this.isEmergency;
+      },
     },
     modelId: {
       type: Schema.Types.ObjectId,
       ref: "Model",
-      required: true,
+      required: function () {
+        return !this.isEmergency;
+      },
     },
     fuelType: {
       type: String,
       enum: ["petrol", "diesel", "lpg", "cng"],
-      required: true,
+      required: function () {
+        return !this.isEmergency;
+      },
     },
-    servicesIncluded: {
-      type: [String],
-      required: true,
-    },
-    imageUrl:{
-     type:String,
-     required:true
-    },
+    servicesIncluded: { type: [String], required: true },
+    imageUrl: { type: String, required: true },
     servicePackageCategory: {
       type: String,
       enum: Object.values(ServiceCategoryEnum),
       required: true,
     },
+    workHours: {
+      type: Number,
+      required: function () {
+        return !this.isEmergency;
+      },
+    },
+    numberOfEmployees: { type: Number, required: true },
     priceBreakup: {
       parts: [
         {
-          name: { type: String, required: true },
-          price: { type: Number, required: true },
-          quantity: { type: Number, required: true },
+          name: { type: String },
+          price: { type: Number },
+          quantity: { type: Number },
         },
       ],
-      laborCharge: { type: Number, required: true },
+      laborCharge: { type: Number },
       discount: { type: Number, default: 0 },
       tax: { type: Number, default: 0 },
-      total: { type: Number, required: true },
+      total: { type: Number },
     },
-    isBlocked: {
-      type: Boolean,
-      default: false,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+    emergencyServiceFee:{type : Number},
+    isEmergency: { type: Boolean, default: false },
+    isBlocked: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
   },
-
   { timestamps: true }
 );
 

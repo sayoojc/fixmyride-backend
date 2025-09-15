@@ -163,7 +163,10 @@ const OrderSchema = new Schema<IOrder>(
   { timestamps: true }
 );
 
-// Indexes
+export type IOrderService = Pick<
+  IServicePackage,
+  "_id" | "title" | "description" | "fuelType" | "priceBreakup" | "servicePackageCategory"
+>;
 OrderSchema.index({ "user._id": 1, orderStatus: 1 });
 OrderSchema.index({ "vehicle._id": 1 });
 OrderSchema.index({ createdAt: -1 });

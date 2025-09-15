@@ -6,6 +6,8 @@ import { IAdminProviderController } from "../../../interfaces/controllers/admin/
 import { IAdminProviderService } from "../../../interfaces/services/admin/IAdminProviderService";
 import { IVerificationRepository } from "../../../interfaces/repositories/IVerificationRepository";
 import { IProviderRepository } from "../../../interfaces/repositories/IProviderRepository";
+import { INotificationRepository } from "../../../interfaces/repositories/INotificationRepository";
+import { ISocketService } from "../../../sockets/ISocketService";
 import { TYPES } from "../../types";
 
 export const bindAdminProviderModule = (container: Container) => {
@@ -18,11 +20,17 @@ export const bindAdminProviderModule = (container: Container) => {
       const verificationRepo = container.get<IVerificationRepository>(
         TYPES.VerificationRepository
       );
+      const notificationRepo = container.get<INotificationRepository>(
+        TYPES.NotificationRepository
+      );
+      const socketService = container.get<ISocketService>(TYPES.SocketService); 
       const mailService = container.get<IMailService>(TYPES.MailService);
       return new AdminProviderService(
         providerRepo,
         verificationRepo,
-        mailService
+        mailService,
+        notificationRepo,
+        socketService
       );
     });
   container

@@ -148,7 +148,10 @@ export class UserAuthController {
     } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: error  instanceof Error ? error.message : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        message:
+          error instanceof Error
+            ? error.message
+            : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
       });
     }
   }
@@ -160,6 +163,7 @@ export class UserAuthController {
     try {
       const parsed = LoginRequestSchema.safeParse(req.body);
       if (!parsed.success) {
+        console.log("parsing failed");
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -184,6 +188,7 @@ export class UserAuthController {
 
       const validatedResponse = LoginResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
+        console.log("validation failed");
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -207,12 +212,15 @@ export class UserAuthController {
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR;
+
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: errorMessage,
+      });
     }
   }
   async logout(req: Request, res: Response<LogoutResponseDTO | ErrorResponse>) {
@@ -234,12 +242,10 @@ export class UserAuthController {
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      res
-        .status(StatusCode.INTERNAL_SERVER_ERROR)
-        .json({
-          success: false,
-          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
-        });
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+      });
     }
   }
   async forgotPassword(

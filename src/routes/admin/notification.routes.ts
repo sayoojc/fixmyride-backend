@@ -12,6 +12,9 @@ const adminNotificationController = container.get<IAdminNotificationController>(
 router.get("/notifications", verifyAdmin, (req, res) =>
   adminNotificationController.fetchNotifications(req, res)
 );
+router.get("/notifications/count",verifyAdmin,(req,res) => 
+ adminNotificationController.getUnreadCount(req,res)
+)
 router.patch("/notifications/:id", verifyAdmin, (req, res) =>
   adminNotificationController.markNotificationAsRead(req, res)
 );

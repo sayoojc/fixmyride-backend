@@ -27,6 +27,7 @@ import providerSlotRoutes from './routes/provider/slot.routes'
 import adminOrderRoutes from './routes/admin/order.routes'
 import adminNotificationRoutes from './routes/admin/notification.routes'
 import userProviderRoutes from './routes/user/provider.routes'
+import userNotificationRoutes from './routes/user/notification.routes'
 import cookieParser from 'cookie-parser'
 import { errorHandler } from "./middlewares/errorHandler"
 import { StatusCode } from "./enums/statusCode.enum"
@@ -82,6 +83,7 @@ app.use("/api/user",userServicePackageRoutes);
 app.use("/api/user",cartRoutes);
 app.use("/api/user",orderRoutes);
 app.use("/api/user",userProviderRoutes);
+app.use("/api/user",userNotificationRoutes);
 //provider routes
 app.use("/api/provider",providerAuthRoutes);
 app.use("/api/provider",providerProfileRoutes);

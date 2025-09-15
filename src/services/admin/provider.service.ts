@@ -7,6 +7,8 @@ import { IVerification } from "../../models/verification.model";
 import { IMailService } from "../../interfaces/services/IMailService";
 import { IAdminProviderService } from "../../interfaces/services/admin/IAdminProviderService";
 import { Types } from "mongoose";
+import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
+import { ISocketService } from "../../sockets/ISocketService";
 
 @injectable()
 export class AdminProviderService implements IAdminProviderService {
@@ -15,7 +17,10 @@ export class AdminProviderService implements IAdminProviderService {
     private readonly _providerRepository: IProviderRepository,
     @inject(TYPES.VerificationRepository)
     private readonly _verificationRepository: IVerificationRepository,
-    @inject(TYPES.MailRepository) private readonly _mailService: IMailService
+    @inject(TYPES.MailRepository) private readonly _mailService: IMailService,
+    @inject(TYPES.NotificationRepository)
+    private readonly _notificationRepository: INotificationRepository,
+    @inject(TYPES.SocketService) private readonly _socketService: ISocketService
   ) {}
 
   async fetchProviders({
@@ -55,7 +60,6 @@ export class AdminProviderService implements IAdminProviderService {
           return rest;
         }
       );
-      console.log("the sanitized providers", sanitizedProviders);
       return { sanitizedProviders, totalCount };
     } catch (error) {
       throw error;
@@ -111,17 +115,36 @@ export class AdminProviderService implements IAdminProviderService {
         provider.startedYear = parseInt(verificationData.startedYear);
         provider.description = verificationData.description;
         const updated = await provider.save();
-        if(!updated){
-          console.log("failed to update provider");
-          throw new Error("Failed to update provider")
+        if (!updated) {
+          throw new Error("Failed to update provider");
         }
-      const deletedDoc =  await this._verificationRepository.deleteById(
+        const deletedDoc = await this._verificationRepository.deleteById(
           verificationData.id.toString()
         );
-        if(!deletedDoc) {
-          console.log('failed to delete the verification document');
+        if (!deletedDoc) {
           throw new Error("Failed to delete the verification document");
         }
+        const notification = await this._notificationRepository.create({
+          recipientId: new Types.ObjectId(providerId),
+          recipientType: "provider",
+          type: "info",
+          message: "Congratulations! Your provider account has been verified.",
+          isRead: false,
+        });
+        if (notification) {
+          await this._socketService.emitToUser(
+            "provider",
+            providerId,
+            "notification:new",
+            {
+              id: notification._id.toString(),
+              type: notification.type,
+              message: notification.message,
+              createdAt: notification.createdAt,
+            }
+          );
+        }
+
         const subject = "Your Provider Account is Verified!";
         const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -138,11 +161,31 @@ export class AdminProviderService implements IAdminProviderService {
         const { password, ...sanitized } = provider.toObject();
         return sanitized;
       } else {
-      const updatedProvider = await this._providerRepository.findOneAndUpdate(
+           const notification = await this._notificationRepository.create({
+          recipientId: new Types.ObjectId(providerId),
+          recipientType: "provider",
+          type: "info",
+          message: "Your provider verification request has been rejected.",
+          isRead: false,
+        });
+               if (notification) {
+          await this._socketService.emitToUser(
+            "provider",
+            providerId,
+            "notification:new",
+            {
+              id: notification._id.toString(),
+              type: notification.type,
+              message: notification.message,
+              createdAt: notification.createdAt,
+            }
+          );
+        }
+        const updatedProvider = await this._providerRepository.findOneAndUpdate(
           { _id: providerId },
           { verificationStatus: "rejected" }
         );
-        if(!updatedProvider){
+        if (!updatedProvider) {
           throw new Error("Updating the provider failed");
         }
         const html = `
@@ -156,19 +199,18 @@ export class AdminProviderService implements IAdminProviderService {
           { providerId },
           { adminNotes }
         );
-        if(!updated){
+        if (!updated) {
           throw new Error("Provider updation failed");
         }
-        const {password,...sanitized} = updatedProvider.toObject();
+        const { password, ...sanitized } = updatedProvider.toObject();
         await this._mailService.sendWelcomeEmail(
           provider.email,
           "Verification Failed",
           html
         );
-        return sanitized
+        return sanitized;
       }
     } catch (error) {
-      console.log("internal server error ", (error as any).message);
       console.error("Error verifying provider:", error);
       throw error;
     }

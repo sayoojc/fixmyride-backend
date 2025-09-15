@@ -2,14 +2,20 @@ import { inject, injectable } from "inversify";
 import { TYPES } from "../../containers/types";
 import { IOrderRepository } from "../../interfaces/repositories/IOrderRepository";
 import { IProviderOrderService } from "../../interfaces/services/provider/IProviderOrderService";
+import { INotificationRepository } from "../../interfaces/repositories/INotificationRepository";
 import { IOrder } from "../../models/order.model";
 import { UpdateQuery } from "mongoose";
 import mongoose from "mongoose";
+import { ISocketService } from "../../sockets/ISocketService";
+import { IProviderRepository } from "../../interfaces/repositories/IProviderRepository";
 @injectable()
 export class ProviderOrderService implements IProviderOrderService {
   constructor(
     @inject(TYPES.OrderRepository)
-    private readonly _orderRepository: IOrderRepository
+    private readonly _orderRepository: IOrderRepository,
+    private readonly _notificationRepository: INotificationRepository,
+    private readonly _socketService:ISocketService,
+    private readonly _providerRepository:IProviderRepository,
   ) {}
   async getOrderData(id: string): Promise<IOrder | null> {
     try {
@@ -55,18 +61,10 @@ export class ProviderOrderService implements IProviderOrderService {
     phone: string
   ): Promise<boolean> {
     try {
-      console.log("the update order status service data", {
-        orderId,
-        providerId,
-        name,
-        email,
-        phone,
-      });
       const orderObjectId = new mongoose.Types.ObjectId(orderId);
       const order = await this._orderRepository.findOne({
         _id: orderObjectId,
       });
-
       if (!order) {
         return false;
       }
@@ -79,8 +77,37 @@ export class ProviderOrderService implements IProviderOrderService {
           "provider.phone": phone,
           updatedAt: new Date(),
         },
+     
       };
-      await this._orderRepository.updateById(orderObjectId, updateData);
+     const updated =  await this._orderRepository.updateById(orderObjectId, updateData);
+      if(!updated){
+        return false
+      }
+      const provider = await this._providerRepository.findOne({_id:providerId});
+      if(!provider){
+        return false
+      }
+     const notification = await this._notificationRepository.create({
+      recipientId: order.user._id,
+      recipientType: "user",
+      type: "order",
+      message: `Your order ${updated._id} is committed by ${provider.name}.`,
+      isRead: false,
+      link: `/user/orders/${updated._id}`,
+    });
+       if (notification) {
+      await this._socketService.emitToUser(
+        "user",
+        order.user._id.toString(),
+        "notification:new",
+        {
+          id: notification._id.toString(),
+          type: notification.type,
+          message: notification.message,
+          createdAt: notification.createdAt,
+        }
+      );
+    }
       return true;
     } catch (error) {
       console.error("Error updating order status:", error);

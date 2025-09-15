@@ -6,7 +6,7 @@ import {
   ServicePackageDTO
 } from "../../dtos/controllers/admin/adminServicePackageController.dto";
 import { ToggleBlockServicePackageServiceDTO, UpdateServicepackageServiceDTO } from "../../dtos/services/admin/servicePackage.service.dto";
-import { Types } from "mongoose";
+import { FilterQuery, Types } from "mongoose";
 import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
 import { IServicePackage } from "../../models/servicePackage.model";
 @injectable()
@@ -20,11 +20,19 @@ export class AdminServicePackageService implements IAdminServicePackageService {
   ): Promise<ServicePackageDTO> {
     try {
       console.log('the add service package service function from the service layer',data);
-      const servicePackageData = {
+      let servicePackageData
+      if(data.servicePackageCategory !== "emergency"){
+          servicePackageData = {
         ...data,
         brandId: new Types.ObjectId(data.brandId),
         modelId: new Types.ObjectId(data.modelId),
+       
       };
+      } else {
+        servicePackageData = {...data,modelId :undefined,brandId:undefined,isEmergency:true}
+      }
+     
+      console.log('the service package data from teh service package service function ',servicePackageData);
       const newServicePackage = await this._servicePackageRepository.create(
         servicePackageData
       );
@@ -33,10 +41,13 @@ export class AdminServicePackageService implements IAdminServicePackageService {
      const sanitizedServicePackage: ServicePackageDTO = {
   title: plainObject.title,
   description: plainObject.description,
-  brandId: plainObject.brandId.toString(),
-  modelId: plainObject.modelId.toString(),
+  brandId: plainObject.brandId?plainObject.brandId.toString():plainObject.brandId,
+  modelId: plainObject.modelId?plainObject.modelId.toString():plainObject.modelId,
   fuelType: plainObject.fuelType,
   servicesIncluded: plainObject.servicesIncluded,
+  workHours:plainObject.workHours,
+  numberOfEmployees:plainObject.numberOfEmployees,
+  isEmergency:plainObject.isEmergency,
   servicePackageCategory: plainObject.servicePackageCategory,
   imageUrl:plainObject.imageUrl,
   priceBreakup: {
@@ -67,7 +78,7 @@ return sanitizedServicePackage;
     fuelFilter: string;
   }): Promise<{ servicePackages: IServicePackage[]; totalCount: number }> {
     try {
-      const query:any = {};
+      const query:FilterQuery<IServicePackage> = {};
 
       if (search) {
         query.title = { $regex: search, $options: "i" };
@@ -91,6 +102,8 @@ return sanitizedServicePackage;
           skip,
           limit
         );
+        console.log('the service packages',servicePackages);
+        console.log('the total count',totalCount)
       return { servicePackages, totalCount };
     } catch (error) {
       console.log("The catch block error", error);
@@ -101,11 +114,13 @@ return sanitizedServicePackage;
     data: UpdateServicepackageServiceDTO
   ): Promise<ServicePackageDTO> {
     try {
+      
       const refinedData = {
         ...data.data,
-        brandId: new Types.ObjectId(data.data.brandId),
-        modelId: new Types.ObjectId(data.data.modelId),
+        brandId:data.data.brandId ? new Types.ObjectId(data.data.brandId) : undefined,
+        modelId:data.data.modelId ? new Types.ObjectId(data.data.modelId) : undefined,
       };
+      console.log('the refined data from the service function',refinedData);
       const updatedServicePackage =
         await this._servicePackageRepository.findOneAndUpdate(
           { _id: data.id },
@@ -116,15 +131,20 @@ return sanitizedServicePackage;
         throw new Error("The update service package failed");
       }
            const plainObject = updatedServicePackage.toObject();
-     const sanitizedServicePackage: ServicePackageDTO = {
+     const sanitizedServicePackage: ServicePackageDTO & {_id:string} = {
+      _id:plainObject._id,
   title: plainObject.title,
   description: plainObject.description,
-  brandId: plainObject.brandId.toString(),
-  modelId: plainObject.modelId.toString(),
+  brandId: plainObject.brandId ? plainObject.brandId.toString() : plainObject.brandId,
+  modelId: plainObject.modelId ? plainObject.modelId.toString() : plainObject.modelId,
   fuelType: plainObject.fuelType,
   servicesIncluded: plainObject.servicesIncluded,
+  workHours:plainObject.workHours,
+  numberOfEmployees:plainObject.numberOfEmployees,
   servicePackageCategory: plainObject.servicePackageCategory,
   imageUrl:plainObject.imageUrl,
+  isEmergency:plainObject.isEmergency,
+  emergencyServiceFee:plainObject.emergencyServiceFee,
   priceBreakup: {
     parts: plainObject.priceBreakup.parts,
     laborCharge: plainObject.priceBreakup.laborCharge,
@@ -155,8 +175,8 @@ return sanitizedServicePackage;
       }
       const refinedservicePackage = {
         ...updatedServicePackage.toObject(),
-        brandId: updatedServicePackage.brandId.toString(),
-        modelId: updatedServicePackage.modelId.toString(),
+        brandId: updatedServicePackage.brandId ? updatedServicePackage.brandId.toString() : "",
+        modelId: updatedServicePackage.modelId ? updatedServicePackage.modelId.toString() : "",
       };
       return refinedservicePackage;
     } catch (error) {

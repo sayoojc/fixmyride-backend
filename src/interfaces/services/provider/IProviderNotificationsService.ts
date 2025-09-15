@@ -13,11 +13,10 @@ export interface IProviderNotificationService {
   markNotificationAsUnread(id:string):Promise<{success:boolean}>;
   deleteNotification(id:string):Promise<boolean>;
   markAllAsRead(id:string):Promise<boolean>;
+   getUnreadCount(
+    providerId: string
+  ): Promise<number>;
 }
-
-
-
-
 export interface IGetNotificationsResult {
   refinedNotifications: INotificationResponse[];
   totalPages: number;

@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import {
   MarkNotificationAsReadDTO,
   ErrorResponseDTO,
-} from "../../../dtos/controllers/admin/adminNotificatoin.controller.dto";
-export interface IAdminNotificationController {
+} from "../../../dtos/controllers/user/userNotification.controller.dto";
+
+export interface IUserNotificationController {
   fetchNotifications(req: Request, res: Response): Promise<void>;
   markNotificationAsRead(
     req: Request,

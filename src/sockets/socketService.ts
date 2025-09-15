@@ -2,6 +2,8 @@ import { injectable } from "inversify";
 import { Server, Socket } from "socket.io";
 import { ISocketService } from "./ISocketService";
 import redis from "../config/redisConfig";
+import { NotificationPayload } from "../interfaces/notification.interface";
+import {NearbyServicePayload} from "../interfaces/notification.interface";
 
 interface ProviderInfo {
   socketId: string;
@@ -22,36 +24,31 @@ export class SocketService implements ISocketService {
     this.io.on("connection", (socket: Socket) => {
       console.log(`Socket connected: ${socket.id}`);
       socket.on(
-        "register:provider",
+        "register",
         async (data: {
-          providerId: string;
-          location: { lat: number; lng: number };
+          role: "admin" | "user" | "provider";
+          id: string;
+          location?: { lat: number; lng: number };
         }) => {
-          const { providerId, location } = data;
+          const { role, id, location } = data;
           console.log(
-            `Provider registered: ${providerId} at location`,
-            location
+            ` ${role} ${id} registered`,
+            location ? `at ${JSON.stringify(location)}` : ""
           );
-          await redis.set(`provider:socket:${providerId}`, socket.id);
-          await redis.geoadd(
-            "providers:locations",
-            location.lng,
-            location.lat,
-            providerId
-          );
-
-          await redis.set(`provider:online:${providerId}`, "true", "EX", 60);
+          socket.join(`${role}s`);
+          socket.join(`${role}:${id}`);
+          await redis.set(`${role}:socket:${id}`, socket.id);
+          if ((role === "provider" || role === "user") && location) {
+            await redis.geoadd(
+              `${role}s:locations`,
+              location.lng,
+              location.lat,
+              id
+            );
+            await redis.set(`${role}:online:${id}`, "true", "EX", 60);
+          }
         }
       );
-      socket.on("chat:message", (data) => {
-        console.log("Chat message received:", data);
-        this.io.emit("chat:message", data);
-      });
-      socket.on("emergency:trigger", (data) => {
-        console.log("Emergency triggered:", data);
-        this.io.emit("emergency:new", data);
-      });
-
       socket.on("disconnect", () => {
         console.log(`Socket disconnected: ${socket.id}`);
         for (const [providerId, info] of this.providerSocketMap.entries()) {
@@ -69,7 +66,7 @@ export class SocketService implements ISocketService {
           clientId?: string;
         }) => {
           const { providerId, location, clientId } = data;
-          console.log(`📍 Location update from ${providerId}:`, location);
+          console.log(`Location update from ${providerId}:`, location);
           await redis.geoadd(
             "providers:locations",
             location.lng,
@@ -98,19 +95,11 @@ export class SocketService implements ISocketService {
     return this.io;
   }
 
-  public emitToProvider(providerId: string, event: string, data: any): void {
-    console.log("the emit to providers function hits");
-    const providerInfo = this.providerSocketMap.get(providerId);
-    if (providerInfo) {
-      this.io.to(providerInfo.socketId).emit(event, data);
-    }
-  }
-
   public async emitToNearbyProviders(
     customerLat: number,
     customerLng: number,
     event: string,
-    data: any
+    data: NearbyServicePayload
   ): Promise<void> {
     try {
       const providerIds = (await redis.georadius(
@@ -141,13 +130,31 @@ export class SocketService implements ISocketService {
 
         if (typeof socketId === "string") {
           this.io.to(socketId).emit(event, data);
-          console.log(`🚀 Notified ${providerId} via socket ${socketId}`);
+          console.log(`Notified ${providerId} via socket ${socketId}`);
         } else {
-          console.log(`⚠️ No socket found for ${providerId}`);
+          console.log(`No socket found for ${providerId}`);
         }
       });
     } catch (err) {
       console.error("Failed to emit to nearby providers:", err);
     }
   }
+  public async emitToUser(
+  role: "admin" | "user" | "provider",
+  id: string,
+  event: string,
+  data: NotificationPayload
+): Promise<void> {
+  try {
+    const socketId = await redis.get(`${role}:socket:${id}`);
+    if (socketId) {
+      this.io.to(socketId).emit(event, data);
+      console.log(`Sent ${event} to ${role}:${id} via socket ${socketId}`);
+    } else {
+      console.log(`No active socket found for ${role}:${id}`);
+    }
+  } catch (err) {
+    console.error(`Failed to send event to ${role}:${id}:`, err);
+  }
+}
 }

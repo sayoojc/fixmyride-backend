@@ -1,24 +1,24 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../../containers/types";
-import { IAdminNotificationService } from "../../interfaces/services/admin/IAdminNotificationService";
-import { IAdminNotificationController } from "../../interfaces/controllers/admin/IAdminNotificationController";
+import { IUserNotificationService } from "../../interfaces/services/user/IUserNotificationService";
+import { IUserNotificationController } from "../../interfaces/controllers/user/IUserNotificationController";
 import {
   FetchNotificationsResponseDTO,
   ErrorResponseDTO,
   MarkNotificationAsReadDTO,
   MarkNotificationAsReadSchema,
-} from "../../dtos/controllers/admin/adminNotificatoin.controller.dto";
+} from "../../dtos/controllers/user/userNotification.controller.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { RESPONSE_MESSAGES } from "../../constants/response.messages";
 
 @injectable()
-export class AdminNotificationController
-  implements IAdminNotificationController
+export class UserNotificationController
+  implements IUserNotificationController
 {
   constructor(
-    @inject(TYPES.AdminNotificationService)
-    private readonly _adminNotificationService: IAdminNotificationService
+    @inject(TYPES.UserNotificationService)
+    private readonly _userNotificationService: IUserNotificationService
   ) {}
   async fetchNotifications(
     req: Request,
@@ -40,7 +40,7 @@ export class AdminNotificationController
         statusFilter = "",
       } = req.query;
       const notifications =
-        await this._adminNotificationService.fetchNotifications(
+        await this._userNotificationService.fetchNotifications(
           id,
           String(search),
           Number(page),
@@ -50,9 +50,7 @@ export class AdminNotificationController
       res.status(StatusCode.OK).json({
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Notifications"),
-        notifications: notifications.data,
-        totalCount: notifications.total,
-        totalPages: Number(Math.ceil(notifications.total / Number(limit))),
+        ...notifications,
       });
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -69,7 +67,7 @@ export class AdminNotificationController
     try {
       const id = req.params.id;
       const notificationDoc =
-        await this._adminNotificationService.markNotificationAsRead(id);
+        await this._userNotificationService.markNotificationAsRead(id);
       if (!notificationDoc) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
@@ -117,7 +115,7 @@ export class AdminNotificationController
     try {
       const id = req.params.id;
       const notificationDoc =
-        await this._adminNotificationService.markNotificationAsUnread(id);
+        await this._userNotificationService.markNotificationAsUnread(id);
       if (!notificationDoc) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
@@ -165,7 +163,7 @@ export class AdminNotificationController
     try {
       const id = req.params.id;
 
-      const deleted = await this._adminNotificationService.deleteNotification(
+      const deleted = await this._userNotificationService.deleteNotification(
         id
       );
 
@@ -202,7 +200,7 @@ export class AdminNotificationController
         });
         return;
       }
-      const updated = await this._adminNotificationService.markAllAsRead(id);
+      const updated = await this._userNotificationService.markAllAsRead(id);
       if (!updated) {
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
@@ -239,7 +237,7 @@ export class AdminNotificationController
         return;
       }
       const unreadCount =
-        await this._adminNotificationService.getUnreadCount(providerId);
+        await this._userNotificationService.getUnreadCount(providerId);
       res.status(StatusCode.OK).json({
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Notification counts"),

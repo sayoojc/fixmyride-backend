@@ -140,5 +140,14 @@ export class ProviderNotificationService
       return false
     }
   }
+  async getUnreadCount(providerId: string): Promise<number> {
+  const unreadCount = await this._notificationRepository.countDocuments({
+    recipientType:"provider",
+    recipientId:providerId,
+    isRead: false,
+  });
+  return  unreadCount;
+}
+
 
 }

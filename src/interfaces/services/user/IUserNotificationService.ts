@@ -1,7 +1,7 @@
-import { NotificationDTO } from "../../../dtos/controllers/admin/adminNotificatoin.controller.dto";
+import { NotificationDTO } from "../../../dtos/controllers/user/userNotification.controller.dto";
 import { INotification } from "../../../models/notification.model";
 
-export interface IAdminNotificationService {
+export interface IUserNotificationService {
   fetchNotifications(
     id: string,
     search: string,
@@ -13,5 +13,5 @@ export interface IAdminNotificationService {
   markNotificationAsUnread(id: string): Promise<INotification>;
   deleteNotification(id: string): Promise<boolean>;
   markAllAsRead(id: string): Promise<number>;
-  getUnreadCount(providerId: string): Promise<number>;
+  getUnreadCount(id: string): Promise<number>;
 }

@@ -24,4 +24,8 @@ export interface IProviderNotificationController {
     req: Request,
     res: Response<markAllAsReadResponseDTO>
   ): Promise<void>;
+   getUnreadCount(
+   req:Request,
+   res:Response
+  ): Promise<void>;
 }

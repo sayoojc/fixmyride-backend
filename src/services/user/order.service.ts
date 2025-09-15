@@ -65,10 +65,8 @@ export class UserOrderService implements IUserOrderService {
       .createHmac("sha256", process.env.RAZORPAY_SECRET!)
       .update(body.toString())
       .digest("hex");
-    console.log("expected signature", expectedSignature);
     return expectedSignature === razorpaySignature;
   }
-
   async handleSuccessfulPayment(
     razorpayOrderId: string,
     razorpayPaymentId: string,
@@ -188,10 +186,6 @@ export class UserOrderService implements IUserOrderService {
           20,
           "km"
         )) as string[];
-        console.log(
-          "the near by provider ids fetched from redis",
-          nearbyProviderIds
-        );
         const pipeline = redis.pipeline();
 
         for (const providerId of nearbyProviderIds) {
@@ -223,7 +217,6 @@ export class UserOrderService implements IUserOrderService {
             nearbyProviders: nearbyProviders,
           });
         });
-        console.log("the nearby providers", nearbyProviderIds);
         const notifications = nearbyProviderIds.map((providerId) => ({
           recipientId: new Types.ObjectId(providerId),
           recipientType: "provider" as "provider",
@@ -233,13 +226,10 @@ export class UserOrderService implements IUserOrderService {
           isRead: false,
           createdAt: new Date(),
         }));
-        console.log("the notifications", notifications);
         const insertManyResult = await this._notificationRepository.insertMany(
           notifications
         );
-        console.log("the notification insertMany result", insertManyResult);
         if (!newOrder) {
-          console.log("The new order is not getting");
           throw new Error("Order creation failed");
         }
         const deleteResult = await this._cartRepository.deleteById(
@@ -247,7 +237,6 @@ export class UserOrderService implements IUserOrderService {
         );
 
         if (!deleteResult) {
-          console.log("The cart deletion is failed");
           throw new Error("Cart deletion failed");
         }
 
@@ -270,12 +259,9 @@ export class UserOrderService implements IUserOrderService {
               message: "A new service request is available nearby!",
             }
           );
-          console.log("the socket event emitted");
         } else {
-          console.log("the socket event emitting failed");
           throw new Error("Unable to emit event: Invalid address coordinates");
         }
-        console.log("the new order after payment", newOrder);
         return newOrder;
       } catch (error) {
         await session.abortTransaction();
@@ -284,7 +270,6 @@ export class UserOrderService implements IUserOrderService {
         session.endSession();
       }
     } catch (error) {
-      console.log("The order saving after payment failed", error);
       throw error;
     }
   }
@@ -414,7 +399,6 @@ export class UserOrderService implements IUserOrderService {
         const newOrder = await this._orderRepository.create(orderData);
 
         if (!newOrder) {
-          console.log("The new order is not getting");
           throw new Error("Order creation failed");
         }
 
@@ -423,7 +407,6 @@ export class UserOrderService implements IUserOrderService {
         );
 
         if (!deleteResult) {
-          console.log("The cart deletion is failed");
           throw new Error("Cart deletion failed");
         }
 
@@ -542,9 +525,6 @@ export class UserOrderService implements IUserOrderService {
         limit,
         page
       );
-
-      console.log("the order history");
-
       const sanitizedOrders: OrderDTO[] = orders.map((order) => ({
         ...order.toObject(),
         _id: order._id.toString(),
@@ -565,7 +545,6 @@ export class UserOrderService implements IUserOrderService {
         pagination,
       };
     } catch (error) {
-      console.log("internal server error in the order service function", error);
       throw error;
     }
   }
@@ -594,8 +573,6 @@ export class UserOrderService implements IUserOrderService {
       const cart = await this._cartRepository.findPopulatedCartById(
         cartObjectId
       );
-
-      console.log("cart", cart);
       if (!cart) {
         throw new Error("Cart not found");
       }
@@ -683,7 +660,6 @@ export class UserOrderService implements IUserOrderService {
         const newOrder = await this._orderRepository.create(orderData);
 
         if (!newOrder) {
-          console.log("The new order is not getting");
           throw new Error("Order creation failed");
         }
 
@@ -692,7 +668,6 @@ export class UserOrderService implements IUserOrderService {
         );
 
         if (!deleteResult) {
-          console.log("The cart deletion is failed");
           throw new Error("Cart deletion failed");
         }
 

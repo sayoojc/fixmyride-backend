@@ -263,4 +263,33 @@ export class ProviderNotificationController
       return;
     }
   }
+  async getUnreadCount(
+    req: Request,
+    res: Response<{ success: boolean; message: string; unreadCount: number }>
+  ): Promise<void> {
+    try {
+      const providerId = req.userData?.id;
+      if (!providerId) {
+        res.status(StatusCode.UNAUTHORIZED).json({
+          success: false,
+          message: RESPONSE_MESSAGES.UNAUTHORIZED,
+          unreadCount: 0,
+        });
+        return;
+      }
+      const unreadCount =
+        await this._providerNotificationService.getUnreadCount(providerId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Notification counts"),
+        unreadCount,
+      });
+    } catch (error) {
+      res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        unreadCount: 0,
+      });
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import { ServicePackageSchema } from '../../controllers/user/userServicePackage.dto'
+import { ServicePackageSchema } from '../../controllers/admin/adminServicePackageController.dto'
 export const UpdateServicePackageServiceSchema = z.object({
   id:z.string(),
   data:ServicePackageSchema

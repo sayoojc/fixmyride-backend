@@ -30,6 +30,7 @@ export const TYPES = {
   UserCartService: Symbol.for("UserCartService"),
   UserOrderService:Symbol.for("UserOrderService"),
   UserProviderService: Symbol.for("UserProviderService"),
+  UserNotificationService:Symbol.for("UserNotificationService"),
 
   // Admin services
   AdminAuthService: Symbol.for("AdminAuthService"),
@@ -73,6 +74,7 @@ export const TYPES = {
   UserCartController: Symbol.for("UserCartController"),
   UserOrderController:Symbol.for("UserOrderController"),
   UserProviderController: Symbol.for("UserProviderController"),
+  UserNotificationController:Symbol.for("UserNotificationController"),
 
   // Provider controllers
   ProviderAuthController: Symbol.for("ProviderAuthController"),
