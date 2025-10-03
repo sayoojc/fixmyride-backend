@@ -28,7 +28,6 @@ export interface IServicePackage extends Document {
   isEmergency: boolean;
   emergencyServiceFee?:number;
   isBlocked: boolean;
-  createdAt: Date;
   servicePackageCategory: string;
 }
 
@@ -88,7 +87,6 @@ const ServicePackageSchema = new Schema<IServicePackage>(
     emergencyServiceFee:{type : Number},
     isEmergency: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

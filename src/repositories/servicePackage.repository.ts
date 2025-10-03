@@ -4,12 +4,13 @@ import { Model } from "mongoose";
 import { IServicePackageRepository } from "../interfaces/repositories/IServicePackageRepository";
 import { Document } from 'mongoose';
 export type ServicePackageDocument = Document & IServicePackage;
+import { FilterQuery } from "mongoose";
 
 export class ServicePackageRepository extends BaseRepository<IServicePackage> implements IServicePackageRepository {
     constructor(private readonly ServicePackageModel:Model<IServicePackage>){
         super(ServicePackageModel)
     }
-      async findServicePackagesWithPopulate( query:any,
+      async findServicePackagesWithPopulate( query:FilterQuery<IServicePackage>,
         skip:number,
         limit:number): Promise<ServicePackageDocument[]> {
     return this.model
@@ -18,9 +19,16 @@ export class ServicePackageRepository extends BaseRepository<IServicePackage> im
       .populate("modelId")
       .exec();
   }
-     async countDocuments(query: any): Promise<number> {
+     async countDocuments(query: FilterQuery<IServicePackage>): Promise<number> {
     return this.ServicePackageModel.countDocuments(query);
   }
+  async findServicePackageByIdWithPopulate(id: string): Promise<ServicePackageDocument | null> {
+    return this.model
+      .findById(id)
+      .populate("brandId")
+      .populate("modelId")
+      .exec();
+  } 
 
 
 }

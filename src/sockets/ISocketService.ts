@@ -15,4 +15,23 @@ export interface ISocketService {
   event: string,
   data: any
 ): Promise<void>
+emitOrderUpdate(
+  userId: string,
+  update: {
+    orderId: string;
+    status:
+      | "placed"
+      | "accepted"
+      | "provider_nearby"
+      | "picked"
+      | "reached_station"
+      | "started"
+      | "completed"
+      | "returning"
+      | "delivered";
+    message: string;
+    progress?: number;
+    timestamp?: Date;
+  }
+): Promise<void>
 }

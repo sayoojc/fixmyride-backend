@@ -69,7 +69,7 @@ export const ServiceDetailsSchema = z.object({
     description: z.string(),
     brandId: z.string(),
     modelId: z.string(),
-    fuelType: z.enum(["petrol", "diesel", "lpg", "cng"]),
+    fuelType: z.enum(["petrol", "diesel", "lpg", "cng"]).optional(),
     servicesIncluded: z.array(z.string()),
     priceBreakup: z.object({
       parts: z.array(

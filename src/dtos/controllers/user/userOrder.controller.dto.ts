@@ -54,7 +54,8 @@ export const verifyRazorpayPaymentRequestSchema = z.object({
   orderId: z.string(),
   razorpayPaymentId: z.string(),
   razorpaySignature: z.string(),
-  cartId: z.string(),
+  cartId: z.string().optional(),
+  packageId: z.string().optional(),
   selectedAddressId: z.union([z.string(), AddressSchema]),
   selectedDate: z.object({
     date: z.string(),
@@ -108,10 +109,10 @@ const OrderVehicleSchema = z.object({
   _id: z.string(),
   brandId: z.string(),
   modelId: z.string(),
-  brandName: z.string(),
-  modelName: z.string(),
-  fuel: z.string(),
-});
+  brandName: z.string().optional(),
+  modelName: z.string().optional(),
+  fuel: z.string().optional(),
+}).optional()
 
 // Price Breakup
 const PriceBreakupSchema = z.object({
@@ -128,26 +129,25 @@ const PriceBreakupSchema = z.object({
   total: z.number(),
 });
 
-// Service Package inside Order
 const OrderServiceSchema = z.object({
   _id: z.string(),
   title: z.string(),
   description: z.string(),
-  fuelType: z.string(),
+  fuelType: z.string().optional(),
   servicePackageCategory: z.string(),
   priceBreakup: PriceBreakupSchema,
-});
+}).optional();
 
-// Coupon Schema
 const CouponSchema = z
   .object({
     code: z.string().optional(),
     discountType: z.enum(["percentage", "flat"]).optional(),
-    discountValue: z.number(),
-    discountAmount: z.number(),
-    applied: z.boolean(),
+    discountValue: z.number().optional(),
+    discountAmount: z.number().optional(),
+    applied: z.boolean().optional(),
   })
   .optional();
+
 
 // Full Order Schema
 export const OrderResponseSchema = z.object({
@@ -213,6 +213,11 @@ export const placeCashOrderRequestSchema = z.object({
     available: z.boolean(),
   }),
 });
+export const placeEmergencyCashOrderRequestSchema = z.object({
+  selectedAddressId:z.union([z.string(),AddressSchema]),
+  packageId:z.string(),
+});
+export type placeEmergencyCashOrderRequestDTO = z.infer<typeof placeEmergencyCashOrderRequestSchema>
 export type PlaceCashOrderRequestDTO = z.infer<typeof placeCashOrderRequestSchema> 
 export type GetOrderHistoryResponseDTO = z.infer<typeof getOrderHistoryResponseSchema>
 export type OrderDTO = z.infer<typeof OrderResponseSchema>

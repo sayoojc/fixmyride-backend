@@ -140,7 +140,6 @@ export class AdminProviderService implements IAdminProviderService {
               id: notification._id.toString(),
               type: notification.type,
               message: notification.message,
-              createdAt: notification.createdAt,
             }
           );
         }
@@ -177,7 +176,6 @@ export class AdminProviderService implements IAdminProviderService {
               id: notification._id.toString(),
               type: notification.type,
               message: notification.message,
-              createdAt: notification.createdAt,
             }
           );
         }

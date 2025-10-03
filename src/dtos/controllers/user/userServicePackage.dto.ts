@@ -6,7 +6,7 @@ const PartSchema = z.object({
   quantity: z.number().int().min(1, "Quantity must be at least 1").max(1000, "Quantity too high"),
 })
 const PriceBreakupSchema = z.object({
-  parts: z.array(PartSchema).min(1, "At least one part is required").max(50, "Too many parts"),
+  parts: z.array(PartSchema).max(50, "Too many parts"),
   laborCharge: z.number().min(0, "Labor charge must be positive").max(999999, "Labor charge too high"),
   discount: z.number().min(0, "Discount must be positive").max(999999, "Discount too high").optional(),
   tax: z.number().min(0, "Tax must be positive").max(999999, "Tax too high").optional(),
@@ -56,13 +56,30 @@ export const ErrorResponseSchema = z.object({
     message:z.string(),
 })
 
+export const EmergencyServicePackageSchema = z.object({
+  title: z.string().min(1).max(100).trim(),
+  description: z.string().min(1).max(500).trim(),
+  servicesIncluded: z.array(z.string().min(1)).min(1).max(20),
+  emergencyServiceFee: z.number().min(0, "Emergency fee must be positive"),
+  priceBreakup: PriceBreakupSchema.optional(),
+  isEmergency: z.literal(true),
+});
 export const GetServicePackagesResponseSchema = z.object({
-    success:z.boolean(),
-    message:z.string(),
-    servicePackages:z.array(ServicePackageSchemaWithPopulatedRefs)
-})
+  success: z.boolean(),
+  message: z.string(),
+  servicePackages: z.array(
+    z.union([ServicePackageSchemaWithPopulatedRefs, EmergencyServicePackageSchema])
+  )
+});
+
+export const GetServicePackageByIdResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  servicePackage: z.union([ServicePackageSchemaWithPopulatedRefs, EmergencyServicePackageSchema])
+});
 
 
+export type GetServicePackageByIdResponseDTO = z.infer<typeof GetServicePackageByIdResponseSchema >
 export type GetServicePackagesResponseDTO = z.infer<typeof GetServicePackagesResponseSchema >
 export type ServicePckage = z.infer<typeof ServicePackageSchemaWithPopulatedRefs>
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>

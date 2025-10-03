@@ -6,5 +6,5 @@ export interface INotificationResponse {
   message: string;
   link?: string;
   isRead: boolean;
-  createdAt: string;
+  
 }

@@ -15,7 +15,7 @@ export interface IOrder extends Document<Types.ObjectId> {
     IVehicle,
     "_id" | "brandId" | "modelId" | "fuel"
   > & {brandName:string,modelName:string};
-  services: Array<
+  services?: Array<
     Pick<
       IServicePackage,
       | "_id"
@@ -82,32 +82,32 @@ const OrderSchema = new Schema<IOrder>(
       phone: { type: String },
     },
     vehicle: {
-      _id: { type: Schema.Types.ObjectId, required: true },
-      brandId: { type: Schema.Types.ObjectId, required: true },
-      brandName:{type:String,required:true},
-      modelName:{type:String,required:true},
-      modelId: { type: Schema.Types.ObjectId, required: true },
-      fuel: { type: String, required: true },
+      _id: { type: Schema.Types.ObjectId},
+      brandId: { type: Schema.Types.ObjectId},
+      brandName:{type:String},
+      modelName:{type:String},
+      modelId: { type: Schema.Types.ObjectId},
+      fuel: { type: String},
     },
     services: [
       {
-        _id: { type: Schema.Types.ObjectId, required: true },
-        title: { type: String, required: true },
-        description: { type: String, required: true },
-        fuelType: { type: String, required: true },
-        servicePackageCategory: { type: String, required: true },
+        _id: { type: Schema.Types.ObjectId,  },
+        title: { type: String},
+        description: { type: String },
+        fuelType: { type: String},
+        servicePackageCategory: { type: String },
         priceBreakup: {
           parts: [
             {
-              name: { type: String, required: true },
-              price: { type: Number, required: true },
-              quantity: { type: Number, required: true },
+              name: { type: String },
+              price: { type: Number },
+              quantity: { type: Number },
             },
           ],
-          laborCharge: { type: Number, required: true },
+          laborCharge: { type: Number},
           discount: { type: Number, default: 0 },
           tax: { type: Number, default: 0 },
-          total: { type: Number, required: true },
+          total: { type: Number },
         },
       },
     ],

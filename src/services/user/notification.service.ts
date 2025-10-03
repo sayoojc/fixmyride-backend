@@ -53,7 +53,6 @@ async fetchNotifications(
       ...notification.toObject(),
       _id: notification._id.toString(),
       recipientId: notification.recipientId.toString(),
-      createdAt: notification.createdAt?.toISOString(),
     }));
 
     return {
@@ -120,7 +119,7 @@ async fetchNotifications(
   }
    async getUnreadCount(id: string): Promise<number> {
   const unreadCount = await this._notificationRepository.countDocuments({
-    recipientType:"admin",
+    recipientType:"user",
     recipientId:id,
     isRead: false,
   });

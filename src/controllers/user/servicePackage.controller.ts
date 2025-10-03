@@ -7,6 +7,7 @@ import {
   GetServicePackagesResponseDTO,
   ErrorResponse,
   GetServicePackagesResponseSchema,
+  GetServicePackageByIdResponseDTO
 } from "../../dtos/controllers/user/userServicePackage.dto";
 import { StatusCode } from "../../enums/statusCode.enum";
 import { RESPONSE_MESSAGES } from "../../constants/response.messages";
@@ -25,7 +26,9 @@ export class UserServicePackageController
     res: Response<GetServicePackagesResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
+      console.log('the get service packages controller function hits')
       const { vehicleId, serviceCategory, fuelType } = req.query;
+      console.log({vehicleId,serviceCategory,fuelType});
       if (
         typeof vehicleId !== "string" ||
         typeof serviceCategory !== "string" ||
@@ -43,6 +46,7 @@ export class UserServicePackageController
           serviceCategory,
           fuelType
         );
+        console.log('the service packages from controller', servicePackages);
 
       const response = {
         success: true,
@@ -51,6 +55,7 @@ export class UserServicePackageController
       };
       const validate = GetServicePackagesResponseSchema.safeParse(response);
       if (!validate.success) {
+        console.log('the get service package response validation failed',validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -66,5 +71,41 @@ export class UserServicePackageController
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
         });
     }
+  }
+  async getServicePackageById(
+    req: Request,
+    res: Response 
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        res.status(StatusCode.BAD_REQUEST).json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+        return;
+      }
+      const servicePackage =
+        await this._userServicePackageService.getServicePackageById(id);  
+      if (!servicePackage) {
+        res.status(StatusCode.NOT_FOUND).json({
+          success: false,
+          message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("Service package"),
+        });
+        return;
+      }
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Service package"),
+        servicePackage,
+      });
+    } catch (error) {
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({
+          success: false,
+          message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        });
+    } 
   }
 }

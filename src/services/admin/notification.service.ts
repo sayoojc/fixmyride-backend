@@ -48,7 +48,6 @@ export class AdminNotificationService implements IAdminNotificationService {
         ...notification.toObject(),
         _id: notification._id.toString(),
         recipientId: notification.recipientId.toString(),
-        createdAt: notification.createdAt?.toISOString(),
       }));
       return { data: formatted, total };
     } catch (error) {

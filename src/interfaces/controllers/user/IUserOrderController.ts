@@ -22,5 +22,9 @@ export interface IUserOrderController {
     req: Request<{},{},PlaceCashOrderRequestDTO>,
     res: Response
   ): Promise<void>
+   placeEmergencyCashOrder(
+  req: Request,
+  res: Response
+): Promise<void>
  
 }

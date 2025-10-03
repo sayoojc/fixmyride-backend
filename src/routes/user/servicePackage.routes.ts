@@ -13,5 +13,8 @@ const userServicePackageController =
 router.get("/service-packages", verifyUser, (req, res) =>
   userServicePackageController.getServicePackages(req, res)
 );
+router.get("/service-packages/:id", verifyUser, (req, res) =>
+  userServicePackageController.getServicePackageById(req, res)
+);
 
 export default router;

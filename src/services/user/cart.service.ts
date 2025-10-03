@@ -36,7 +36,7 @@ export class UserCartService implements IUserCartService {
           createdAt: cart.vehicleId.createdAt,
           updatedAt: cart.vehicleId.updatedAt,
           brandId: {
-            _id: cart.vehicleId.brandId._id.toString(),
+            _id: cart.vehicleId.brandId._id ?cart.vehicleId.brandId._id.toString() : "",
             brandName: cart.vehicleId.brandId.brandName,
             imageUrl: cart.vehicleId.brandId.imageUrl,
             status: cart.vehicleId.brandId.status,
@@ -44,10 +44,10 @@ export class UserCartService implements IUserCartService {
             updatedAt: cart.vehicleId.brandId.updatedAt,
           },
           modelId: {
-            _id: cart.vehicleId.modelId._id.toString(),
+            _id: cart.vehicleId.modelId._id ? cart.vehicleId.modelId._id.toString() : "",
             name: cart.vehicleId.modelId.name,
             imageUrl: cart.vehicleId.modelId.imageUrl,
-            brandId: cart.vehicleId.modelId.brandId.toString(),
+            brandId: cart.vehicleId.modelId.brandId ? cart.vehicleId.modelId.brandId.toString() : "",
             fuelTypes: cart.vehicleId.modelId.fuelTypes,
             createdAt: cart.vehicleId.modelId.createdAt,
             updatedAt: cart.vehicleId.modelId.updatedAt,
@@ -56,11 +56,11 @@ export class UserCartService implements IUserCartService {
         services: Array.isArray(cart.services)
           ? cart.services.map((service) => ({
               serviceId: {
-                _id: service._id.toString(),
+                _id: service._id ? service._id.toString() : "",
                 title: service.title,
                 description: service.description,
-                brandId: service.brandId.toString(),
-                modelId: service.modelId.toString(),
+                brandId: service.brandId ? service.brandId.toString() : "",
+                modelId: service.modelId ? service.modelId.toString() : "",
                 fuelType: service.fuelType,
                 servicesIncluded: service.servicesIncluded,
                 priceBreakup: {
@@ -86,13 +86,12 @@ export class UserCartService implements IUserCartService {
       };
       return parsedCart;
     } catch (error) {
-      console.log("The get cart function failed", error);
+      console.log("the error in the get cart service", (error as Error).message);
       throw error;
     }
   }
   async addToCart(data: AddToCartDataDTO): Promise<SerializedCart | undefined> {
     try {
-      console.log('the add to cart data',data);
       const serviceObjectId = new mongoose.Types.ObjectId(data.serviceId);
       const isServiceExists = await this._cartRepository.findOne({
         userId: data.userId,
@@ -101,27 +100,24 @@ export class UserCartService implements IUserCartService {
         isCheckedOut: false,
       });
       if (isServiceExists) {
-        console.log('the service already exists')
         throw new ConflictError("Service already exists in cart");
       }
       const cart = await this._cartRepository.upsertCart(data);
-      console.log('cart',cart);
       if (!cart) {
-        console.log('no cart found after updation');
         return undefined;}
 
       const parsedCart = {
         _id: cart._id.toString(),
         userId: cart.userId.toString(),
         vehicleId: {
-          _id: cart.vehicleId._id.toString(),
+          _id: cart.vehicleId ? cart.vehicleId._id.toString() : "",
           userId: cart.vehicleId.userId.toString(),
           fuel: cart.vehicleId.fuel,
           isDefault: cart.vehicleId.isDefault,
           createdAt: cart.vehicleId.createdAt,
           updatedAt: cart.vehicleId.updatedAt,
           brandId: {
-            _id: cart.vehicleId.brandId._id.toString(),
+            _id: cart.vehicleId.brandId._id ? cart.vehicleId.brandId._id.toString() : "",
             brandName: cart.vehicleId.brandId.brandName,
             imageUrl: cart.vehicleId.brandId.imageUrl,
             status: cart.vehicleId.brandId.status,
@@ -129,10 +125,10 @@ export class UserCartService implements IUserCartService {
             updatedAt: cart.vehicleId.brandId.updatedAt,
           },
           modelId: {
-            _id: cart.vehicleId.modelId._id.toString(),
+            _id: cart.vehicleId.modelId._id ? cart.vehicleId.modelId._id.toString() : "",
             name: cart.vehicleId.modelId.name,
             imageUrl: cart.vehicleId.modelId.imageUrl,
-            brandId: cart.vehicleId.modelId.brandId.toString(),
+            brandId: cart.vehicleId.modelId.brandId ? cart.vehicleId.modelId.brandId.toString() : "",
             fuelTypes: cart.vehicleId.modelId.fuelTypes,
             createdAt: cart.vehicleId.modelId.createdAt,
             updatedAt: cart.vehicleId.modelId.updatedAt,
@@ -141,11 +137,11 @@ export class UserCartService implements IUserCartService {
         services: Array.isArray(cart.services)
           ? cart.services.map((service) => ({
               serviceId: {
-                _id: service._id.toString(),
+                _id: service._id ? service._id.toString() : "",
                 title: service.title,
                 description: service.description,
-                brandId: service.brandId.toString(),
-                modelId: service.modelId.toString(),
+                brandId:service.brandId ? service.brandId.toString() : "",
+                modelId: service.modelId ? service.modelId.toString() : "",
                 fuelType: service.fuelType,
                 servicesIncluded: service.servicesIncluded,
                 priceBreakup: {
@@ -170,8 +166,7 @@ export class UserCartService implements IUserCartService {
       };
 
       return parsedCart;
-    } catch (error:any) {
-      console.log('the catch block of the cart service',error.message);
+    } catch (error) {
       throw error;
     }
   }
@@ -181,8 +176,6 @@ export class UserCartService implements IUserCartService {
     userId: string
   ): Promise<SerializedCart> {
     try {
-      console.log('the vehicle id',vehicleId);
-      console.log('the userId',userId);
       const idVehicle = new mongoose.Types.ObjectId(vehicleId);
       const idUser = new mongoose.Types.ObjectId(userId);
       const cart = await this._cartRepository.addVehicleToCart(
@@ -190,7 +183,6 @@ export class UserCartService implements IUserCartService {
         idUser
       );
       if (!cart) {
-        console.log("error block");
         throw new Error("cart is not found");
       }
       const parsedCart = {
@@ -227,8 +219,8 @@ export class UserCartService implements IUserCartService {
                 _id: service._id.toString(),
                 title: service.title,
                 description: service.description,
-                brandId: service.brandId.toString(),
-                modelId: service.modelId.toString(),
+                brandId: service.brandId ? service.brandId.toString() : "",
+                modelId: service.modelId ? service.modelId.toString() : "",
                 fuelType: service.fuelType,
                 servicesIncluded: service.servicesIncluded,
                 priceBreakup: {
@@ -254,7 +246,6 @@ export class UserCartService implements IUserCartService {
 
       return parsedCart;
     } catch (error) {
-      console.log("The catch blcok of the cart service", error);
       throw error;
     }
   }
@@ -273,7 +264,6 @@ export class UserCartService implements IUserCartService {
         packageObjectId
       );
       if (!cart) {
-        console.log("error block");
         throw new Error("cart is not found");
       }
       const parsedCart = {

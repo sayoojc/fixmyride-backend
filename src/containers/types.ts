@@ -1,4 +1,3 @@
-import { Admin } from "mongodb";
 
 export const TYPES = {
   // ========== REPOSITORIES ==========
@@ -31,6 +30,8 @@ export const TYPES = {
   UserOrderService:Symbol.for("UserOrderService"),
   UserProviderService: Symbol.for("UserProviderService"),
   UserNotificationService:Symbol.for("UserNotificationService"),
+  UserPaymentService:Symbol.for("UserPaymentService"),
+  UserEmergencyOrderService:Symbol.for("UserEmergencyOrderService"),
 
   // Admin services
   AdminAuthService: Symbol.for("AdminAuthService"),

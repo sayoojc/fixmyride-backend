@@ -72,7 +72,6 @@ export class ProviderNotificationService
           message: n.message,
           link: n.link,
           isRead: n.isRead,
-          createdAt: n.createdAt.toISOString(),
         }));
       console.log("the refined notifications", refinedNotifications);
       return {

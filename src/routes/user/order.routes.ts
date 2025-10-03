@@ -18,6 +18,9 @@ router.post("/payments/razorpay/verify", verifyUser, (req, res) => {
 router.post("/orders",verifyUser,(req,res) => {
   orderController.placeCashOrder(req,res)
 });
+router.post("/orders/emergency",verifyUser,(req,res) => {
+  orderController.placeEmergencyCashOrder(req,res)
+})
 router.get("/orders/history",verifyUser,(req,res) => {
   orderController.getOrderHistory(req,res)
 })

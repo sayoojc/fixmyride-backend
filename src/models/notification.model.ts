@@ -8,7 +8,6 @@ export interface INotification extends Document {
   message: string;
   link?: string;
   isRead: boolean;
-  createdAt: Date;
 }
 
 const NotificationSchema = new Schema<INotification>(

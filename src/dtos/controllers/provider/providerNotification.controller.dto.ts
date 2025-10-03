@@ -8,7 +8,6 @@ export const notificationSchema = z.object({
   message: z.string(),
   link: z.string().optional(),
   isRead: z.boolean(),
-  createdAt: z.string(),
 });
 
 export const getNotificationsSuccessSchema = z.object({

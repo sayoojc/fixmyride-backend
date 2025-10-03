@@ -81,7 +81,6 @@ export class AdminNotificationController
         ...notificationDoc.toObject(),
         _id: notificationDoc._id.toString(),
         recipientId: notificationDoc.recipientId.toString(),
-        createdAt: notificationDoc.createdAt.toISOString(),
       };
       console.log("the notification after marking it as read", notification);
       const response = {
@@ -129,7 +128,6 @@ export class AdminNotificationController
         ...notificationDoc.toObject(),
         _id: notificationDoc._id.toString(),
         recipientId: notificationDoc.recipientId.toString(),
-        createdAt: notificationDoc.createdAt.toISOString(),
       };
       console.log("the notification after marking it as unread", notification);
       const response = {

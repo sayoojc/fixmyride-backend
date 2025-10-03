@@ -11,3 +11,4 @@
     return new MailService(mailRepo);
   }).inSingletonScope();
  }
+ 

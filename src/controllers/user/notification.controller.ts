@@ -66,6 +66,7 @@ export class UserNotificationController
   ): Promise<void> {
     try {
       const id = req.params.id;
+      console.log('the id from params in the mark notification as read',id);
       const notificationDoc =
         await this._userNotificationService.markNotificationAsRead(id);
       if (!notificationDoc) {
@@ -79,7 +80,6 @@ export class UserNotificationController
         ...notificationDoc.toObject(),
         _id: notificationDoc._id.toString(),
         recipientId: notificationDoc.recipientId.toString(),
-        createdAt: notificationDoc.createdAt.toISOString(),
       };
       console.log("the notification after marking it as read", notification);
       const response = {
@@ -127,7 +127,6 @@ export class UserNotificationController
         ...notificationDoc.toObject(),
         _id: notificationDoc._id.toString(),
         recipientId: notificationDoc.recipientId.toString(),
-        createdAt: notificationDoc.createdAt.toISOString(),
       };
       console.log("the notification after marking it as unread", notification);
       const response = {

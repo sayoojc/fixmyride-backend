@@ -9,7 +9,7 @@ export const NotificationSchema = z.object({
   message: z.string(),
   link: z.string().optional(),
   isRead: z.boolean().default(false),
-  createdAt: z.string(),
+createdAt: z.union([z.string(), z.date()]),
 });
 
 
