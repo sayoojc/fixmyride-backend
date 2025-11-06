@@ -3,7 +3,7 @@ import { Server, Socket } from "socket.io";
 import { ISocketService } from "./ISocketService";
 import redis from "../config/redisConfig";
 import { NotificationPayload } from "../interfaces/notification.interface";
-import {NearbyServicePayload} from "../interfaces/notification.interface";
+import { NearbyServicePayload } from "../interfaces/notification.interface";
 
 interface ProviderInfo {
   socketId: string;
@@ -21,6 +21,7 @@ export class SocketService implements ISocketService {
         methods: ["GET", "POST"],
       },
     });
+
     this.io.on("connection", (socket: Socket) => {
       console.log(`Socket connected: ${socket.id}`);
       socket.on(
@@ -100,11 +101,16 @@ export class SocketService implements ISocketService {
     data: NearbyServicePayload
   ): Promise<void> {
     try {
+      console.log(
+        "the emit to nearby providers function hits",
+        customerLat,
+        customerLng
+      );
       const providerIds = (await redis.georadius(
         "providers:locations",
-        customerLng,
         customerLat,
-        20,
+        customerLng,
+        1000,
         "km"
       )) as string[];
 
@@ -112,6 +118,7 @@ export class SocketService implements ISocketService {
         console.log("No nearby providers found within 20km.");
         return;
       }
+      console.log("the provider ids", providerIds);
       const pipeline = redis.pipeline();
       providerIds.forEach((id) => pipeline.get(`provider:socket:${id}`));
       const results = await pipeline.exec();
@@ -137,107 +144,105 @@ export class SocketService implements ISocketService {
     }
   }
   public async emitToUser(
-  role: "admin" | "user" | "provider",
-  id: string,
-  event: string,
-  data: NotificationPayload
-): Promise<void> {
-  try {
-    const socketId = await redis.get(`${role}:socket:${id}`);
-    if (socketId) {
-      this.io.to(socketId).emit(event, data);
-      console.log(`Sent ${event} to ${role}:${id} via socket ${socketId}`);
-    } else {
-      console.log(`No active socket found for ${role}:${id}`);
+    role: "admin" | "user" | "provider",
+    id: string,
+    event: string,
+    data: NotificationPayload
+  ): Promise<void> {
+    try {
+      const socketId = await redis.get(`${role}:socket:${id}`);
+      if (socketId) {
+        this.io.to(socketId).emit(event, data);
+        console.log(`Sent ${event} to ${role}:${id} via socket ${socketId}`);
+      } else {
+        console.log(`No active socket found for ${role}:${id}`);
+      }
+    } catch (err) {
+      console.error(`Failed to send event to ${role}:${id}:`, err);
     }
-  } catch (err) {
-    console.error(`Failed to send event to ${role}:${id}:`, err);
   }
-}
-public async emitOrderUpdate(
-  userId: string,
-  update: {
-    orderId: string;
-    status:
-      | "placed"
-      | "accepted"
-      | "provider_nearby"
-      | "picked"
-      | "reached_station"
-      | "started"
-      | "completed"
-      | "returning"
-      | "delivered";
-    message: string;
-    progress?: number;
-    timestamp?: Date;
-  }
-): Promise<void> {
-  try {
-    const socketId = await redis.get(`user:socket:${userId}`);
-    
-    if (socketId) {
-      this.io.to(socketId).emit("order:update", {
-        ...update,
-        timestamp: update.timestamp || new Date(),
-      });
-      console.log(`✅ Sent order update to user:${userId}`, update);
-    } else {
-      console.log(`⚠️ No active socket for user:${userId}`);
+  public async emitOrderUpdate(
+    userId: string,
+    update: {
+      orderId: string;
+      status:
+        | "placed"
+        | "accepted"
+        | "provider_nearby"
+        | "picked"
+        | "reached_station"
+        | "started"
+        | "completed"
+        | "returning"
+        | "delivered";
+      message: string;
+      progress?: number;
+      timestamp?: Date;
     }
-  } catch (err) {
-    console.error("❌ Failed to emit order update:", err);
-  }
-}
-public async emitEmergencyService(
-  customerLat: number,
-  customerLng: number,
-  data: {
-    emergencyId: string;
-    customerId: string;
-    message: string;
-    location: { lat: number; lng: number };
-    timestamp?: Date;
-  }
-): Promise<void> {
-  try {
-    const providerIds = (await redis.georadius(
-      "providers:locations",
-      customerLng,
-      customerLat,
-      20,
-      "km"
-    )) as string[];
+  ): Promise<void> {
+    try {
+      const socketId = await redis.get(`user:socket:${userId}`);
 
-    if (!providerIds.length) {
-      console.log("🚨 No nearby providers available for emergency.");
-      return;
+      if (socketId) {
+        this.io.to(socketId).emit("order:update", {
+          ...update,
+          timestamp: update.timestamp || new Date(),
+        });
+        console.log(`✅ Sent order update to user:${userId}`, update);
+      } else {
+        console.log(`⚠️ No active socket for user:${userId}`);
+      }
+    } catch (err) {
+      console.error("❌ Failed to emit order update:", err);
     }
+  }
+  public async emitEmergencyService(
+    customerLat: number,
+    customerLng: number,
+    data: {
+      emergencyId: string;
+      customerId: string;
+      message: string;
+      location: { lat: number; lng: number };
+      timestamp?: Date;
+    }
+  ): Promise<void> {
+    try {
+      const providerIds = (await redis.georadius(
+        "providers:locations",
+        customerLng,
+        customerLat,
+        20,
+        "km"
+      )) as string[];
 
-    const pipeline = redis.pipeline();
-    providerIds.forEach((id) => pipeline.get(`provider:socket:${id}`));
-    const results = await pipeline.exec();
+      if (!providerIds.length) {
+        console.log("🚨 No nearby providers available for emergency.");
+        return;
+      }
+
+      const pipeline = redis.pipeline();
+      providerIds.forEach((id) => pipeline.get(`provider:socket:${id}`));
+      const results = await pipeline.exec();
       if (!results) {
         console.error("Redis pipeline returned null.");
         return;
       }
-    results.forEach(([err, socketId], index) => {
-      if (err) return console.error("Redis error:", err);
+      results.forEach(([err, socketId], index) => {
+        if (err) return console.error("Redis error:", err);
 
-      if (typeof socketId === "string") {
-        this.io.to(socketId).emit("emergency:service:available", {
-          ...data,
-          timestamp: data.timestamp || new Date(),
-        });
-        console.log(
-          `🚑 Emergency service alert sent to provider:${providerIds[index]}`
-        );
-      }
-    });
-  } catch (err) {
-    console.error("❌ Failed to emit emergency service:", err);
+        if (typeof socketId === "string") {
+          this.io.to(socketId).emit("emergency:service:available", {
+            ...data,
+            timestamp: data.timestamp || new Date(),
+          });
+          console.log(
+            `🚑 Emergency service alert sent to provider:${providerIds[index]}`
+          );
+        }
+      });
+    } catch (err) {
+      console.error("❌ Failed to emit emergency service:", err);
+    }
   }
-}
-
-
 }

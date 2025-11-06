@@ -14,8 +14,6 @@ import { IServiceRequestRepository } from "../../interfaces/repositories/IServic
 import redis from "../../config/redisConfig";
 import { INearbyProvider } from "../../models/serviceRequest.model";
 import { INotification } from "../../models/notification.model";
-import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
-import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
 import { mapOrderToDTO } from "../../utils/orderMapper";
 @injectable()
 export class UserOrderService implements IUserOrderService {
@@ -26,12 +24,12 @@ export class UserOrderService implements IUserOrderService {
     private readonly _cartRepository: ICartRepository,
     @inject(TYPES.AddressRepository)
     private readonly _addressRepository: IAddressRepository,
-        @inject(TYPES.SocketService)
-        private readonly _socketService: ISocketService,
-        @inject(TYPES.NotificationRepository)
-        private readonly _notificationRepository: INotificationRepository,
-        @inject(TYPES.ServiceRequestRepository)
-        private readonly _serviceRequestRepository: IServiceRequestRepository,
+    @inject(TYPES.SocketService)
+    private readonly _socketService: ISocketService,
+    @inject(TYPES.NotificationRepository)
+    private readonly _notificationRepository: INotificationRepository,
+    @inject(TYPES.ServiceRequestRepository)
+    private readonly _serviceRequestRepository: IServiceRequestRepository
   ) {}
   async getOrderDetails(id: string): Promise<OrderDTO | null> {
     try {
@@ -39,8 +37,7 @@ export class UserOrderService implements IUserOrderService {
       if (!order) return null;
       const mappedOrder = mapOrderToDTO(order);
       return mappedOrder;
-    } catch (error:any) {
-      console.log("the error is in the get order details service function",error.message);
+    } catch (error) {
       throw error;
     }
   }
@@ -67,7 +64,7 @@ export class UserOrderService implements IUserOrderService {
         page
       );
       const sanitizedOrders: OrderDTO[] = orders.map((order) => ({
-        ...mapOrderToDTO(order)
+        ...mapOrderToDTO(order),
       }));
 
       return {
@@ -97,7 +94,7 @@ export class UserOrderService implements IUserOrderService {
   ): Promise<string | undefined> {
     try {
       if (paymentMethod !== "cash") {
-        console.log('the payment method is not cash');
+        console.log("the payment method is not cash");
         throw new Error("Invalid payment method");
       }
       const cartObjectId = new Types.ObjectId(cartId);
@@ -189,15 +186,15 @@ export class UserOrderService implements IUserOrderService {
 
       try {
         const newOrder = await this._orderRepository.create(orderData);
- const nearbyProviderIds = (await redis.georadius(
+        const nearbyProviderIds = (await redis.georadius(
           "providers:locations",
           addressSnapshot.location.coordinates[0],
           addressSnapshot.location.coordinates[1],
-          20,
+          1000,
           "km"
         )) as string[];
         const pipeline = redis.pipeline();
-
+        console.log("the nearby providers", nearbyProviderIds);
         for (const providerId of nearbyProviderIds) {
           pipeline.get(`provider:socket:${providerId}`);
         }
@@ -259,6 +256,17 @@ export class UserOrderService implements IUserOrderService {
         const deleteResult = await this._cartRepository.deleteById(
           cartObjectId
         );
+        this._socketService.emitToNearbyProviders(
+          addressSnapshot.location.coordinates[0],
+          addressSnapshot.location.coordinates[1],
+           "service:available",
+          {
+            orderId: newOrder._id,
+            vehicleId: newOrder.vehicle._id,
+            services: newOrder.services,
+            message: "A new service request is available nearby!",
+          }
+        );
 
         if (!deleteResult) {
           throw new Error("Cart deletion failed");
@@ -277,7 +285,7 @@ export class UserOrderService implements IUserOrderService {
       throw error;
     }
   }
-    async handleSuccessfulPayment(
+  async handleSuccessfulPayment(
     razorpayOrderId: string,
     razorpayPaymentId: string,
     razorpaySignature: string,
@@ -499,7 +507,7 @@ export class UserOrderService implements IUserOrderService {
       throw error;
     }
   }
-    async handleFailedPayment(
+  async handleFailedPayment(
     razorpayOrderId: string,
     paymentStatus: string,
     cartId: string,

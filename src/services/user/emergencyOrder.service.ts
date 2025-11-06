@@ -118,6 +118,7 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
       const orderData = {
         user: userSnapshot,
         vehicle: undefined,
+        isEmergency:true,
         services: servicesSnapshot,
         totalAmount: servicePackage.priceBreakup?.total,
         finalAmount: servicePackage.priceBreakup?.total,
@@ -484,3 +485,4 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
   }
 }
 }
+

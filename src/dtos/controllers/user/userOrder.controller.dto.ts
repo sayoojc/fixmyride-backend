@@ -216,6 +216,7 @@ export const placeCashOrderRequestSchema = z.object({
 export const placeEmergencyCashOrderRequestSchema = z.object({
   selectedAddressId:z.union([z.string(),AddressSchema]),
   packageId:z.string(),
+
 });
 export type placeEmergencyCashOrderRequestDTO = z.infer<typeof placeEmergencyCashOrderRequestSchema>
 export type PlaceCashOrderRequestDTO = z.infer<typeof placeCashOrderRequestSchema> 
@@ -237,3 +238,4 @@ export type CreateRazorpayOrderResponseDTO = z.infer<
 export type CreateRazorpayOrderRequestDTO = z.infer<
   typeof CreateRazorpayOrderRequestSchema
 >;
+

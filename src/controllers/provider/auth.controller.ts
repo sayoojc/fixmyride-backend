@@ -140,8 +140,7 @@ export class ProviderAuthController implements IProviderAuthController {
         message: RESPONSE_MESSAGES.LOGIN_SUCCESS("Provider"),
         user: sanitizedProvider,
       });
-    } catch (error:any) {
-      console.log('the catch block inside the controller function',error.message)
+    } catch (error) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

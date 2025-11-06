@@ -42,6 +42,7 @@ export interface IOrder extends Document<Types.ObjectId> {
   razorpaySignature?: string;
   serviceDate?: string;
   selectedSlot?: string;
+  isEmergency:boolean;
   orderStatus:
     | "placed"
     | "confirmed"
@@ -127,6 +128,7 @@ const OrderSchema = new Schema<IOrder>(
     razorpaySignature: { type: String },
     serviceDate: { type: String },
     selectedSlot: { type: String },
+    isEmergency:{type:Boolean,default:false},
     orderStatus: {
       type: String,
       enum: [

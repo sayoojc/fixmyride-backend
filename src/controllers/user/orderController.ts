@@ -73,8 +73,7 @@ export class UserOrderController implements IUserOrderController {
         return;
       }
       res.status(StatusCode.OK).json(response);
-    } catch (err: any) {
-      console.log("the catch block inthe order controller", err.message);
+    } catch (err) {
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
