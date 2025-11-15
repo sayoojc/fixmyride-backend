@@ -4,7 +4,6 @@ import { IProviderSlotService } from "../../interfaces/services/provider/Iprovid
 import { ISlotRepository } from "../../interfaces/repositories/ISlotRepository";
 import { ISlot } from "../../models/slot.model";
 import { WeeklySlotDTO } from "../../dtos/controllers/provider/providerSlot.controller.dto";
-import { TIME_SLOTS } from "../../constants/timeSlot";
 import { IHourStatus } from "../../models/slot.model";
 import { UpdateQuery } from "mongoose";
 import mongoose from "mongoose";
@@ -29,7 +28,6 @@ export class ProviderSlotService implements IProviderSlotService {
           $lte: sevenDaysLater,
         },
       });
-      console.log("slots", slots);
       return slots;
     } catch (error) {
       throw error;
@@ -40,7 +38,6 @@ async updateSlots(
   weeklySlots: WeeklySlotDTO[]
 ): Promise<ISlot[]> {
   try {
-    console.log('the weekly slots in the service',weeklySlots);
     const providerId = new mongoose.Types.ObjectId(id);
     const updatedSlots: ISlot[] = [];
 

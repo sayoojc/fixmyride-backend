@@ -158,12 +158,10 @@ export class OrderRepository
         this.model.find(query).skip(skip).limit(limit).sort({ createdAt: -1 }),
         this.model.countDocuments(query),
       ]);
-      console.log("the orders fetched", orders);
       const totalPages = Math.ceil(totalCount / limit) || 1;
 
       return { orders, totalCount, totalPages };
     } catch (error) {
-      console.error("Error fetching orders:", error);
       return { orders: [], totalCount: 0, totalPages: 0 };
     }
   }
@@ -171,7 +169,6 @@ export class OrderRepository
     try {
       return await this.model.findById(orderId).populate("user");
     } catch (error) {
-      console.error("Error fetching order by ID:", error);
       return null;
     }
   }
@@ -227,10 +224,8 @@ export class OrderRepository
           query.createdAt = dateQuery;
         }
       }
-      console.log("the query", query);
       const skip = (page - 1) * limit;
       const totalOrders = await this.model.countDocuments(query);
-      console.log("totalOrders", totalOrders);
       const orders = await this.model
         .find(query)
         .sort({ createdAt: -1 })
@@ -242,7 +237,6 @@ export class OrderRepository
 
       return { orders, totalPages, totalOrders };
     } catch (error) {
-      console.error("Error fetching provider orders:", error);
       return { orders: [], totalPages: 0, totalOrders: 0 };
     }
   }

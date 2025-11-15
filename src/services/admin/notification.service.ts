@@ -51,7 +51,6 @@ export class AdminNotificationService implements IAdminNotificationService {
       }));
       return { data: formatted, total };
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       throw error;
     }
   }

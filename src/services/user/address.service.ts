@@ -26,7 +26,7 @@ export class UserAddressService implements IUserAddressService {
 
       const {latitude,longitude,userId,...rest}  = addressData
       const newAddress = await this._addressRepository.create({
-       ...rest,userId:new Types.ObjectId(userId),location:{type:'Point',coordinates:[latitude,longitude]}
+       ...rest,userId:new Types.ObjectId(userId),location:{type:'Point',coordinates:[longitude,latitude]}
         
       });
       const addressObj = newAddress.toObject();
@@ -99,7 +99,6 @@ export class UserAddressService implements IUserAddressService {
         userId: new mongoose.Types.ObjectId(addressForm.userId),
       }
     );
-    console.log("The updated address", updatedAddress);
     if (!updatedAddress) {
       throw new Error("Address not found or update failed");
     }
@@ -128,7 +127,6 @@ export class UserAddressService implements IUserAddressService {
 
       return { success: true, message: "Address deleted successfully" };
     } catch (error) {
-      console.error("Error in deleting address:", error);
       throw new Error(
         `An error occurred while deleting the address: ${
           (error as Error).message

@@ -14,7 +14,6 @@ export class NotificationRepository extends BaseRepository<INotification> implem
       const result = await this.model.insertMany(notifications, { ordered: true });
       return result;
     } catch (err) {
-      console.error("Failed to insert notifications into MongoDB:", err);
       throw err;
     }
   }

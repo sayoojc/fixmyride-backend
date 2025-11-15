@@ -18,7 +18,6 @@ export class AdminUserService implements IAdminUserService {
     try {
 return await this._userRepository.fetchUsers(search, page, statusFilter);     
     } catch (error) {
-      console.error("Error fetching users:", error);
       return undefined;
     }
   }

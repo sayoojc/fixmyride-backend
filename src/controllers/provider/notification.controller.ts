@@ -91,7 +91,6 @@ export class ProviderNotificationController
     try {
       const id = req.params.id;
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        console.log("the order id provided is not valid");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });

@@ -80,7 +80,6 @@ export class UserVehicleService implements IUserVehicleService {
         fuel: populatedVehicle.fuel,
       };
     } catch (error) {
-      console.error("Error adding vehicles:", error);
       return undefined;
     }
   }
@@ -88,7 +87,6 @@ export class UserVehicleService implements IUserVehicleService {
     try {
       const vehicles =
         await this._vehicleRepository.findVehicleDataPopulatedByUserId(id);
-       console.log('the vehicles fetched from the service layer',vehicles);
       if (!vehicles) {
         throw new Error("vehicle fetching failed");
       }
@@ -115,7 +113,6 @@ export class UserVehicleService implements IUserVehicleService {
 
       return formattedVehicles;
     } catch (error) {
-      console.error("Error fetching vehicles:", error);
       return undefined;
     }
   }
@@ -173,7 +170,6 @@ return undefined;
         },
       }
     } catch (error) {
-      console.log('the catch block hits from the vehicle service layer');
       return undefined;
     }
   }

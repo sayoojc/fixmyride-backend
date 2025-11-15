@@ -94,7 +94,6 @@ export class UserOrderService implements IUserOrderService {
   ): Promise<string | undefined> {
     try {
       if (paymentMethod !== "cash") {
-        console.log("the payment method is not cash");
         throw new Error("Invalid payment method");
       }
       const cartObjectId = new Types.ObjectId(cartId);
@@ -158,8 +157,8 @@ export class UserOrderService implements IUserOrderService {
           location: {
             type: "Point",
             coordinates: [
-              selectedAddressId.latitude,
               selectedAddressId.longitude,
+              selectedAddressId.latitude            
             ],
           },
         };
@@ -193,8 +192,9 @@ export class UserOrderService implements IUserOrderService {
           1000,
           "km"
         )) as string[];
+        console.log('the address location',addressSnapshot.location.coordinates)
+        console.log('the near by providerId',nearbyProviderIds);
         const pipeline = redis.pipeline();
-        console.log("the nearby providers", nearbyProviderIds);
         for (const providerId of nearbyProviderIds) {
           pipeline.get(`provider:socket:${providerId}`);
         }
@@ -208,6 +208,7 @@ export class UserOrderService implements IUserOrderService {
             status: "notified",
           });
         });
+        console.log('the nearby providers',nearbyProviders);
         servicesSnapshot.map(async (service) => {
           await this._serviceRequestRepository.create({
             userId: new Types.ObjectId(cart.userId._id),
@@ -256,18 +257,16 @@ export class UserOrderService implements IUserOrderService {
         const deleteResult = await this._cartRepository.deleteById(
           cartObjectId
         );
-        this._socketService.emitToNearbyProviders(
-          addressSnapshot.location.coordinates[0],
-          addressSnapshot.location.coordinates[1],
-           "service:available",
-          {
-            orderId: newOrder._id,
-            vehicleId: newOrder.vehicle._id,
-            services: newOrder.services,
-            message: "A new service request is available nearby!",
-          }
-        );
-
+     this._socketService.emitToProviders(
+            nearbyProviders,
+            "service:available",
+            {
+              orderId: newOrder._id,
+              vehicleId: newOrder.vehicle._id,
+              services: newOrder.services!,
+              message: "A new service request is available nearby!",
+            }
+          );
         if (!deleteResult) {
           throw new Error("Cart deletion failed");
         }
@@ -281,7 +280,6 @@ export class UserOrderService implements IUserOrderService {
         session.endSession();
       }
     } catch (error) {
-      console.error("Error placing order:", error);
       throw error;
     }
   }
@@ -367,8 +365,8 @@ export class UserOrderService implements IUserOrderService {
           location: {
             type: "Point",
             coordinates: [
-              selectedAddressId.latitude,
               selectedAddressId.longitude,
+              selectedAddressId.latitude,
             ],
           },
         };
@@ -400,16 +398,16 @@ export class UserOrderService implements IUserOrderService {
           "providers:locations",
           addressSnapshot.location.coordinates[0],
           addressSnapshot.location.coordinates[1],
-          20,
+          10000,
           "km"
         )) as string[];
         const pipeline = redis.pipeline();
-
+         console.log('the nearby provider ids',nearbyProviderIds);
         for (const providerId of nearbyProviderIds) {
           pipeline.get(`provider:socket:${providerId}`);
         }
         const results = await pipeline.exec();
-        const nearbyProviders: INearbyProvider[] = [];
+        const nearbyProviders:{providerId:Types.ObjectId; socketId?: string;status:"notified" | "accepted" | "rejected" | "timed_out"}[] = [];
         results?.forEach(([err, socketId], index) => {
           const providerId = nearbyProviderIds[index];
           nearbyProviders.push({
@@ -418,6 +416,7 @@ export class UserOrderService implements IUserOrderService {
             status: "notified",
           });
         });
+        console.log('the nearby providers',nearbyProviders)
         servicesSnapshot.map(async (service) => {
           await this._serviceRequestRepository.create({
             userId: new Types.ObjectId(cart.userId._id),
@@ -476,17 +475,17 @@ export class UserOrderService implements IUserOrderService {
           typeof addressSnapshot.location.coordinates[0] === "number" &&
           typeof addressSnapshot.location.coordinates[1] === "number"
         ) {
-          this._socketService.emitToNearbyProviders(
-            addressSnapshot.location.coordinates[1],
-            addressSnapshot.location.coordinates[0],
+          this._socketService.emitToProviders(
+            nearbyProviders,
             "service:available",
             {
               orderId: newOrder._id,
               vehicleId: newOrder.vehicle._id,
-              services: newOrder.services,
+              services: newOrder.services!,
               message: "A new service request is available nearby!",
             }
           );
+
           this._socketService.emitOrderUpdate(cart.userId._id, {
             orderId: newOrder._id.toString(),
             status: "placed",
@@ -502,8 +501,7 @@ export class UserOrderService implements IUserOrderService {
       } finally {
         session.endSession();
       }
-    } catch (error: any) {
-      console.error("Error placing order:", error.message);
+    } catch (error) {
       throw error;
     }
   }
@@ -532,18 +530,15 @@ export class UserOrderService implements IUserOrderService {
       const cart = await this._cartRepository.findPopulatedCartById(
         cartObjectId
       );
-
       if (!cart) {
         throw new Error("Cart not found");
       }
-
       const userSnapshot = {
         _id: cart.userId._id,
         name: cart.userId.name,
         email: cart.userId.email,
         phone: cart.userId.phone,
       };
-
       const vehicleSnapshot = {
         _id: cart.vehicleId._id,
         brandId: cart.vehicleId.brandId,
@@ -551,7 +546,6 @@ export class UserOrderService implements IUserOrderService {
         year: cart.vehicleId.year,
         fuel: cart.vehicleId.fuel,
       };
-
       const servicesSnapshot = (cart.services ?? []).map((service) => ({
         _id: service._id,
         title: service.title,
@@ -560,9 +554,7 @@ export class UserOrderService implements IUserOrderService {
         servicePackageCategory: service.servicePackageCategory,
         priceBreakup: service.priceBreakup,
       }));
-
       let addressSnapshot: AddressSnapshot;
-
       if (typeof selectedAddressId === "string") {
         const addressDoc = await this._addressRepository.findOne({
           _id: new Types.ObjectId(selectedAddressId),
@@ -590,13 +582,12 @@ export class UserOrderService implements IUserOrderService {
           location: {
             type: "Point",
             coordinates: [
-              selectedAddressId.latitude,
               selectedAddressId.longitude,
+              selectedAddressId.latitude            
             ],
           },
         };
       }
-
       const orderData = {
         userId: userSnapshot,
         vehicleId: vehicleSnapshot,
@@ -618,22 +609,17 @@ export class UserOrderService implements IUserOrderService {
 
       const session = await mongoose.startSession();
       session.startTransaction();
-
       try {
         const newOrder = await this._orderRepository.create(orderData);
-
         if (!newOrder) {
           throw new Error("Order creation failed");
         }
-
         const deleteResult = await this._cartRepository.deleteById(
           cartObjectId
         );
-
         if (!deleteResult) {
           throw new Error("Cart deletion failed");
         }
-
         await session.commitTransaction();
         return newOrder._id.toString();
       } catch (error) {
@@ -643,7 +629,7 @@ export class UserOrderService implements IUserOrderService {
         session.endSession();
       }
     } catch (error) {
-      console.error("Error handling failed payment:", error);
+      throw Error();
     }
   }
 }

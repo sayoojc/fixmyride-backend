@@ -88,9 +88,15 @@ export class UserAuthController {
 
       res.status(StatusCode.CREATED).json(response);
     } catch (error) {
+        const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+      ? error
+      : RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR;
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
+        message
       });
     }
   }
@@ -163,7 +169,6 @@ export class UserAuthController {
     try {
       const parsed = LoginRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log("parsing failed");
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -188,7 +193,6 @@ export class UserAuthController {
 
       const validatedResponse = LoginResponseSchema.safeParse(response);
       if (!validatedResponse.success) {
-        console.log("validation failed");
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

@@ -15,6 +15,7 @@ export const TYPES = {
   NotificationRepository:Symbol.for("NotificationRepository"),
   ServiceRequestRepository:Symbol.for("ServiceRequestRepository"),
   SlotRepository:Symbol.for("SlotRepository"),
+  CityRepository:Symbol.for("CityRepository"),
 
   // ========== SERVICES ==========
   MailService: Symbol.for("MailService"),

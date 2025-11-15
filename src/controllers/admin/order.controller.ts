@@ -31,16 +31,6 @@ async fetchOrders(
     const dateFilter = (req.query.dateFilter as string) || "";
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
-
-    console.log("Fetch Orders Request:", {
-      search,
-      page,
-      limit,
-      statusFilter,
-      dateFilter,
-      startDate,
-      endDate,
-    });
     const { sanitizedOrders, totalCount,totalPages } = await this._adminOrderService.fetchOrders(
       search,
       skip,
@@ -60,7 +50,6 @@ async fetchOrders(
     };
     res.status(StatusCode.OK).json(response);
   } catch (error) {
-    console.error("Error in fetchOrders controller:", error);
     res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -73,8 +62,6 @@ async fetchOrderById(
 ): Promise<void> {
   try {
     const orderId = req.params.id;
-    console.log("Fetch Order By ID Request:", { orderId });
-
     const order = await this._adminOrderService.fetchOrderById(orderId);
     if (!order) {
        res.status(StatusCode.NOT_FOUND).json({
@@ -93,7 +80,6 @@ async fetchOrderById(
     };
     res.status(StatusCode.OK).json(response);
   } catch (error) {
-    console.error("Error in fetchOrderById controller:", error);
     res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

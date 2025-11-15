@@ -7,8 +7,7 @@
  
  export const bindCommonServiceModule = (container : Container) => {
  container.bind<IMailService>(TYPES.MailService).toDynamicValue(() => {
-    const mailRepo = container.get<IMailRepository>(TYPES.MailRepository);
-    return new MailService(mailRepo);
+    return new MailService();
   }).inSingletonScope();
  }
  

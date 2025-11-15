@@ -51,7 +51,6 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
     userId: string
   ) {
     try {
-      console.log("the handle successful emergency payment called");
       const user = await this._userRepository.findOne({ _id: userId });
       const servicePackage = await this._servicePackageRepository.findOne({
         _id: packageId,
@@ -200,22 +199,19 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
         const notification = await this._notificationRepository.create(
           userNotification
         );
-        console.log('the user notifications',notification)
         if(!notification) throw new Error("Failed to create user notification for emergency order");
        const notificationsResult =  await this._notificationRepository.insertMany(notifications);
-       console.log('the provider notifications',notificationsResult);
         if(notificationsResult.length !== notifications.length) throw new Error("Failed to create some provider notifications for emergency order");
-        this._socketService.emitToNearbyProviders(
-          addressSnapshot.location.coordinates[1],
-          addressSnapshot.location.coordinates[0],
-          "service:available",
-          {
-            orderId: newOrder._id,
-            vehicleId: newOrder.vehicle._id,
-            services: newOrder.services,
-            message: "A new service request is available nearby!",
-          }
-        );
+           this._socketService.emitToProviders(
+            nearbyProviders,
+            "service:available",
+            {
+              orderId: newOrder._id,
+              vehicleId: newOrder.vehicle._id,
+              services: newOrder.services!,
+              message: "A new service request is available nearby!",
+            }
+          );
         this._socketService.emitOrderUpdate(
           userId,
           { orderId: newOrder._id.toString(), status: "placed", message: "Your emergency order has been placed successfully!" }
@@ -224,13 +220,11 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
         return newOrder;
       } catch (error: any) {
         await session.abortTransaction();
-        console.log("error in emergency order placement", error.message);
         throw error;
       } finally {
         session.endSession();
       }
-    } catch (error: any) {
-      console.error("Error handling emergency order:", error.message);
+    } catch (error) {
       throw error;
     }
   }
@@ -305,7 +299,6 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
 
       return newOrder._id.toString();
     } catch (error) {
-      console.error("Error handling failed emergency payment:", error);
       throw error;
     }
   }
@@ -324,7 +317,6 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
       },
   userId: string
 ) {
-  console.log("the handle emergency cash order called");
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -460,17 +452,16 @@ export class UserEmergencyOrderService implements IUserEmergencyOrderService {
     };
     await this._notificationRepository.create(userNotification);
     await this._notificationRepository.insertMany(notifications);
-    this._socketService.emitToNearbyProviders(
-      addressSnapshot.location.coordinates[1],
-      addressSnapshot.location.coordinates[0],
-      "service:available",
-      {
-        orderId: newOrder._id,  
-        vehicleId: newOrder.vehicle?._id,
-        services: newOrder.services,
-        message: "A new service request is available nearby!",
-      }
-    );
+   await this._socketService.emitToProviders(
+            nearbyProviders,
+            "service:available",
+            {
+              orderId: newOrder._id,
+              vehicleId: newOrder.vehicle._id,
+              services: newOrder.services!,
+              message: "A new service request is available nearby!",
+            }
+          );
     this._socketService.emitOrderUpdate(
       userId,
       { orderId: newOrder._id.toString(), status: "placed", message: "Your emergency order has been placed successfully!" }

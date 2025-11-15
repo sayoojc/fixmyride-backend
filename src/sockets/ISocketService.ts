@@ -1,14 +1,14 @@
 import { Server } from "socket.io";
-
+import { NearbyServicePayload } from "../interfaces/notification.interface";
+import { Types } from "mongoose";
 export interface ISocketService {
   initialize(server: any): void;
   getIO(): Server;
-  emitToNearbyProviders(
-    customerLat: number,
-    customerLng: number,
-    event: string,
-    data: any
-  ): void;
+ emitToProviders(
+   providers: { providerId: Types.ObjectId; socketId?: string;status:string }[],
+   event: string,
+   data: NearbyServicePayload
+ ): Promise<void>;
   emitToUser(
   role: "admin" | "user" | "provider",
   id: string,

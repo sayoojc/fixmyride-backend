@@ -49,7 +49,7 @@ const server = http.createServer(app);
 
 
 app.use(cookieParser());
-app.use(morganMiddleware);
+// app.use(morganMiddleware);
 app.use(json({ limit: "50mb" }));
 app.use(urlencoded({ extended: true, limit: "50mb" }));
 
@@ -104,35 +104,35 @@ socketService.initialize(server);
 connectdb().then(() => {
     console.log("Database connected successfully");
     
-      logger.info('Database connected successfully', { 
-        dbName: process.env.DB_NAME, 
-        dbHost: process.env.DB_HOST 
-    });
+    //   logger.info('Database connected successfully', { 
+    //     dbName: process.env.DB_NAME, 
+    //     dbHost: process.env.DB_HOST 
+    // });
     
        server.listen(port, () => {
         console.log(` Server running on port ${port}`);
-         logger.info(`Server started on port ${port}`, {
-            environment: process.env.NODE_ENV || 'development',
-            pid: process.pid
-        });
-            logger.debug('Server configuration', {
-            port: port,
-            nodeVersion: process.version,
-            platform: process.platform,
-            memoryUsage: process.memoryUsage()
-        });
+        //  logger.info(`Server started on port ${port}`, {
+        //     environment: process.env.NODE_ENV || 'development',
+        //     pid: process.pid
+        // });
+        //     logger.debug('Server configuration', {
+        //     port: port,
+        //     nodeVersion: process.version,
+        //     platform: process.platform,
+        //     memoryUsage: process.memoryUsage()
+        // });
     });
 }).catch((error) => {
     console.error(" Database connection failed:", error);
-        logger.error('Database connection failed', {
-        error: error.message,
-        stack: error.stack,
-        dbConfig: {
-            host: process.env.DB_HOST,
-            port: process.env.DB_PORT,
-            database: process.env.DB_NAME
-        }
-    });
+    //     logger.error('Database connection failed', {
+    //     error: error.message,
+    //     stack: error.stack,
+    //     dbConfig: {
+    //         host: process.env.DB_HOST,
+    //         port: process.env.DB_PORT,
+    //         database: process.env.DB_NAME
+    //     }
+    // });
     process.exit(1);
 });
 

@@ -6,7 +6,6 @@ import { IUserRepository } from "../../interfaces/repositories/IUserRepository";
 import { IAddressRepository } from "../../interfaces/repositories/IAddressRepository";
 import { IBrandRepository } from "../../interfaces/repositories/IBrandRepository";
 import { ICartRepository } from "../../interfaces/repositories/ICartRepository";
-import { IMailRepository } from "../../interfaces/repositories/IMailRepository";
 import { IModelRepository } from "../../interfaces/repositories/IModelRepository";
 import { IProviderRepository } from "../../interfaces/repositories/IProviderRepository";
 import { IServicePackageRepository } from "../../interfaces/repositories/IServicePackageRepository";
@@ -17,7 +16,8 @@ import { INotificationRepository } from "../../interfaces/repositories/INotifica
 import { ISocketService } from "../../sockets/ISocketService";
 import { IServiceRequestRepository } from "../../interfaces/repositories/IServiceRequestRepository";
 import { ISlotRepository } from "../../interfaces/repositories/ISlotRepository";
-
+import { ICityRepository } from "../../interfaces/repositories/ICityRepository";
+import { ITimeSlotRepository } from "../../interfaces/repositories/ITimeSlotsRepository";
 
 // Models
 import userModel from "../../models/user.model";
@@ -33,12 +33,12 @@ import orderModel from "../../models/order.model";
 import notificationModel from "../../models/notification.model"
 import serviceRequestModel from "../../models/serviceRequest.model"
 import slotModel from "../../models/slot.model";
+import { City } from "../../models/city.model";
 // Repositories
 import { UserRepository } from "../../repositories/user.repo";
 import { AddressRepository } from "../../repositories/address.repo";
 import { BrandRepository } from "../../repositories/brand.repo";
 import { CartRepository } from "../../repositories/cart.repo";
-import { MailRepository } from "../../repositories/mail.repo";
 import { ModelRepository } from "../../repositories/model.repo";
 import { ProviderRepository } from "../../repositories/provider.repo";
 import { ServicePackageRepository } from "../../repositories/servicePackage.repository";
@@ -49,6 +49,7 @@ import { SocketService } from "../../sockets/socketService";
 import { NotificationRepository } from "../../repositories/notification.repository";
 import { ServiceRequestRepository } from "../../repositories/serviceRequest.repository";
 import { SlotRepository } from "../../repositories/slot.repo";
+import { CityRepository } from "../../repositories/city.repo";
 
 export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.UserRepository)) {
@@ -56,7 +57,11 @@ export const bindRepositoriesModule = (container: Container) => {
       .toDynamicValue(() => new UserRepository(userModel))
       .inSingletonScope();
   }
-
+  if (!container.isBound(TYPES.CityRepository)) {
+    container.bind<ICityRepository>(TYPES.CityRepository)
+      .toDynamicValue(() => new CityRepository(City))
+      .inSingletonScope();
+  }
   if (!container.isBound(TYPES.AddressRepository)) {
     container.bind<IAddressRepository>(TYPES.AddressRepository)
       .toDynamicValue(() => new AddressRepository(addressModel))
@@ -72,12 +77,6 @@ export const bindRepositoriesModule = (container: Container) => {
   if (!container.isBound(TYPES.CartRepository)) {
     container.bind<ICartRepository>(TYPES.CartRepository)
       .toDynamicValue(() => new CartRepository(cartModel))
-      .inSingletonScope();
-  }
-
-  if (!container.isBound(TYPES.MailRepository)) {
-    container.bind<IMailRepository>(TYPES.MailRepository)
-      .toDynamicValue(() => new MailRepository())
       .inSingletonScope();
   }
 

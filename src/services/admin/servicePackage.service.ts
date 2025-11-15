@@ -19,7 +19,6 @@ export class AdminServicePackageService implements IAdminServicePackageService {
     data: AddServicePackageRequestDTO
   ): Promise<ServicePackageDTO> {
     try {
-      console.log('the add service package service function from the service layer',data);
       let servicePackageData
       if(data.servicePackageCategory !== "emergency"){
           servicePackageData = {
@@ -30,13 +29,10 @@ export class AdminServicePackageService implements IAdminServicePackageService {
       };
       } else {
         servicePackageData = {...data,modelId :undefined,brandId:undefined,isEmergency:true}
-      }
-     
-      console.log('the service package data from teh service package service function ',servicePackageData);
+      }  
       const newServicePackage = await this._servicePackageRepository.create(
         servicePackageData
       );
-      console.log('the new service package',newServicePackage)
       const plainObject = newServicePackage.toObject();
      const sanitizedServicePackage: ServicePackageDTO = {
   title: plainObject.title,
@@ -58,7 +54,6 @@ export class AdminServicePackageService implements IAdminServicePackageService {
     total: plainObject.priceBreakup.total,
   },
 };
-console.log('the sanitized service package',sanitizedServicePackage)
 return sanitizedServicePackage;
     } catch (error) {
       throw error;
@@ -102,11 +97,8 @@ return sanitizedServicePackage;
           skip,
           limit
         );
-        console.log('the service packages',servicePackages);
-        console.log('the total count',totalCount)
       return { servicePackages, totalCount };
     } catch (error) {
-      console.log("The catch block error", error);
       throw error;
     }
   }
@@ -120,7 +112,6 @@ return sanitizedServicePackage;
         brandId:data.data.brandId ? new Types.ObjectId(data.data.brandId) : undefined,
         modelId:data.data.modelId ? new Types.ObjectId(data.data.modelId) : undefined,
       };
-      console.log('the refined data from the service function',refinedData);
       const updatedServicePackage =
         await this._servicePackageRepository.findOneAndUpdate(
           { _id: data.id },
@@ -153,7 +144,6 @@ return sanitizedServicePackage;
     total: plainObject.priceBreakup.total,
   },
 };
-console.log('the sanitized service package',sanitizedServicePackage)
 return sanitizedServicePackage;
     } catch (error) {
       throw error;

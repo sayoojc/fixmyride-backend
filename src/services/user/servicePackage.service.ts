@@ -43,7 +43,6 @@ async getServicePackages(
 
     return servicePackages;
   } catch (error) {
-    console.log("The catch block error", error);
     throw error;
   }
 }
@@ -55,7 +54,6 @@ async getServicePackageById(id: string): Promise<IServicePackage | null> {
       );
     return servicePackage;
   } catch (error) {
-    console.log("The catch block error", error);
     throw error;
   } 
 }

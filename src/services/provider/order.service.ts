@@ -48,7 +48,6 @@ export class ProviderOrderService implements IProviderOrderService {
       );
       return {orders,totalOrders,totalPages};
     } catch (error) {
-      console.error("Error fetching orders:", error);
       throw error
     }
   }
@@ -109,7 +108,6 @@ export class ProviderOrderService implements IProviderOrderService {
     }
       return true;
     } catch (error) {
-      console.error("Error updating order status:", error);
       return false;
     }
   }

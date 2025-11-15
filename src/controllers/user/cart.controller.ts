@@ -77,7 +77,6 @@ export class UserCartController implements IUserCartController {
       };
       const validate = GetCartResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log("the validation error", validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -86,7 +85,6 @@ export class UserCartController implements IUserCartController {
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.log("the error in the get cart controller", (error as Error).message);
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({
@@ -122,7 +120,6 @@ export class UserCartController implements IUserCartController {
         userId
       });
       if (!updatedCart) {
-        console.log("the updated cart is null");
         res
           .status(StatusCode.INTERNAL_SERVER_ERROR)
           .json({
@@ -138,7 +135,6 @@ export class UserCartController implements IUserCartController {
       };
       const validate = AddServiceToCartResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the add to cart validation error',validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -147,9 +143,7 @@ export class UserCartController implements IUserCartController {
       }
       res.status(201).json(response);
     } catch (error) {
-      console.log("the error in the add to cart controller", (error as Error).message);
       if (error instanceof AppError) {
-        console.log("the app error in the add to cart controller", error.message);
     res.status(error.statusCode).json({
       success: false,
       message: error.message,

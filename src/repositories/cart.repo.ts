@@ -73,7 +73,6 @@ const updatedCart = await this.model.findOneAndUpdate(
       .lean<IPopulatedCart>();
 
     if (existingCart) {
-      console.log('the existing cart',existingCart);
       return existingCart;
     }
     const newCart = new this.model({
@@ -100,8 +99,6 @@ const updatedCart = await this.model.findOneAndUpdate(
     if (!populatedCart) {
       throw new Error("Failed to populate cart after creation");
     }
-    console.log('the new cart',newCart);
-
     return populatedCart;
   }
   async fetchCartPopulated(
@@ -162,7 +159,6 @@ const updatedCart = await this.model.findOneAndUpdate(
 
       return updatedCart;
     } catch (error) {
-      console.error("Error in removePackageFromCart:", error);
       throw new Error("Failed to remove service from cart");
     }
   }
@@ -194,7 +190,6 @@ const updatedCart = await this.model.findOneAndUpdate(
 
     return cart;
   } catch (error) {
-    console.error("Error fetching cart:", error);
     throw new Error("Failed to fetch cart by cartId");
   }
 }

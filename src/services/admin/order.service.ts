@@ -31,11 +31,6 @@ export class AdminOrderService implements IAdminOrderService {
             startDate,
             endDate
         );
-        console.log("Fetched Orders:", {
-            orders,
-            totalCount,
-            totalPages
-        }); 
      const sanitizedOrders = orders.map((order: any) => ({
       ...order.toObject(),
       _id: order._id.toString(),
@@ -53,7 +48,6 @@ export class AdminOrderService implements IAdminOrderService {
 
         return { sanitizedOrders, totalCount,totalPages };
         } catch (error) {
-        console.error("Error fetching orders:", error);
         return { sanitizedOrders: [], totalCount: 0 ,totalPages: 0 };
         }
     }
@@ -62,7 +56,6 @@ export class AdminOrderService implements IAdminOrderService {
             const orderIdObject = new Types.ObjectId(orderId);
             const order = await this._orderRepository.fetchOrderById(orderIdObject);
             if (!order) {
-                console.error(`Order with ID ${orderId} not found`);
                 return null;
             }
             return {
@@ -82,7 +75,6 @@ export class AdminOrderService implements IAdminOrderService {
     }
             };
         } catch (error) {
-            console.error("Error fetching order by ID:", error);
             return null;
         }
     } 

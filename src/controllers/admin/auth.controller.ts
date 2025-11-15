@@ -62,7 +62,6 @@ export class AdminAuthController implements IAdminAuthController {
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Error during login:", error);
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({
@@ -91,7 +90,6 @@ export class AdminAuthController implements IAdminAuthController {
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Admin logout error:", error);
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({

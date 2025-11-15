@@ -213,7 +213,6 @@ export class AdminModelController implements IAdminModelController {
 
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Error updating model:", error);
       res
         .status(StatusCode.INTERNAL_SERVER_ERROR)
         .json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });

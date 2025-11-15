@@ -1,5 +1,6 @@
 
 import { IOrderService } from "../models/order.model";
+import { Types } from "mongoose";
 export type NotificationQuery = {
   recipientId: string;
   recipientType: "provider" | "user";
@@ -21,8 +22,9 @@ export interface NotificationPayload {
 }
 
 export interface NearbyServicePayload {
-  orderId: string;
-  vehicleId: string;
+  orderId: Types.ObjectId;
+  vehicleId: Types.ObjectId;
   services: IOrderService[];
   message: string;
 }
+1

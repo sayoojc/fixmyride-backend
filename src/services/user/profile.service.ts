@@ -45,7 +45,6 @@ export class UserProfileService implements IUserProfileService {
       };
       return sanitizedUser;
     } catch (error) {
-      console.error("Error fetching users:", error);
       return undefined;
     }
   }
@@ -100,7 +99,6 @@ export class UserProfileService implements IUserProfileService {
 
       return sanitizedUser;
     } catch (error) {
-      console.error("Error fetching users:", error);
       return undefined;
     }
   }

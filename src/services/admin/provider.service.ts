@@ -53,6 +53,8 @@ export class AdminProviderService implements IAdminProviderService {
         skip,
         limit
       );
+
+   
       const plainProviders = JSON.parse(JSON.stringify(providers));
       const sanitizedProviders = plainProviders.map(
         (provider: Partial<IServiceProvider>) => {
@@ -209,7 +211,6 @@ export class AdminProviderService implements IAdminProviderService {
         return sanitized;
       }
     } catch (error) {
-      console.error("Error verifying provider:", error);
       throw error;
     }
   }

@@ -52,7 +52,6 @@ let existingUser;
         { phone: { $regex: search, $options: "i" } },
       ];
     }
-    console.log('the status filter',statusFilter);
     if (statusFilter === "active") {
       query.isListed = true;
     } else if (statusFilter === "blocked") {
@@ -75,7 +74,6 @@ let existingUser;
     })),
     totalCount}
   } catch (error) {
-    console.error("Error in repo fetching users:", error);
     return {users:[],totalCount:0};
   }
 }

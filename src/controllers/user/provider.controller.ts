@@ -35,7 +35,6 @@ export class UserProviderController implements IUserProviderController {
       };
       const validate = FetchProviderResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log("Validation error:", validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

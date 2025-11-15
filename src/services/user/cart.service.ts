@@ -86,7 +86,6 @@ export class UserCartService implements IUserCartService {
       };
       return parsedCart;
     } catch (error) {
-      console.log("the error in the get cart service", (error as Error).message);
       throw error;
     }
   }

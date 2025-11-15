@@ -109,10 +109,8 @@ export class ProviderAuthController implements IProviderAuthController {
     res: Response<ProviderLoginResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log('the provider login controller function');
       const parsed = ProviderLoginSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('the request parsing failed',parsed.error.message);
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });

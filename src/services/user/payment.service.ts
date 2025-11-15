@@ -19,7 +19,6 @@ export class UserPaymentService implements IUserPaymentService {
   async createPaymentOrder(
     amountInRupees: number
   ): Promise<RazorpayOrderResponse> {
-    console.log("the create payment order called");
     const amountInPaise = amountInRupees * 100;
     const order = await this.razorpayInstance.orders.create({
       amount: amountInPaise,
@@ -47,7 +46,6 @@ export class UserPaymentService implements IUserPaymentService {
       const payment = await this.razorpayInstance.payments.fetch(paymentId);
       return payment.status;
     } catch (error) {
-      console.error("Error fetching payment status:", error);
       throw new Error("Failed to verify payment status");
     }
   }

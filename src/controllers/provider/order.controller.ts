@@ -67,8 +67,6 @@ async getOrders(
 ): Promise<void> {
   try {
     let { search, page, limit, status, dateFilter, startDate, endDate } = req.query;
-    console.log('the get orders controller function ',{search, page, limit, status, dateFilter, startDate, endDate})
-
     const providerId = req.userData?.id;
     if (!providerId || !mongoose.Types.ObjectId.isValid(providerId)) {
       res
@@ -93,7 +91,6 @@ async getOrders(
       startDate,
       endDate
     );
-    console.log('the data fetched from the backend',{orders,totalOrders,totalPages})
     if (!orders || orders.length === 0) {
       res.status(StatusCode.NOT_FOUND).json({
         success: false,

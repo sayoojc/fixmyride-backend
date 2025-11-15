@@ -35,10 +35,8 @@ export class AdminServicePackageController
     res: Response<AddServicePackageResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log('the req body of the service package add controller',req.body);
       const parsed = ServicePackageSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('the service pacakge request body parsing failed',parsed.error.message)
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -47,7 +45,6 @@ export class AdminServicePackageController
       }
       const newServicePackage =
         await this._adminServicePackageService.addServicePackage(parsed.data);
-        console.log('the new service package',newServicePackage);
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_CREATED("Service Package"),
@@ -55,7 +52,6 @@ export class AdminServicePackageController
       };
       const validate = AddServicePackageResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the validation of the add service package response schema is failed',validate.error.message);0
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -96,7 +92,6 @@ export class AdminServicePackageController
       };
       const validate = getServicePackagesResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the get service package response validation failed',validate.error.message)
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -118,7 +113,6 @@ export class AdminServicePackageController
     try {
       const parsed = UpdateServicePackageRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log('the parsing of the request is failed',parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -148,7 +142,6 @@ export class AdminServicePackageController
 
       const validate = UpdateServicePackageResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the validation failed',validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "Response DTO doesn't match",
@@ -158,7 +151,6 @@ export class AdminServicePackageController
 
       res.status(StatusCode.OK).json(response);
     } catch (error:any) {
-      console.log('the error ',error.message)
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

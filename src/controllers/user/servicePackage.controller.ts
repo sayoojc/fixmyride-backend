@@ -26,9 +26,7 @@ export class UserServicePackageController
     res: Response<GetServicePackagesResponseDTO | ErrorResponse>
   ): Promise<void> {
     try {
-      console.log('the get service packages controller function hits')
       const { vehicleId, serviceCategory, fuelType } = req.query;
-      console.log({vehicleId,serviceCategory,fuelType});
       if (
         typeof vehicleId !== "string" ||
         typeof serviceCategory !== "string" ||
@@ -46,8 +44,6 @@ export class UserServicePackageController
           serviceCategory,
           fuelType
         );
-        console.log('the service packages from controller', servicePackages);
-
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Service packages"),
@@ -55,7 +51,6 @@ export class UserServicePackageController
       };
       const validate = GetServicePackagesResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log('the get service package response validation failed',validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

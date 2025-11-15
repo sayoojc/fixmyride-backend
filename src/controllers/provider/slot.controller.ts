@@ -24,7 +24,6 @@ export class ProviderSlotController implements IProviderSlotController {
     res: Response<GetSlotsResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      console.log('the get slots controller called');
       if (!req.userData) {
         return;
       }
@@ -37,7 +36,6 @@ export class ProviderSlotController implements IProviderSlotController {
         return;
       }
       const slots = await this._providerSlotService.getSlots(id);
-      console.log("the slots from the controller", slots);
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_FETCHED("Slots"),
@@ -62,18 +60,14 @@ export class ProviderSlotController implements IProviderSlotController {
       if (!req.userData) {
         return;
       }
-      console.log("the update slot");
       const id = req.userData.id;
       const reqValidate = updateSlotsRequestSchema.safeParse(req.body);
       if (!reqValidate.success) {
-        console.log("the slot validation failed", reqValidate.error.message);
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
         return;
-      }
-      console.log('the request body ',req.body);
-      
+      }      
       const updatedSlots = await this._providerSlotService.updateSlots(
         id,
         reqValidate.data?.weeklySlots

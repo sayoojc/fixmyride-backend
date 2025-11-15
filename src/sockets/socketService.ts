@@ -4,6 +4,7 @@ import { ISocketService } from "./ISocketService";
 import redis from "../config/redisConfig";
 import { NotificationPayload } from "../interfaces/notification.interface";
 import { NearbyServicePayload } from "../interfaces/notification.interface";
+import { Types } from "mongoose";
 
 interface ProviderInfo {
   socketId: string;
@@ -23,7 +24,7 @@ export class SocketService implements ISocketService {
     });
 
     this.io.on("connection", (socket: Socket) => {
-      console.log(`Socket connected: ${socket.id}`);
+      console.log(`Socket connected123: ${socket.id}`);
       socket.on(
         "register:role",
         async (data: {
@@ -33,7 +34,7 @@ export class SocketService implements ISocketService {
         }) => {
           const { role, id, location } = data;
           console.log(
-            ` ${role} ${id} registered`,
+            ` ${role} ${id} registered11`,
             location ? `at ${JSON.stringify(location)}` : ""
           );
           socket.join(`${role}s`);
@@ -88,61 +89,28 @@ export class SocketService implements ISocketService {
       );
     });
   }
+
   public getIO(): Server {
     if (!this.io) {
       throw new Error("Socket.IO has not been initialized!");
     }
     return this.io;
   }
-  public async emitToNearbyProviders(
-    customerLat: number,
-    customerLng: number,
-    event: string,
-    data: NearbyServicePayload
-  ): Promise<void> {
-    try {
-      console.log(
-        "the emit to nearby providers function hits",
-        customerLat,
-        customerLng
-      );
-      const providerIds = (await redis.georadius(
-        "providers:locations",
-        customerLat,
-        customerLng,
-        1000,
-        "km"
-      )) as string[];
-
-      if (!providerIds.length) {
-        console.log("No nearby providers found within 20km.");
-        return;
-      }
-      console.log("the provider ids", providerIds);
-      const pipeline = redis.pipeline();
-      providerIds.forEach((id) => pipeline.get(`provider:socket:${id}`));
-      const results = await pipeline.exec();
-      if (!results) {
-        console.error("Redis pipeline returned null.");
-        return;
-      }
-      results.forEach(([err, socketId], index) => {
-        const providerId = providerIds[index];
-        if (err) {
-          console.error(`Redis error for ${providerId}:`, err);
-          return;
-        }
-        if (typeof socketId === "string") {
-          this.io.to(socketId).emit(event, data);
-          console.log(`Notified ${providerId} via socket ${socketId}`);
-        } else {
-          console.log(`No socket found for ${providerId}`);
-        }
-      });
-    } catch (err) {
-      console.error("Failed to emit to nearby providers:", err);
+async emitToProviders(
+  providers: { providerId: Types.ObjectId; socketId?: string;status:string}[],
+  event: string,
+  data: NearbyServicePayload
+): Promise<void> {
+  for (const { providerId, socketId } of providers) {
+    if (socketId) {
+      this.io.to(socketId).emit(event, data);
+      console.log(`Notified ${providerId} via socket ${socketId} event ${event}`);
+    } else {
+      console.log(`No socket found for ${providerId}`);
     }
   }
+}
+
   public async emitToUser(
     role: "admin" | "user" | "provider",
     id: string,

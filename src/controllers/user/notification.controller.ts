@@ -53,7 +53,6 @@ export class UserNotificationController
         ...notifications,
       });
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -66,7 +65,6 @@ export class UserNotificationController
   ): Promise<void> {
     try {
       const id = req.params.id;
-      console.log('the id from params in the mark notification as read',id);
       const notificationDoc =
         await this._userNotificationService.markNotificationAsRead(id);
       if (!notificationDoc) {
@@ -81,7 +79,6 @@ export class UserNotificationController
         _id: notificationDoc._id.toString(),
         recipientId: notificationDoc.recipientId.toString(),
       };
-      console.log("the notification after marking it as read", notification);
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_UPDATED("notification"),
@@ -89,10 +86,6 @@ export class UserNotificationController
       };
       const validate = MarkNotificationAsReadSchema.safeParse(response);
       if (!validate.success) {
-        console.log(
-          "the notification validation failed",
-          validate.error.message
-        );
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -101,7 +94,6 @@ export class UserNotificationController
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Error marking notification as read:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
@@ -128,7 +120,6 @@ export class UserNotificationController
         _id: notificationDoc._id.toString(),
         recipientId: notificationDoc.recipientId.toString(),
       };
-      console.log("the notification after marking it as unread", notification);
       const response = {
         success: true,
         message: RESPONSE_MESSAGES.RESOURCE_UPDATED("notification"),
@@ -136,10 +127,6 @@ export class UserNotificationController
       };
       const validate = MarkNotificationAsReadSchema.safeParse(response);
       if (!validate.success) {
-        console.log(
-          "the notification marking as unread validation failed",
-          validate.error.message
-        );
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -148,7 +135,6 @@ export class UserNotificationController
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.error("Error marking notification as unread:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:
@@ -179,7 +165,6 @@ export class UserNotificationController
         message: RESPONSE_MESSAGES.RESOURCE_DELETED("notification"),
       });
     } catch (error) {
-      console.error("Error deleting notification:", error);
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message:

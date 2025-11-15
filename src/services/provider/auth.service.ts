@@ -47,8 +47,6 @@ export class ProviderAuthService implements IProviderAuthService {
     };
 
     await redis.set(redisKey, JSON.stringify(tempProvider), "EX", 120);
-    let savedData = await redis.get(redisKey);
-    console.log("savedData", savedData);
     return tempProvider;
   }
   async providerRegister(providerData: {
@@ -65,7 +63,6 @@ export class ProviderAuthService implements IProviderAuthService {
     const redisKey = `tempProvider:${email}`;
 
     const redisProviderString = await redis.get(redisKey);
-    console.log("the redis provider string", redisProviderString);
     if (!redisProviderString) {
       throw new Error("Otp data not found");
     }
@@ -86,7 +83,6 @@ export class ProviderAuthService implements IProviderAuthService {
       ...userData,
       location: { type: "Point", coordinates: [latitude, longitude] },
     };
-    console.log("THE DATA TO BE SAVED", data);
     try {
       const provider = await this._providerRepository.create(data);
       return provider;
@@ -161,10 +157,7 @@ const sanitizedProvider: SanitizedProvider = {
       "EX",
       refreshTokenExpirySeconds
     );
-    console.log(
-      "the provider from the backend service file when logs in ",
-      provider
-    );
+
     return { sanitizedProvider, accessToken, refreshToken };
   }
 }

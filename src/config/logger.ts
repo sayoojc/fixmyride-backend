@@ -4,7 +4,7 @@ import morgan, { StreamOptions } from 'morgan';
 import fs from 'fs';
 import path from 'path';
 
-const logDirectory = path.join(__dirname, '../logs');
+const logDirectory = path.resolve(process.cwd(), "logs");
 if (!fs.existsSync(logDirectory)) {
   fs.mkdirSync(logDirectory);
 }

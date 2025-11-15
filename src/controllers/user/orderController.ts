@@ -85,14 +85,9 @@ export class UserOrderController implements IUserOrderController {
     res: Response<verifyRazorpayPaymentResponseDTO | ErrorResponseDTO>
   ): Promise<void> {
     try {
-      console.log("the verify payment controller called", req.body);
       const userId = req.userData?.id;
       const parsed = verifyRazorpayPaymentRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log(
-          "the parsing failed in the controller in the verify payment",
-          parsed.error.message
-        );
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -129,7 +124,6 @@ export class UserOrderController implements IUserOrderController {
 
       if (paymentStatus !== "captured") {
         if (cartId) {
-          console.log('the payment status is failed and there is cartId and redirecting to handle Failed payment service function ');
           await this._userOrderService.handleFailedPayment(
             orderId,
             paymentStatus,
@@ -148,7 +142,6 @@ export class UserOrderController implements IUserOrderController {
             });
             return;
           }
-          console.log('the payment status is failed and there is no cartId and redirecting to handle Failed emergency payment service function ');  
           await this._userEmergencyOrderService.handleFailedEmergencyPayment(
             orderId,
             paymentStatus,
@@ -167,7 +160,6 @@ export class UserOrderController implements IUserOrderController {
       }
       let orderResponse;
       if (cartId) {
-        console.log('the payment status is success and there is cartId and redirecting to handle successful payment service function ');
         orderResponse = await this._userOrderService.handleSuccessfulPayment(
           orderId,
           razorpayPaymentId,
@@ -185,7 +177,6 @@ export class UserOrderController implements IUserOrderController {
           });
           return;
         }
-        console.log('the payment status is success and there is no cartId and redirecting to handle successful emergency payment service function ');
         orderResponse =
           await this._userEmergencyOrderService.handleSuccessfulEmergencyPayment(
             orderId,
@@ -219,7 +210,6 @@ export class UserOrderController implements IUserOrderController {
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.log("the catch block inthe order controller");
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -232,9 +222,7 @@ export class UserOrderController implements IUserOrderController {
   ): Promise<void> {
     try {
       const orderId = req.params.id;
-      console.log("the get order details controller called",orderId);
       if (!mongoose.Types.ObjectId.isValid(orderId)) {
-        console.log("invalid order id from the get order details");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.INVALID_INPUT });
@@ -242,7 +230,6 @@ export class UserOrderController implements IUserOrderController {
       }
       const order = await this._userOrderService.getOrderDetails(orderId);
       if (!order) {
-        console.log("no order found  from the service file");
         res.status(StatusCode.NOT_FOUND).json({
           success: false,
           message: RESPONSE_MESSAGES.RESOURCE_NOT_FOUND("order"),
@@ -256,7 +243,6 @@ export class UserOrderController implements IUserOrderController {
       };
       const validate = getOrderDetailsResponseSchema.safeParse(response);
       if (!validate.success) {
-        console.log("the get order details response validation failed",validate.error.message);
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -289,7 +275,6 @@ export class UserOrderController implements IUserOrderController {
         return;
       }
       if (!id) {
-        console.log("no id");
         res
           .status(StatusCode.BAD_REQUEST)
           .json({ success: false, message: RESPONSE_MESSAGES.FORBIDDEN });
@@ -305,7 +290,6 @@ export class UserOrderController implements IUserOrderController {
       };
       const validate = getOrderHistoryResponseSchema.safeParse(response);
       if (!validate) {
-        console.log("response validation failed");
         res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -314,7 +298,6 @@ export class UserOrderController implements IUserOrderController {
       }
       res.status(StatusCode.OK).json(response);
     } catch (error) {
-      console.log("the catch block inteh controller");
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -328,7 +311,6 @@ export class UserOrderController implements IUserOrderController {
     try {
       const parsed = placeCashOrderRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        console.log("the request parsing is failed", parsed.error.message);
         res.status(StatusCode.BAD_REQUEST).json({
           success: false,
           message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -355,7 +337,6 @@ export class UserOrderController implements IUserOrderController {
         orderId: orderId,
       });
     } catch (error) {
-      console.log("the catch block inteh controller");
       res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -378,7 +359,6 @@ async placeEmergencyCashOrder(
 
     const parsed = placeEmergencyCashOrderRequestSchema.safeParse(req.body);
     if (!parsed.success) {
-      console.log("the request parsing failed for emergency cash order", parsed.error.message);
       res.status(StatusCode.BAD_REQUEST).json({
         success: false,
         message: RESPONSE_MESSAGES.INVALID_INPUT,
@@ -406,7 +386,6 @@ async placeEmergencyCashOrder(
       orderId: orderId,
     });
   } catch (error) {
-    console.log("the catch block in placeEmergencyCashOrder", error);
     res.status(StatusCode.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR,

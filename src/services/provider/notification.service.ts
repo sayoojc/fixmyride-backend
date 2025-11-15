@@ -23,14 +23,6 @@ export class ProviderNotificationService
     unreadOnly: boolean
   ): Promise<IGetNotificationsResult> {
     try {
-      console.log("the details from the notifications service function", {
-        id,
-        search,
-        page,
-        filter,
-        itemsPerPage,
-        unreadOnly,
-      });
       const query: NotificationQuery = {
         recipientId: id,
         recipientType: "provider",
@@ -73,7 +65,6 @@ export class ProviderNotificationService
           link: n.link,
           isRead: n.isRead,
         }));
-      console.log("the refined notifications", refinedNotifications);
       return {
         refinedNotifications: refinedNotifications ?? [],
         totalPages,
@@ -89,14 +80,12 @@ export class ProviderNotificationService
   }
   async markNotificationAsRead(id: string): Promise<{ success: boolean }> {
     try {
-      console.log('the marked as read');
       const result = await this._notificationRepository.findOneAndUpdate(
         { _id: id },
         { isRead: true },
         { new: true }
       );
       if (result) {
-        console.log('the marking read is successfull');
         return { success: true };
       } else {
         return { success: false };

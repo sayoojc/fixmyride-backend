@@ -28,7 +28,6 @@ export class UserBrandService implements IUserBrandService {
       );
       return brandsWithModels;
     } catch (error) {
-      console.error("Error fetching brands with models:", error);
       throw new Error("Fetching brands with models failed");
     }
   }
